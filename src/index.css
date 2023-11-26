@@ -47,12 +47,9 @@
         --input: 240 3.7% 15.9%;
         --ring: 142.4 71.8% 29.2%;
     }
+
     * {
         @apply border-border;
-    }
-
-    html {
-        font-size: 62.5%;
     }
 
     body {
@@ -63,6 +60,17 @@
             background-color 0.3s;
         min-height: 100vh;
         line-height: 1.5;
-        font-size: 1.6rem;
+    }
+
+    h1 {
+        @apply scroll-m-20 text-4xl font-semibold tracking-tight lg:text-5xl;
+    }
+
+    h2 {
+        @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+    }
+
+    h3 {
+        @apply scroll-m-20 text-2xl font-semibold tracking-tight;
     }
 }

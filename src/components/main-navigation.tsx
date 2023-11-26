@@ -16,7 +16,7 @@ export function MainNavigation() {
         <nav>
             <ul className="flex flex-col gap-3">
                 {navigation.map(item => (
-                    <li key={item.name} className="group">
+                    <li key={item.name} className="group text-sm">
                         <NavLink
                             to={item.href}
                             className={({ isActive }) => {
@@ -32,7 +32,7 @@ export function MainNavigation() {
                                 <>
                                     <item.icon
                                         className={cn(
-                                            'h-8 w-8 opacity-70 group-hover:text-primary',
+                                            'h-5 w-5 opacity-70 group-hover:text-primary',
                                             {
                                                 'text-primary opacity-100': isActive,
                                             },
