@@ -9,12 +9,19 @@
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
         "format": "prettier --write ./src/**/*.{ts,tsx,js,jsx}",
-        "check": "tsc --noEmit"
+        "check": "tsc --noEmit",
+        "db:start": "pnpx supabase start",
+        "db:stop": "pnpx supabase stop",
+        "db:stop-no-backup": "pnpx supabase stop --no-backup",
+        "db:status": "pnpx supabase status",
+        "db:push": "pnpx supabase db push",
+        "generate-types": "pnpx supabase gen types typescript --local > ./src/types/schemas.ts"
     },
     "dependencies": {
         "@fontsource-variable/sono": "^5.0.17",
         "@fontsource/poppins": "^5.0.8",
         "@radix-ui/react-slot": "^1.0.2",
+        "@supabase/supabase-js": "^2.38.5",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.0.0",
         "lucide-react": "^0.292.0",
