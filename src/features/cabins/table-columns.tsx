@@ -7,8 +7,8 @@ import { CabinsTableActions } from './cabins-table-actions';
 const helper = createColumnHelper<Cabin>();
 
 export const cabinTableColumns = [
-    helper.accessor('image_url', {
-        id: 'image_url',
+    helper.accessor('image', {
+        id: 'image',
         header: 'Image',
         cell: props => (
             <img
