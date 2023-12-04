@@ -1,0 +1,10 @@
+{
+	"editor.formatOnSave": true,
+	"prettier.tabWidth": 4,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true
+	},
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	}
+}
