@@ -63,6 +63,11 @@
 		</thead>
 
 		<tbody>
+			{#if cabins.length === 0}
+				<tr>
+					<td colspan="6" class="text-center opacity-50">No cabins found</td>
+				</tr>
+			{/if}
 			{#each cabins as cabin (cabin.id)}
 				<tr class="hover:bg-base-100">
 					<td>
@@ -127,7 +132,7 @@
 <div id="create" class="modal" class:modal-open={isModalOpen}>
 	<div class="modal-box">
 		<h3 class="text-lg font-bold">Add New Cabin</h3>
-		<form method="POST" action="?/create" use:enhance>
+		<form method="POST" action="?/create" enctype="multipart/form-data" use:enhance>
 			<label class="w-full max-w-md">
 				<div class="label">
 					<span class="label-text">Cabin name</span>
@@ -212,6 +217,17 @@
 				{#if $errors.description}
 					<small class="text-xs text-error">{$errors.description}</small>
 				{/if}
+			</label>
+
+			<label class="w-full max-w-md">
+				<div class="label">
+					<span class="label-text">Cabin Image</span>
+				</div>
+				<input
+					type="file"
+					class="file-input file-input-bordered file-input-accent w-full"
+					name="file"
+				/>
 			</label>
 
 			<div class="modal-action flex gap-2">

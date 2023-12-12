@@ -1,4 +1,12 @@
-import { collection, getDocs, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
+import {
+	collection,
+	getDocs,
+	addDoc,
+	serverTimestamp,
+	deleteDoc,
+	doc,
+	updateDoc
+} from 'firebase/firestore';
 
 import { db } from './firebase';
 import type { CabinInsert } from '$lib/schemas/cabin';
@@ -12,6 +20,7 @@ export interface Cabin {
 	description: string;
 	image?: string;
 	createdAt: Date;
+	updateAt?: Date;
 }
 
 export async function getCabins() {
@@ -41,6 +50,20 @@ export async function createCabin(data: CabinInsert) {
 	} catch (err: unknown) {
 		console.error('Error adding document: ', err);
 		return null;
+	}
+}
+
+export async function updateCabin(id: string, data: Partial<Cabin>) {
+	if (!id) return { success: false, message: 'No id provided' };
+
+	const docRef = doc(db, 'cabins', id);
+
+	try {
+		await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+		return { success: true };
+	} catch (err: unknown) {
+		console.error('Error updating document: ', err);
+		return { success: false, message: 'Error updating document' };
 	}
 }
 

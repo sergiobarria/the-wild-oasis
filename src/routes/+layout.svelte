@@ -11,7 +11,7 @@
 
 	<div class="flex-1">
 		<header class="p-3">header</header>
-		<main class="bg-neutral-100 p-5">
+		<main class="h-full bg-neutral-100 p-5">
 			<slot />
 		</main>
 	</div>
