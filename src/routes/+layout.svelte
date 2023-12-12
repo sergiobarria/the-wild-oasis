@@ -1,12 +1,18 @@
 <script>
+	import { Toaster } from 'svelte-french-toast';
+
 	import Sidebar from '$lib/components/sidebar.svelte';
 	import '../app.css';
 </script>
 
-<div class="grid h-screen grid-cols-[14rem_1fr] grid-rows-[auto_1fr]">
-	<header class="border-b border-neutral-100 bg-white px-10 py-6">HEADER</header>
+<Toaster />
+<div class="flex min-h-[100vh] gap-3">
 	<Sidebar />
-	<main class="bg-neutral-50 px-10 py-14">
-		<slot />
-	</main>
+
+	<div class="flex-1">
+		<header class="p-3">header</header>
+		<main class="bg-neutral-100 p-5">
+			<slot />
+		</main>
+	</div>
 </div>

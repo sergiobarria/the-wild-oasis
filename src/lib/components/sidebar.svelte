@@ -1,71 +1,99 @@
 <script lang="ts">
-	import { CalendarDaysIcon, HomeIcon, SettingsIcon, TreesIcon, UsersIcon } from 'lucide-svelte';
+	import {
+		CalendarDaysIcon,
+		Home,
+		HomeIcon,
+		SettingsIcon,
+		TreesIcon,
+		UsersIcon
+	} from 'lucide-svelte';
 	import { page } from '$app/stores';
-
-	import NavLink from './nav-link.svelte';
-	import { cn } from '$lib/utils';
-
-	// const links = [
-	// 	{ id: 0, name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-	// 	{ id: 1, name: 'Bookings', href: '/bookings', icon: CalendarDaysIcon },
-	// 	{ id: 2, name: 'Cabins', href: '/cabins', icon: TreesIcon },
-	// 	{ id: 3, name: 'Users', href: '/users', icon: UsersIcon },
-	// 	{ id: 4, name: 'Settings', href: '/settings', icon: SettingsIcon }
-	// ];
 
 	$: pathname = new URL($page.url).pathname;
 </script>
 
-<aside class="row-span-full flex flex-col gap-14 border-r border-neutral-100 bg-white p-4">
-	<a href="/dashboard">
-		<div class="flex justify-center">
-			<img src="/logo-light.png" alt="logo" width={200} height={200} class="h-16 w-auto" />
-		</div>
+<aside class="max-w-[200px]">
+	<a href="/dashboard" class="p-1">
+		<img
+			src="/logo-light.png"
+			alt="logo"
+			width={200}
+			height={140}
+			class="contain mx-auto block h-auto w-1/2"
+		/>
 	</a>
 
-	<!-- Sidebar Navigation -->
-	<nav>
-		<ul class="flex flex-col gap-3">
-			<NavLink href="/dashboard" name="Dashboard">
-				<HomeIcon
-					class={cn(
-						'h-5 w-5 opacity-70 group-hover:text-primary',
-						pathname === '/dashboard' && 'text-primary opacity-100'
-					)}
-				/>
-			</NavLink>
-			<NavLink href="/bookings" name="Bookins">
-				<CalendarDaysIcon
-					class={cn(
-						'h-5 w-5 opacity-70 group-hover:text-primary',
-						pathname === '/bookings' && 'text-primary opacity-100'
-					)}
-				/>
-			</NavLink>
-			<NavLink href="/cabins" name="Cabins">
-				<TreesIcon
-					class={cn(
-						'h-5 w-5 opacity-70 group-hover:text-primary',
-						pathname === '/cabins' && 'text-primary opacity-100'
-					)}
-				/>
-			</NavLink>
-			<NavLink href="/users" name="Users">
-				<UsersIcon
-					class={cn(
-						'h-5 w-5 opacity-70 group-hover:text-primary',
-						pathname === '/users' && 'text-primary opacity-100'
-					)}
-				/>
-			</NavLink>
-			<NavLink href="/settings" name="Settings">
-				<SettingsIcon
-					class={cn(
-						'h-5 w-5 opacity-70 group-hover:text-primary',
-						pathname === '/settings' && 'text-primary opacity-100'
-					)}
-				/>
-			</NavLink>
+	<nav class="mt-6">
+		<ul class="flex w-full flex-col gap-3">
+			<li class="pl-3 text-sm">
+				<a
+					href="/dashboard"
+					class="flex items-center gap-2 p-2"
+					class:active={pathname === '/dashboard'}
+					class:inactive={pathname !== '/dashboard'}
+				>
+					<HomeIcon class="h-4 w-5" />
+					Dashboard
+				</a>
+			</li>
+			<li class="pl-3 text-sm">
+				<a
+					href="/bookings"
+					class="flex items-center gap-2 p-2"
+					class:active={pathname === '/bookings'}
+					class:inactive={pathname !== '/bookings'}
+				>
+					<CalendarDaysIcon class="h-4 w-5" />
+					Bookings
+				</a>
+			</li>
+			<li class="pl-3 text-sm">
+				<a
+					href="/cabins"
+					class="flex items-center gap-2 p-2"
+					class:active={pathname === '/cabins'}
+					class:inactive={pathname !== '/cabins'}
+				>
+					<TreesIcon class="h-4 w-5" />
+					Cabins
+				</a>
+			</li>
+			<li class="pl-3 text-sm">
+				<a
+					href="/users"
+					class="flex items-center gap-2 p-2"
+					class:active={pathname === '/users'}
+					class:inactive={pathname !== '/users'}
+				>
+					<UsersIcon class="h-4 w-5" />
+					Users
+				</a>
+			</li>
+			<li class="pl-3 text-sm">
+				<a
+					href="/settings"
+					class="flex items-center gap-2 p-2"
+					class:active={pathname === '/settings'}
+					class:inactive={pathname !== '/settings'}
+				>
+					<SettingsIcon class="h-4 w-5" />
+					Settings
+				</a>
+			</li>
 		</ul>
 	</nav>
 </aside>
+
+<style>
+	.active {
+		@apply rounded bg-neutral-200;
+	}
+
+	.inactive {
+		@apply font-light opacity-70;
+	}
+
+	.inactive:hover {
+		@apply rounded bg-neutral-200;
+	}
+</style>
