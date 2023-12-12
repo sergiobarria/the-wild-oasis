@@ -20,7 +20,7 @@ export interface Cabin {
 	description: string;
 	image?: string;
 	createdAt: Date;
-	updateAt?: Date;
+	updatedAt?: Date;
 }
 
 export async function getCabins() {
@@ -34,7 +34,8 @@ export async function getCabins() {
 			return {
 				id: doc.id,
 				...data,
-				createdAt: data.createdAt?.toDate()
+				createdAt: data.createdAt?.toDate(),
+				updatedAt: data.updatedAt?.toDate() ?? null
 			};
 		})
 		.sort((a, b) => a.createdAt?.getTime() - b.createdAt?.getTime()) as Cabin[];
