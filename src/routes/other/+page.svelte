@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import type { PageData } from '../cabins/$types';
 	import { SaveIcon, Trash2Icon, PlusIcon, PencilIcon } from 'lucide-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import toast from 'svelte-french-toast';
@@ -84,10 +84,7 @@
 					<td>{formatCurrency(cabin.price)}</td>
 					<td>{formatCurrency(cabin.discount)}</td>
 					<td>
-						<button
-							class="btn btn-primary btn-sm"
-							on:click={() => (isModalOpen = true)}
-						>
+						<button class="btn btn-primary btn-sm" on:click={() => (isModalOpen = true)}>
 							<PencilIcon class="h-4 w-4" />
 						</button>
 						<button
@@ -113,9 +110,7 @@
 			<input type="hidden" name="id" value={deleteId} />
 
 			<div class="modal-action flex gap-2">
-				<button class="btn btn-outline" on:click={() => (isDeleteModalOpen = false)}>
-					Cancel
-				</button>
+				<button class="btn btn-outline" on:click={() => (isDeleteModalOpen = false)}> Cancel </button>
 				<button type="submit" disabled={$deleting} class="btn btn-accent flex items-center">
 					{#if $deleteDelayed}
 						<span class="loading loading-spinner"></span>
@@ -223,22 +218,12 @@
 				<div class="label">
 					<span class="label-text">Cabin Image</span>
 				</div>
-				<input
-					type="file"
-					class="file-input file-input-bordered file-input-accent w-full"
-					name="file"
-				/>
+				<input type="file" class="file-input file-input-bordered file-input-accent w-full" name="file" />
 			</label>
 
 			<div class="modal-action flex gap-2">
-				<button class="btn btn-outline" on:click={() => (isModalOpen = false)}>
-					Cancel
-				</button>
-				<button
-					type="submit"
-					disabled={$submitting}
-					class="btn btn-accent flex items-center"
-				>
+				<button class="btn btn-outline" on:click={() => (isModalOpen = false)}> Cancel </button>
+				<button type="submit" disabled={$submitting} class="btn btn-accent flex items-center">
 					{#if $delayed}
 						<span class="loading loading-spinner"></span>
 						Saving...
