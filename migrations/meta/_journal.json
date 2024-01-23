@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1705985782772,
+      "tag": "0000_ancient_unus",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1705987135123,
+      "tag": "0001_graceful_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1705987979800,
+      "tag": "0002_demonic_ted_forrester",
+      "breakpoints": true
+    }
+  ]
+}
