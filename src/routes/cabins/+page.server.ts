@@ -1,51 +1,39 @@
-import { type Actions, fail } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import { superValidate } from 'sveltekit-superforms/server';
+import type { Actions, PageServerLoad } from './$types'
+import { eq } from 'drizzle-orm'
+import { error, fail } from '@sveltejs/kit'
 
-import { createCabin, deleteCabin, getCabins, updateCabin } from '$lib/firebase/cabins';
-import { createCabinSchema, deleteCabinSchema } from '$lib/schemas/cabin';
-import { uploadFile } from '$lib/firebase/upload';
+import { db } from '$lib/database/db.server'
+import { cabins } from '$lib/database/schemas'
 
 export const load: PageServerLoad = async () => {
-	const form = await superValidate(createCabinSchema);
-	const deleteCabinForm = await superValidate(deleteCabinSchema);
-	const cabins = await getCabins();
+	const allCabins = await db
+		.select({
+			id: cabins.id,
+			name: cabins.name,
+			price: cabins.price,
+			discount: cabins.priceDiscount,
+			capacity: cabins.maxCapacity,
+			image: cabins.image
+		})
+		.from(cabins)
 
-	return { form, deleteCabinForm, cabins };
-};
+	return { cabins: allCabins }
+}
 
 export const actions: Actions = {
-	create: async ({ request }) => {
-		const formData = await request.formData();
-		const file = formData.get('file');
-		const form = await superValidate(formData, createCabinSchema);
+	default: async ({ request }) => {
+		const data = await request.formData()
+		const id = data.get('id')
 
-		if (!form.valid) return fail(400, { form });
+		if (!id) error(400, { message: 'Missing cabin id' })
 
-		const id = await createCabin(form.data);
-		if (!id) return fail(500, { message: 'Error creating cabin' });
+		try {
+			await db.delete(cabins).where(eq(cabins.id, Number(id)))
 
-		let url = '';
-		if (file instanceof File) {
-			url = await uploadFile(file, 'cabins');
+			return { success: true, message: 'Cabin deleted successfully' }
+		} catch (err: unknown) {
+			console.error(err)
+			return fail(500, { message: 'Something went wrong deleting the cabin record' })
 		}
-
-		if (url) {
-			const result = await updateCabin(id, { image: url });
-			if (!result.success) return fail(500, { message: 'Error updating cabin' });
-
-			return { form };
-		}
-
-		return { form };
-	},
-	delete: async ({ request }) => {
-		const form = await superValidate(request, deleteCabinSchema);
-		if (!form.valid) return fail(400, { form });
-
-		const result = await deleteCabin(form.data.id);
-		if (!result.success) return fail(500, { message: 'Error deleting cabin' });
-
-		return { form };
 	}
-};
+}

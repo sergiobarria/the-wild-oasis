@@ -1,4 +1,4 @@
-/** @type { import("eslint").Linter.FlatConfig } */
+/** @type { import("eslint").Linter.Config } */
 module.exports = {
 	root: true,
 	extends: [
@@ -14,6 +14,7 @@ module.exports = {
 		ecmaVersion: 2020,
 		extraFileExtensions: ['.svelte']
 	},
+	ignorePatterns: ['node_modules', 'public/build', 'postcss.config.cjs'],
 	env: {
 		browser: true,
 		es2017: true,

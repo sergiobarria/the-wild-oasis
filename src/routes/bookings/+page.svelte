@@ -1,7 +1,11 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	// import type { PageData } from './$types'
 
-	// export let data: PageData;
+	// export let data: PageData
 </script>
 
-<div>Bookings</div>
+<svelte:head>
+	<title>Bookings | The Wild Oasis</title>
+</svelte:head>
+
+<h1 class="text-2xl font-semibold">Bookings Page</h1>
