@@ -7,6 +7,7 @@
 		UsersIcon,
 		FlameKindlingIcon
 	} from 'lucide-svelte'
+	import { Toaster } from 'svelte-french-toast'
 
 	import { cn } from '$lib/utils'
 	import logo from '$lib/assets/logo-light.png'
@@ -22,7 +23,7 @@
 </script>
 
 <div class="flex min-h-screen gap-4">
-	<aside class="w-full max-w-[175px] px-4 py-6">
+	<aside class="w-full min-w-[150px] max-w-[175px] px-4 py-6">
 		<div class="mb-12 flex items-center justify-center">
 			<img src={logo} alt="logo" width="75" />
 		</div>
@@ -33,7 +34,9 @@
 					class={cn(
 						'flex items-center gap-3 rounded-md px-2 py-3 text-xs transition-colors duration-200 ease-in-out',
 						{
-							'bg-neutral-100 font-medium text-primary': link.href === $page.route.id,
+							'bg-neutral-100 font-medium text-primary':
+								link.href === $page.route.id ||
+								$page.route.id?.startsWith(link.href),
 							'text-neutral-500 hover:bg-neutral-100': link.href !== $page.route.id
 						}
 					)}
@@ -44,10 +47,11 @@
 			{/each}
 		</nav>
 	</aside>
-	<div class="flex flex-1 flex-col">
-		<header class="flex h-16 items-center">header</header>
+	<div class="flex flex-1 flex-col px-4">
+		<header class="flex h-16 items-center">HEADER</header>
 		<main class="flex-1 py-6">
 			<slot />
 		</main>
 	</div>
+	<Toaster />
 </div>

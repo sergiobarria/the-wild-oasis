@@ -22,6 +22,20 @@
       "when": 1705987979800,
       "tag": "0002_demonic_ted_forrester",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1706061972952,
+      "tag": "0003_nappy_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1706062909301,
+      "tag": "0004_unknown_songbird",
+      "breakpoints": true
     }
   ]
 }
