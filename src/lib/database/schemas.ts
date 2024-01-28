@@ -12,7 +12,7 @@ import { relations } from 'drizzle-orm'
 
 export const cabins = pgTable('cabins', {
 	id: serial('id').primaryKey(),
-	name: varchar('name', { length: 255 }),
+	name: varchar('name', { length: 255 }).unique(),
 	price: decimal('price', { precision: 10, scale: 2 }),
 	priceDiscount: decimal('price_discount', { precision: 10, scale: 2 }).default('0.00'),
 	maxCapacity: integer('max_capacity').default(1),

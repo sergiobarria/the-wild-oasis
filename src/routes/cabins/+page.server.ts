@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { error, fail } from '@sveltejs/kit'
 
 import { db } from '$lib/database/db.server'
@@ -16,6 +16,7 @@ export const load: PageServerLoad = async () => {
 			image: cabins.image
 		})
 		.from(cabins)
+		.orderBy(desc(cabins.createdAt))
 
 	return { cabins: allCabins }
 }

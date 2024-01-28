@@ -1,28 +1,37 @@
 <script lang="ts">
-	import type { ActionData, PageData } from './$types'
-	import { goto, afterNavigate } from '$app/navigation'
-	import { PencilIcon, TrashIcon, PlusIcon, Plus } from 'lucide-svelte'
+	import { page } from '$app/stores'
+	import type { PageData } from './$types'
+	import { goto } from '$app/navigation'
+	import { PencilIcon, TrashIcon, PlusIcon } from 'lucide-svelte'
 	import toast from 'svelte-french-toast'
+	import { getFlash } from 'sveltekit-flash-message'
 
 	import * as Table from '$lib/components/ui/table'
 	import Button from '$lib/components/ui/button/button.svelte'
 	import { formatCurrency } from '$lib/utils'
 
 	export let data: PageData
-	export let form: ActionData
 
-	afterNavigate(() => {
-		if (form?.success) toast.success(form?.message, { duration: 2000 })
-		if (!form?.success && form?.message) toast.error(form?.message, { duration: 2000 })
-	})
+	const flash = getFlash(page)
+
+	$: if ($flash) {
+		switch ($flash?.type) {
+			case 'success':
+				toast.success($flash?.message, { duration: 2000 })
+				break
+			case 'error':
+				toast.error($flash?.message, { duration: 2000 })
+				break
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>Cabins | The Wild Oasis</title>
 </svelte:head>
 
-<div class="flex items-center justify-between">
-	<h1 class="mb-6 text-2xl font-semibold">All Cabins</h1>
+<div class="mb-6 flex items-center justify-between">
+	<h1 class="text-2xl font-semibold">All Cabins</h1>
 	<Button on:click={() => goto('/cabins/new')}>
 		<PlusIcon class="h-4 w-4" />
 		<span class="ml-2">New Cabin</span>
@@ -52,7 +61,7 @@
 			<Table.Row>
 				<Table.Cell align="center">
 					<img
-						src={cabin.image}
+						src={cabin.image ?? 'https://placehold.co/100x75'}
 						alt={cabin.name}
 						width="100"
 						height="100"
