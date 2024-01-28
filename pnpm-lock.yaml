@@ -83,6 +83,9 @@ devDependencies:
   svelte-french-toast:
     specifier: ^1.2.0
     version: 1.2.0(svelte@4.2.9)
+  sveltekit-flash-message:
+    specifier: ^2.3.1
+    version: 2.3.1(@sveltejs/kit@2.4.3)(svelte@4.2.9)
   sveltekit-superforms:
     specifier: ^1.13.4
     version: 1.13.4(@sveltejs/kit@2.4.3)(svelte@4.2.9)(zod@3.22.4)
@@ -3134,6 +3137,16 @@ packages:
       locate-character: 3.0.0
       magic-string: 0.30.5
       periscopic: 3.1.0
+    dev: true
+
+  /sveltekit-flash-message@2.3.1(@sveltejs/kit@2.4.3)(svelte@4.2.9):
+    resolution: {integrity: sha512-QQ48a1kh8Qj8b6mkqzFOtU91KqxCidqP2kgD7OdIO/hZ+YZ+3lJJC9qeSpCX8jsyQ2wp0whnXXTlYfWjxOclhg==}
+    peerDependencies:
+      '@sveltejs/kit': 1.x || 2.x
+      svelte: 3.x || 4.x
+    dependencies:
+      '@sveltejs/kit': 2.4.3(@sveltejs/vite-plugin-svelte@3.0.1)(svelte@4.2.9)(vite@5.0.12)
+      svelte: 4.2.9
     dev: true
 
   /sveltekit-superforms@1.13.4(@sveltejs/kit@2.4.3)(svelte@4.2.9)(zod@3.22.4):
