@@ -68,3 +68,6 @@ export const cabinsRelations = relations(cabins, ({ many }) => ({
 export const guestsRelations = relations(guests, ({ many }) => ({
 	bookings: many(bookings)
 }))
+
+export type Cabin = typeof cabins.$inferSelect
+export type NewCabin = typeof cabins.$inferInsert

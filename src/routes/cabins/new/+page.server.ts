@@ -5,7 +5,7 @@ import { redirect } from 'sveltekit-flash-message/server'
 
 import { db } from '$lib/database/db.server'
 import { cabins } from '$lib/database/schemas'
-import { newCabinSchema } from '$lib/schemas/new-cabin-schema'
+import { newCabinSchema } from '$lib/schemas/cabin-schemas'
 
 export const load: PageServerLoad = async () => {
 	return {

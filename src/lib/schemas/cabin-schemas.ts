@@ -26,4 +26,19 @@ export const newCabinSchema = z.object({
 		.max(1000)
 })
 
+export const editCabinSchema = z.object({
+	id: z.number(),
+	name: z.string().optional(),
+	maxCapacity: z.number().optional(),
+	price: z.string().optional(),
+	priceDiscount: z.string().optional(),
+	description: z.string().optional()
+})
+
+export const cabinSchema = editCabinSchema.extend({
+	id: z.number()
+})
+
 export type NewCabinSchema = typeof newCabinSchema
+export type EditCabinSchema = typeof editCabinSchema
+export type Cabin = z.infer<typeof cabinSchema>
