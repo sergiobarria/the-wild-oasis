@@ -1,11 +1,11 @@
 import type { PageServerLoad, Actions } from './$types'
 import { fail } from '@sveltejs/kit'
 import { superValidate } from 'sveltekit-superforms/server'
+import { redirect } from 'sveltekit-flash-message/server'
 
 import { db } from '$lib/database/db.server'
 import { cabins } from '$lib/database/schemas'
 import { newCabinSchema } from '$lib/schemas/new-cabin-schema'
-import { redirect } from 'sveltekit-flash-message/server'
 
 export const load: PageServerLoad = async () => {
 	return {

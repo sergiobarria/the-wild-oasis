@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/stores'
-	import type { PageData } from './$types'
 	import { goto } from '$app/navigation'
-	import { PencilIcon, TrashIcon, PlusIcon } from 'lucide-svelte'
-	import toast from 'svelte-french-toast'
+	import type { PageData } from './$types'
+	import { PlusIcon } from 'lucide-svelte'
 	import { getFlash } from 'sveltekit-flash-message'
+	import toast from 'svelte-french-toast'
 
 	import * as Table from '$lib/components/ui/table'
 	import Button from '$lib/components/ui/button/button.svelte'
+	import CabinActionsMenu from '$lib/components/cabin-actions-menu.svelte'
 	import { formatCurrency } from '$lib/utils'
 
 	export let data: PageData
@@ -17,10 +18,10 @@
 	$: if ($flash) {
 		switch ($flash?.type) {
 			case 'success':
-				toast.success($flash?.message, { duration: 2000 })
+				toast.success($flash?.message, { duration: 3000 })
 				break
 			case 'error':
-				toast.error($flash?.message, { duration: 2000 })
+				toast.error($flash?.message, { duration: 3000 })
 				break
 		}
 	}
@@ -69,30 +70,11 @@
 					/>
 				</Table.Cell>
 				<Table.Cell>{cabin.name}</Table.Cell>
-				<Table.Cell>Fits up to {cabin.capacity} guests</Table.Cell>
+				<Table.Cell>Fits up to {cabin.maxCapacity} guests</Table.Cell>
 				<Table.Cell>{formatCurrency(Number(cabin.price))}</Table.Cell>
-				<Table.Cell>{formatCurrency(Number(cabin.discount))}</Table.Cell>
+				<Table.Cell>{formatCurrency(Number(cabin.priceDiscount))}</Table.Cell>
 				<Table.Cell>
-					<div class="flex gap-1">
-						<Button
-							variant="outline"
-							size="icon"
-							on:click={() => goto(`/cabins/${cabin.id}/edit`)}
-						>
-							<PencilIcon class="h-4 w-4" />
-						</Button>
-						<form method="POST">
-							<input type="hidden" name="id" value={cabin.id} />
-							<Button
-								type="submit"
-								variant="outline"
-								size="icon"
-								class="border-red-500 text-red-500"
-							>
-								<TrashIcon class="h-4 w-4" />
-							</Button>
-						</form>
-					</div>
+					<CabinActionsMenu cabinId={cabin.id} />
 				</Table.Cell>
 			</Table.Row>
 		{/each}
