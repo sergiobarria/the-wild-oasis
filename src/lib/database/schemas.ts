@@ -17,7 +17,7 @@ export const cabins = pgTable('cabins', {
 	priceDiscount: decimal('price_discount', { precision: 10, scale: 2 }).default('0.00'),
 	maxCapacity: integer('max_capacity').default(1),
 	description: text('description'),
-	image: text('image'),
+	imageURL: text('image_url'),
 	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').defaultNow()
 })

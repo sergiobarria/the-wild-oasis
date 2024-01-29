@@ -14,7 +14,7 @@ export const load: PageServerLoad = async () => {
 			price: true,
 			priceDiscount: true,
 			maxCapacity: true,
-			image: true
+			imageURL: true
 		},
 		orderBy: (cabins, { desc }) => [desc(cabins.createdAt)]
 	})

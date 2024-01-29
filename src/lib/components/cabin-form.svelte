@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { onMount } from 'svelte'
 	import type { FormOptions } from 'formsnap'
 	import type { SuperValidated } from 'sveltekit-superforms'
 	import { CheckIcon } from 'lucide-svelte'
+	import { CldUploadWidget } from 'svelte-cloudinary'
 
 	import * as Form from '$lib/components/ui/form'
+	import Button from './ui/button/button.svelte'
 	import {
 		editCabinSchema,
 		type EditCabinSchema,
@@ -11,20 +14,37 @@
 	} from '$lib/schemas/cabin-schemas'
 	import type { Cabin } from '$lib/database/schemas'
 	import { cn } from '$lib/utils'
-	import { onMount } from 'svelte'
+	import toast from 'svelte-french-toast'
 
 	const MAX_CHARS = 1000
 	export let form: SuperValidated<EditCabinSchema | NewCabinSchema>
 	export let options: FormOptions<EditCabinSchema | NewCabinSchema>
 	export let cabin: Cabin | null = null
 	export let submitting = false
+	let error: string | null = null
+	let cabinImageURL: string | null = null
 	let charsLeft = MAX_CHARS
 
 	$: descriptionLength = MAX_CHARS - charsLeft
+	$: if (error) {
+		toast.error(error, { duration: 3000 })
+	}
 
 	function getCharsLeft(e: InputEvent) {
 		const target = e.target as HTMLTextAreaElement
 		charsLeft = MAX_CHARS - target.value.length
+	}
+
+	function onUpload(result: any, widget: any) {
+		if (result.event === 'success') {
+			cabinImageURL = result.info.secure_url
+		}
+
+		if (result.event === 'error') {
+			error = result.error
+		}
+
+		widget.close()
 	}
 
 	onMount(() => {
@@ -43,6 +63,7 @@
 	class="max-w-lg space-y-6"
 >
 	<input type="hidden" name="id" value={cabin?.id} />
+	<input type="hidden" name="imageURL" value={cabinImageURL} />
 	<Form.Field {config} name="name">
 		<Form.Item>
 			<Form.Label>Cabin Name</Form.Label>
@@ -99,9 +120,26 @@
 		</Form.Item>
 	</Form.Field>
 
-	<Form.Button disabled={submitting}>
+	<CldUploadWidget
+		uploadPreset="hotel-booking-system-cabins-preset"
+		let:open
+		let:isLoading
+		{onUpload}
+	>
+		<Button class="block" variant="secondary" disabled={isLoading} on:click={open}>
+			Upload Cabin image
+		</Button>
+	</CldUploadWidget>
+
+	{#if cabinImageURL}
+		<div class="w-24">
+			<img src={cabinImageURL} alt="cabin" class="w-full" width="100" height="75" />
+		</div>
+	{/if}
+
+	<Form.Button disabled={submitting} class="w-full">
 		{#if submitting}
-			Submitting...
+			Saving...
 		{:else}
 			Save
 		{/if}

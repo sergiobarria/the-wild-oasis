@@ -23,7 +23,8 @@ export const newCabinSchema = z.object({
 			required_error: 'Description is required'
 		})
 		.min(10)
-		.max(1000)
+		.max(1000),
+	imageURL: z.string().optional()
 })
 
 export const editCabinSchema = z.object({

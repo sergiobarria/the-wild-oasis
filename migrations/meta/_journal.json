@@ -43,6 +43,13 @@
       "when": 1706464528086,
       "tag": "0005_unusual_krista_starr",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1706496713797,
+      "tag": "0006_square_prowler",
+      "breakpoints": true
     }
   ]
 }

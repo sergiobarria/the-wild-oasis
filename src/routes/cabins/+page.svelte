@@ -40,7 +40,13 @@
 </div>
 
 <Table.Root>
-	<Table.Caption>A list of all available cabins.</Table.Caption>
+	<Table.Caption>
+		{#if data.cabins.length === 0}
+			<p>No cabins found.</p>
+		{:else}
+			<p>Showing {data.cabins.length} cabins.</p>
+		{/if}
+	</Table.Caption>
 	<Table.Header>
 		<Table.Row>
 			<Table.Head class="w-[150px]">Image</Table.Head>
@@ -53,16 +59,11 @@
 	</Table.Header>
 
 	<Table.Body>
-		{#if data.cabins.length === 0}
-			<Table.Row>
-				<p>No cabins found.</p>
-			</Table.Row>
-		{/if}
 		{#each data.cabins as cabin}
 			<Table.Row>
 				<Table.Cell align="center">
 					<img
-						src={cabin.image ?? 'https://placehold.co/100x75'}
+						src={cabin.imageURL ?? 'https://placehold.co/100x75'}
 						alt={cabin.name}
 						width="100"
 						height="100"
