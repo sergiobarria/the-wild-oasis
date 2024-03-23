@@ -4,12 +4,11 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export default defineConfig({
-	schema: './src/lib/database/schemas.ts',
-	out: './migrations',
-	driver: 'pg',
+	schema: './src/lib/server/schema.ts',
+	out: './drizzle/migrations',
+	driver: 'turso',
 	dbCredentials: {
-		connectionString: process.env.DATABASE_URL as string
-	},
-	verbose: true,
-	strict: true
+		url: process.env.TURSO_DATABASE_URL as string,
+		authToken: process.env.TURSO_AUTH_TOKEN as string
+	}
 })

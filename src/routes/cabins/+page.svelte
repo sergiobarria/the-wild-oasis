@@ -44,7 +44,7 @@
 		{#if data.cabins.length === 0}
 			<p>No cabins found.</p>
 		{:else}
-			<p>Showing {data.cabins.length} cabins.</p>
+			<p>Showing {data.cabins.length} cabin(s).</p>
 		{/if}
 	</Table.Caption>
 	<Table.Header>
@@ -52,7 +52,7 @@
 			<Table.Head class="w-[150px]">Image</Table.Head>
 			<Table.Head>Name</Table.Head>
 			<Table.Head>Max. Capacity</Table.Head>
-			<Table.Head>Price</Table.Head>
+			<Table.Head>Price (USD)</Table.Head>
 			<Table.Head>Discount</Table.Head>
 			<Table.Head>Actions</Table.Head>
 		</Table.Row>
@@ -72,8 +72,8 @@
 				</Table.Cell>
 				<Table.Cell>{cabin.name}</Table.Cell>
 				<Table.Cell>Fits up to {cabin.maxCapacity} guests</Table.Cell>
-				<Table.Cell>{formatCurrency(Number(cabin.price))}</Table.Cell>
-				<Table.Cell>{formatCurrency(Number(cabin.priceDiscount))}</Table.Cell>
+				<Table.Cell>{formatCurrency(Number(cabin.regularPrice))}</Table.Cell>
+				<Table.Cell>{formatCurrency(Number(cabin.discountPrice))}</Table.Cell>
 				<Table.Cell>
 					<CabinActionsMenu cabinId={cabin.id} />
 				</Table.Cell>

@@ -1,0 +1,79 @@
+{
+	"version": "5",
+	"dialect": "sqlite",
+	"id": "73a62528-d725-486d-bda8-8e85eaca60e9",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"tables": {
+		"cabins": {
+			"name": "cabins",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"max_capacity": {
+					"name": "max_capacity",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 1
+				},
+				"regular_price": {
+					"name": "regular_price",
+					"type": "numeric",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"discount_price": {
+					"name": "discount_price",
+					"type": "numeric",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"image_url": {
+					"name": "image_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"cabins_name_unique": {
+					"name": "cabins_name_unique",
+					"columns": ["name"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		}
+	},
+	"enums": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	}
+}

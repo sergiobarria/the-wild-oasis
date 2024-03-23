@@ -2,28 +2,31 @@
 	import type { PageData } from './$types'
 	import { goto } from '$app/navigation'
 	import { ArrowLeftIcon } from 'lucide-svelte'
-	import type { FormOptions } from 'formsnap'
-	import toast from 'svelte-french-toast'
+	// import type { FormOptions } from 'formsnap'
+	// import toast from 'svelte-french-toast'
 
 	import Button from '$lib/components/ui/button/button.svelte'
-	import { newCabinSchema, type NewCabinSchema } from '$lib/schemas/cabin-schemas'
-	import CabinForm from '$lib/components/cabin-form.svelte'
+	import NewCabinForm from '$lib/components/new-cabin-form.svelte'
+	// import { newCabinSchema, type NewCabinSchema } from '$lib/schemas/cabin-schemas'
+	// import CabinForm from '$lib/components/cabin-form.svelte'
+
+	// export let data: PageData
+	// let submitting = false
+
+	// const options: FormOptions<NewCabinSchema> = {
+	// 	validators: newCabinSchema,
+	// 	onSubmit: () => {
+	// 		submitting = true
+	// 	},
+	// 	onError: ({ result }) => {
+	// 		if (result.type === 'error') {
+	// 			console.error(result.error)
+	// 			toast.error(result.error.message, { duration: 2000 })
+	// 		}
+	// 	}
+	// }
 
 	export let data: PageData
-	let submitting = false
-
-	const options: FormOptions<NewCabinSchema> = {
-		validators: newCabinSchema,
-		onSubmit: () => {
-			submitting = true
-		},
-		onError: ({ result }) => {
-			if (result.type === 'error') {
-				console.error(result.error)
-				toast.error(result.error.message, { duration: 2000 })
-			}
-		}
-	}
 </script>
 
 <svelte:head>
@@ -37,4 +40,6 @@
 	<h1 class="text-2xl font-semibold">New Cabin</h1>
 </div>
 
-<CabinForm form={data.form} {options} {submitting} />
+<NewCabinForm data={data.form} />
+
+<!-- <CabinForm form={data.form} {options} {submitting} /> -->

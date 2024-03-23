@@ -1,19 +1,21 @@
-import postgres from 'postgres'
-import { migrate } from 'drizzle-orm/postgres-js/migrator'
-import { drizzle } from 'drizzle-orm/postgres-js'
-import dotenv from 'dotenv'
+import { migrate } from 'drizzle-orm/libsql/migrator'
+import { drizzle } from 'drizzle-orm/libsql'
+import { createClient } from '@libsql/client'
+import * as dotenv from 'dotenv'
 
 dotenv.config()
 
-const client = postgres(process.env.DATABASE_URL as string)
-
-export const db = drizzle(client)
+const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL as string
+const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN as string
 
 async function main() {
 	try {
+		const client = createClient({ url: TURSO_DATABASE_URL, authToken: TURSO_AUTH_TOKEN })
+		const db = drizzle(client)
+
 		console.log('⇨ Migrating database...')
-		console.log('⇨ Database URL: ', process.env.DATABASE_URL)
-		await migrate(db, { migrationsFolder: './migrations' }) // path relative to the root of the project
+		console.log('⇨ Database URL: ', TURSO_DATABASE_URL)
+		await migrate(db, { migrationsFolder: 'drizzle/migrations' }) // path relative to the root of the project
 		console.log('⇨ ✅ Database migrated successfully...')
 	} catch (error) {
 		console.error('💥 ERROR: ', error)
