@@ -19,6 +19,7 @@ module.exports = {
 		commonjs: true,
 		es6: true,
 	},
+	// Also ignore the UI
 	ignorePatterns: ['!**/.server', '!**/.client'],
 
 	// Base config
@@ -47,6 +48,16 @@ module.exports = {
 				'import/resolver': {
 					typescript: {},
 				},
+			},
+		},
+
+		// ShadCn Component - UI
+		{
+			files: ['**/components/ui/*.tsx'],
+			rules: {
+				'react/prop-types': [2, { ignore: ['className'] }],
+				'react-refresh/only-export-components': 'off',
+				'jsx-a11y/heading-has-content': 'off',
 			},
 		},
 
