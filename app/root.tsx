@@ -1,6 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import type { LinksFunction } from '@remix-run/node';
 
+import { Toaster } from './components/ui/toaster';
 import globalStyles from '~/tailwind.css?url';
 
 export const links: LinksFunction = () => [{ rel: 'stylesheet', href: globalStyles }];
@@ -18,6 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				{children}
 				<ScrollRestoration />
 				<Scripts />
+				<Toaster />
 			</body>
 		</html>
 	);
