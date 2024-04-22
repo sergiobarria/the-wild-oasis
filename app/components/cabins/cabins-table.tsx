@@ -2,10 +2,10 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { AppTable } from '~/components/site/app-table';
 import { formatCurrency } from '~/lib/utils';
-import { Cabin } from '~/lib/validation/cabin';
 import { CabinsTableActions } from './table-actions';
+import { Cabins } from '~/lib/xata';
 
-type CabinTableColumns = Omit<Cabin, 'description' | 'createdAt' | 'updatedAt'>;
+type CabinTableColumns = Omit<Cabins, 'description' | 'xata'>;
 
 const columns: ColumnDef<CabinTableColumns>[] = [
 	{
@@ -30,28 +30,28 @@ const columns: ColumnDef<CabinTableColumns>[] = [
 		header: 'Name',
 	},
 	{
-		accessorKey: 'maxCapacity',
+		accessorKey: 'max_capacity',
 		header: 'Max Capacity',
-		cell: ({ row }) => <div className="font-medium">Fits up to {row.getValue('maxCapacity')} guest(s)</div>,
+		cell: ({ row }) => <div className="font-medium">Fits up to {row.getValue('max_capacity')} guest(s)</div>,
 	},
 	{
-		accessorKey: 'regularPrice',
+		accessorKey: 'price',
 		header: () => <div className="text-right">Regular Price</div>,
 		cell: ({ row }) => {
-			const price = parseFloat(row.getValue('regularPrice'));
+			const price = parseFloat(row.getValue('price'));
 
 			return <div className="text-right font-medium">{formatCurrency(price)}</div>;
 		},
 	},
 	{
-		accessorKey: 'discountPrice',
+		accessorKey: 'discount_price',
 		header: () => <div className="text-right">Discount Price</div>,
 		cell: ({ row }) => {
-			const price = parseFloat(row.getValue('discountPrice'));
+			const price = parseFloat(row.getValue('discount_price'));
 
 			return (
 				<div className="text-right font-medium">
-					{price ? <span className="text-green-500">formatCurrency(price)</span> : 'N/A'}
+					{price ? <span className="text-green-500">{formatCurrency(price)}</span> : 'N/A'}
 				</div>
 			);
 		},
@@ -61,7 +61,7 @@ const columns: ColumnDef<CabinTableColumns>[] = [
 		cell: ({ row }) => {
 			const cabin = row.original;
 
-			return <CabinsTableActions cabin={cabin} />;
+			return <CabinsTableActions cabinId={cabin.id} />;
 		},
 	},
 ];

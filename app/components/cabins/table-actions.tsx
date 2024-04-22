@@ -1,4 +1,4 @@
-import { useFetcher, useNavigate } from '@remix-run/react';
+import { Form, Link } from '@remix-run/react';
 import { MoreHorizontalIcon, Trash2Icon, PencilIcon, Wand2Icon } from 'lucide-react';
 
 import {
@@ -10,52 +10,17 @@ import {
 	DropdownMenuItem,
 } from '~/components/ui/dropdown-menu';
 import { Button } from '~/components/ui/button';
-import { Cabin } from '~/lib/validation/cabin';
-import { useToast } from '~/hooks/use-toast';
-import { useEffect } from 'react';
 
 interface CabinsTableActionsProps {
-	cabin: Omit<Cabin, 'description' | 'createdAt' | 'updatedAt'>;
+	cabinId: string;
 }
 
-export function CabinsTableActions({ cabin }: CabinsTableActionsProps) {
-	const navigate = useNavigate();
-	const fetcher = useFetcher<{ success: boolean; message?: string }>();
-	const { toast } = useToast();
-
-	useEffect(() => {
-		if (fetcher.data?.success) {
-			toast({
-				title: 'Success!',
-				description: 'The cabin has been deleted successfully',
-			});
-		}
-
-		if (fetcher.data?.success === false) {
-			toast({
-				variant: 'destructive',
-				title: 'Oops! Something went wrong.',
-				description: 'An error occurred while deleting the cabin. Please try again.',
-			});
-		}
-	}, [fetcher.data, toast]);
-
-	function handleDeleteAction() {
-		const proceed = confirm('Are you sure you want to delete this cabin?');
-		console.log('🚀 ~ handleDeleteAction ~ proceed:', proceed);
-		if (!proceed) return;
-	}
-
-	function handleEditClick(cabinSlug: string) {
-		navigate(`/dashboard/cabins/${cabinSlug}`);
-	}
-
+export function CabinsTableActions({ cabinId }: CabinsTableActionsProps) {
 	return (
 		<div className="flex justify-end">
-			{/* <AlertDialog> */}
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant="ghost" className="size-8 p-0">
+					<Button variant="outline" size="icon" className="size-8 p-0">
 						<span className="sr-only">Open menu</span>
 						<MoreHorizontalIcon size={24} />
 					</Button>
@@ -68,18 +33,16 @@ export function CabinsTableActions({ cabin }: CabinsTableActionsProps) {
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 
-					<DropdownMenuItem
-						className="cursor-pointer hover:bg-gray-100"
-						onClick={() => handleEditClick(cabin.slug)}
-					>
-						<PencilIcon size={14} className="mr-2" />
-						Edit Cabin
+					<DropdownMenuItem className="cursor-pointer hover:bg-gray-100" asChild>
+						<Link to={`/dashboard/cabins/${cabinId}`} className="flex items-center p-2">
+							<PencilIcon size={14} className="mr-2" />
+							Edit Cabin
+						</Link>
 					</DropdownMenuItem>
 
 					<DropdownMenuItem className="p-0">
-						{/* <AlertDialogTrigger asChild> */}
-						<fetcher.Form method="POST" onSubmit={handleDeleteAction}>
-							<input type="hidden" name="cabinID" value={cabin.id} />
+						<Form method="POST">
+							<input type="hidden" name="cabinID" value={cabinId} />
 
 							<Button
 								type="submit"
@@ -91,8 +54,7 @@ export function CabinsTableActions({ cabin }: CabinsTableActionsProps) {
 								<Trash2Icon size={14} className="mr-2" />
 								Delete Cabin
 							</Button>
-						</fetcher.Form>
-						{/* </AlertDialogTrigger> */}
+						</Form>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

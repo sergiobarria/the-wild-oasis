@@ -1,0 +1,12 @@
+{
+  "id": "mig_coipj19i8ag8nohmg9vg",
+  "parentID": "mig_coipit46btciiaoq8mlg",
+  "checksum": "1:e8aa75d602dce855588f88ea8ba5d023735788ea00b59944cdf6cec7a58b8b5d",
+  "operations": [
+    {
+      "removeTable": {
+        "table": "cabins"
+      }
+    }
+  ]
+}

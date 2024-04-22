@@ -1,0 +1,16 @@
+{
+  "id": "mig_coip1g46btciiaoq8mgg",
+  "parentID": "mig_coip1bmp7f5ih5v53lb0",
+  "checksum": "1:37210cad538f28f766d8c3fa0dea8d483db237e3d740f5a3389633455ee71766",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "discount_price",
+          "type": "float"
+        },
+        "table": "cabins"
+      }
+    }
+  ]
+}

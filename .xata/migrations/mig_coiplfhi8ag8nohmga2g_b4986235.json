@@ -1,0 +1,16 @@
+{
+  "id": "mig_coiplfhi8ag8nohmga2g",
+  "parentID": "mig_coiplcpi8ag8nohmga1g",
+  "checksum": "1:b4986235d77375deef3cb3642db155ca8300f240ba46dd9e7ec29ef4262c523e",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "description",
+          "type": "text"
+        },
+        "table": "cabins"
+      }
+    }
+  ]
+}

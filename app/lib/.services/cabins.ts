@@ -1,36 +1,23 @@
-import { desc, eq } from 'drizzle-orm';
-import { db } from '~/lib/db.server';
-import { cabins } from '~/lib/schemas.server';
+import { getXataClient } from '../xata';
+
+const client = getXataClient();
 
 export async function getCabins() {
-	const allCabins = await db
-		.select({
-			id: cabins.id,
-			name: cabins.name,
-			slug: cabins.slug,
-			maxCapacity: cabins.maxCapacity,
-			regularPrice: cabins.regularPrice,
-			discountPrice: cabins.discountPrice,
-		})
-		.from(cabins)
-		.orderBy(desc(cabins.createdAt));
+	const cabins = await client.db.cabins.select(['id', 'name', 'price', 'discount_price', 'max_capacity']).getAll();
 
-	return allCabins;
+	return cabins;
 }
 
-export async function getCabinBySlug(slug: string) {
-	const cabin = await db.select().from(cabins).where(eq(cabins.slug, slug));
+export async function getCabinByID(cabinID: string) {
+	const cabin = await client.db.cabins.read(cabinID);
+	if (!cabin) return null;
 
-	if (cabin.length === 0) return null;
-
-	return cabin.at(0);
+	return cabin;
 }
 
-export async function deleteCabin(cabinID: number) {
-	const result = await db.delete(cabins).where(eq(cabins.id, cabinID)).returning({ deletedId: cabins.id });
-	console.log('🚀 ~ deleteCabin ~ result:', result);
+export async function deleteCabin(cabinID: string) {
+	const record = await client.db.cabins.delete(cabinID);
+	if (!record) return null;
 
-	if (result.length === 0) return null;
-
-	return result?.at(0)?.deletedId;
+	return record.id;
 }

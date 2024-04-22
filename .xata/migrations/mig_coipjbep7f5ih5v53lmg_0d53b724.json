@@ -1,0 +1,16 @@
+{
+  "id": "mig_coipjbep7f5ih5v53lmg",
+  "parentID": "mig_coipj66p7f5ih5v53llg",
+  "checksum": "1:0d53b7240717e56e838b08015f9350f0adc113c572c3731d2b4f5fa44cc6596d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "max_capacity",
+          "type": "int"
+        },
+        "table": "cabins"
+      }
+    }
+  ]
+}
