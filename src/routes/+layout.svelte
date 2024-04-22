@@ -4,6 +4,7 @@
 	import AppHeader from '$lib/components/app-header.svelte';
 
 	import '../app.css';
+	import { ModeWatcher } from 'mode-watcher';
 </script>
 
 <div class="grid h-screen grid-cols-[14rem_1fr] grid-rows-[auto_1fr]">
@@ -12,5 +13,6 @@
 	<main class="bg-gray-50 px-8 py-6">
 		<slot />
 	</main>
-	<!-- <Toaster /> -->
+	<ModeWatcher defaultMode="light" />
+	<Toaster />
 </div>
