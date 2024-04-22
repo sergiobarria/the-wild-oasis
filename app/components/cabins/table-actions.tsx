@@ -1,5 +1,5 @@
 import { Form, Link } from '@remix-run/react';
-import { MoreHorizontalIcon, Trash2Icon, PencilIcon, Wand2Icon } from 'lucide-react';
+import { MoreHorizontalIcon, Trash2Icon, EyeIcon, Wand2Icon } from 'lucide-react';
 
 import {
 	DropdownMenu,
@@ -35,8 +35,8 @@ export function CabinsTableActions({ cabinId }: CabinsTableActionsProps) {
 
 					<DropdownMenuItem className="cursor-pointer hover:bg-gray-100" asChild>
 						<Link to={`/dashboard/cabins/${cabinId}`} className="flex items-center p-2">
-							<PencilIcon size={14} className="mr-2" />
-							Edit Cabin
+							<EyeIcon size={14} className="mr-2" />
+							View Cabin
 						</Link>
 					</DropdownMenuItem>
 

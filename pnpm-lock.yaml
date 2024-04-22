@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@conform-to/react':
+        specifier: ^1.1.0
+        version: 1.1.0(react@18.2.0)
+      '@conform-to/zod':
+        specifier: ^1.1.0
+        version: 1.1.0(zod@3.22.4)
       '@hookform/resolvers':
         specifier: ^3.3.4
         version: 3.3.4(react-hook-form@7.51.3(react@18.2.0))
@@ -314,6 +320,19 @@ packages:
   '@babel/types@7.24.0':
     resolution: {integrity: sha512-+j7a5c253RfKh8iABBhywc8NSfP5LURe7Uh4qpsh6jc+aLJguvmIUBdjSdEMQv2bENrCR5MfRdjGo7vzS/ob7w==}
     engines: {node: '>=6.9.0'}
+
+  '@conform-to/dom@1.1.0':
+    resolution: {integrity: sha512-KtiGwke6qeh8xDMwebbT/EanxhVX40uZtyHr8VH2V8jBHwavy94V673F4YdlhHpXoqRcZcewie/GQ7tIi2mC/A==}
+
+  '@conform-to/react@1.1.0':
+    resolution: {integrity: sha512-zEgesgfllN29SdVZhlm3CGIufQm/gkFia7QMrKX/fH4L+iYgQ7n1LVgu+3Jxr4jXE8wW5YDbemwo1cqhE++xZg==}
+    peerDependencies:
+      react: '>=18'
+
+  '@conform-to/zod@1.1.0':
+    resolution: {integrity: sha512-0ukglFJ1gknFf81j9zB/mZq68fhhSu0s2bxZIkBqPocdGBA6LvHnV7ORyE+27WUNyJ36L2sjksNXVm9SDSUexw==}
+    peerDependencies:
+      zod: ^3.21.0
 
   '@emotion/hash@0.9.1':
     resolution: {integrity: sha512-gJB6HLm5rYwSLI6PQa+X1t5CFGrv1J1TWG+sOyMCeKz2ojaj6Fnl/rZEspogG+cvqbt4AE/2eIyD2QfLKTBNlQ==}
@@ -4455,6 +4474,18 @@ snapshots:
       '@babel/helper-string-parser': 7.24.1
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
+
+  '@conform-to/dom@1.1.0': {}
+
+  '@conform-to/react@1.1.0(react@18.2.0)':
+    dependencies:
+      '@conform-to/dom': 1.1.0
+      react: 18.2.0
+
+  '@conform-to/zod@1.1.0(zod@3.22.4)':
+    dependencies:
+      '@conform-to/dom': 1.1.0
+      zod: 3.22.4
 
   '@emotion/hash@0.9.1': {}
 
