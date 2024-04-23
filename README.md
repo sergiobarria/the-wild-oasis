@@ -1,53 +1,36 @@
-# Hotel Booking System
+# Welcome to Remix + Vite!
 
-> Full Stack Hotel Booking System using Sveltekit, Turso Database, and Drizzle ORM.
+📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
 
-## Query Examples
+## Development
 
-Using Drizzle ORM, you can query the database using the following examples:
+Run the Vite dev server:
 
-### Default Syntax
-
-```javascript
-const cabinsData = await db
-	.select({
-		id: cabins.id,
-		name: cabins.name,
-		slug: cabins.slug,
-		maxCapacity: cabins.maxCapacity,
-		price: cabins.price,
-		discountPrice: cabins.discountPrice
-	})
-	.from(cabins)
-	.orderBy(desc(cabins.createdAt), desc(cabins.name));
+```shellscript
+npm run dev
 ```
 
-### Alternative Syntax (Query)
+## Deployment
 
-```javascript
-const cabinsData = await db.query.cabins.findMany({
-	columns: {
-		id: true,
-		name: true,
-		maxCapacity: true,
-		price: true,
-		discountPrice: true
-	},
-	orderBy: (cabins, { desc }) => [desc(cabins.createdAt), desc(cabins.name)]
-});
+First, build your app for production:
+
+```sh
+npm run build
 ```
 
-Both queries will return an array of object similar to the following example:
+Then run the app in production mode:
 
-```javascript
-[
-	{
-		id: 8,
-		name: '008',
-		maxCapacity: 10,
-		price: 1400,
-		discountPrice: 0
-	}
-	// ...other records
-];
+```sh
+npm start
 ```
+
+Now you'll need to pick a host to deploy it to.
+
+### DIY
+
+If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
+
+Make sure to deploy the output of `npm run build`
+
+- `build/server`
+- `build/client`
