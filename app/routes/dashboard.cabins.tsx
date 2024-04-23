@@ -1,3 +1,5 @@
+import { Outlet } from '@remix-run/react';
+
 export default function DashboardCabinsPage() {
-	return <div>DashboardCabinsPage</div>;
+	return <Outlet />;
 }

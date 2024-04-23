@@ -19,12 +19,12 @@ export default function DashboardLayout() {
 			<div
 				className={cn(
 					'flex flex-col transition-all duration-300 ease-in-out sm:gap-4 sm:py-4',
-					isDrawerOpen ? 'ml-56' : 'ml-14'
+					isDrawerOpen ? 'ml-56' : 'sm:ml-14'
 				)}
 			>
 				<DashboardHeader isDrawerOpen={isDrawerOpen} toggleDrawer={toggleDrawer} />
 
-				<main className="flex-1 items-start gap-4 border-4 border-blue-500 px-4 sm:py-0 md:gap-8">
+				<main className="my-6 flex-1 items-start gap-4 border-4 border-blue-500 px-4 sm:py-0 md:gap-8">
 					<Outlet />
 				</main>
 			</div>
