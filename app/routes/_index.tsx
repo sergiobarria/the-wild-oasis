@@ -1,4 +1,4 @@
-import type { MetaFunction } from '@remix-run/node';
+import { redirect, type MetaFunction } from '@remix-run/node';
 
 import { Button } from '~/components/ui/button';
 
@@ -8,6 +8,10 @@ export const meta: MetaFunction = () => {
 		{ name: 'description', content: 'Bookings Management platform for the Wild Oasis Hotel' }
 	];
 };
+
+export function loader() {
+	return redirect('/dashboard');
+}
 
 export default function Index() {
 	return (
