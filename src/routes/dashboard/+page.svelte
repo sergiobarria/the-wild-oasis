@@ -1,8 +1,8 @@
 <script lang="ts">
 </script>
 
-<svelte:head>
+<sevelte:head>
 	<title>Home | HBS</title>
-</svelte:head>
+</sevelte:head>
 
 <h1 class="text-3xl font-bold underline">Home Page</h1>

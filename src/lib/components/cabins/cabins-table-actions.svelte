@@ -20,7 +20,7 @@
 			<Dropdown.Label>Actions</Dropdown.Label>
 			<Dropdown.Separator />
 
-			<Dropdown.Item on:click={() => goto('/cabins/' + id)} class="cursor-pointer">
+			<Dropdown.Item on:click={() => goto('/dashboard/cabins/' + id)} class="cursor-pointer">
 				<EyeIcon class="size-4 mr-2" />
 				View Cabin
 			</Dropdown.Item>

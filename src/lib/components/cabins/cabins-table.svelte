@@ -3,7 +3,7 @@
 	import { createTable, createRender, Render, Subscribe } from 'svelte-headless-table';
 
 	import * as Table from '$lib/components/ui/table';
-	import CabinsTableActions from './cabin-table-actions.svelte';
+	import CabinsTableActions from './cabins-table-actions.svelte';
 	import { formatCurrency } from '$lib/utils';
 	import type { Cabin } from '$lib/schemas';
 
