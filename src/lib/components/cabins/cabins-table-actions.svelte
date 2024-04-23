@@ -15,7 +15,7 @@
 		</Button>
 	</Dropdown.Trigger>
 
-	<Dropdown.Content>
+	<Dropdown.Content align="end" class="min-w-[10rem]">
 		<Dropdown.Group>
 			<Dropdown.Label>Actions</Dropdown.Label>
 			<Dropdown.Separator />
@@ -24,10 +24,20 @@
 				<EyeIcon class="size-4 mr-2" />
 				View Cabin
 			</Dropdown.Item>
-			<Dropdown.Item class="cursor-pointer text-destructive">
-				<Trash2Icon class="size-4 mr-2" />
-				Delete Cabin
-			</Dropdown.Item>
+
+			<form method="POST" action="?/delete">
+				<!-- <input type="hidden" name="id" value={id} /> -->
+
+				<Button
+					role="menuitem"
+					variant="ghost"
+					type="submit"
+					class="flex w-full justify-start cursor-pointer text-destructive px-2"
+				>
+					<Trash2Icon class="size-4 mr-2" />
+					Delete Cabin
+				</Button>
+			</form>
 		</Dropdown.Group>
 	</Dropdown.Content>
 </Dropdown.Root>
