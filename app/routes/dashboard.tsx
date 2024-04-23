@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { DashboardHeader } from '~/components/site/dashboard-header';
 import { DashboardSidebar } from '~/components/site/dashboard-sidebar';
-import { cn } from '~/lib/utils';
+import { cn } from '~/lib/utils/helpers';
 
 export default function DashboardLayout() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);

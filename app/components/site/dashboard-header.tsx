@@ -2,7 +2,7 @@ import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { cn } from '~/lib/utils';
+import { cn } from '~/lib/utils/helpers';
 
 interface DashboardHeaderProps {
 	isDrawerOpen: boolean;

@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { DataTable } from '~/components/ui/data-table';
 import { Cabin } from '~/lib/schemas';
-import { formatCurrency } from '~/lib/utils';
+import { formatCurrency } from '~/lib/utils/helpers';
 import { CabinsTableActionsMenu } from './cabins-table-actions';
 
 const columns: ColumnDef<Cabin>[] = [
