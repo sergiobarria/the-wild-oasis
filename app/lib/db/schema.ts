@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 
 export const cabins = sqliteTable('cabins', {
 	id: integer('id').primaryKey(),
@@ -8,8 +8,8 @@ export const cabins = sqliteTable('cabins', {
 	name: text('name').notNull().unique(),
 	slug: text('slug').notNull().unique(),
 	maxCapacity: integer('max_capacity').notNull(),
-	price: real('price').notNull(),
-	discountPrice: real('discount_price'),
+	price: integer('price').notNull(),
+	discountPrice: integer('discount_price'),
 	description: text('description'),
 	image: text('image'),
 

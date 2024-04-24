@@ -1,7 +1,9 @@
-import { MetaFunction, redirect } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { MetaFunction } from '@remix-run/node';
+import { Link, useLoaderData } from '@remix-run/react';
+import { PlusIcon } from 'lucide-react';
 
 import { CabinsTable } from '~/components/cabins/cabins-table';
+import { Button } from '~/components/ui/button';
 import { db } from '~/lib/db/db.server';
 
 export const meta: MetaFunction = () => {
@@ -9,14 +11,17 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader() {
-	const cabins = await db.query.cabins.findMany();
+	let cabins = await db.query.cabins.findMany({
+		orderBy: (cabins, { desc }) => [desc(cabins.createdAt), desc(cabins.name)]
+	});
+
+	cabins = cabins.map((cabin) => ({
+		...cabin,
+		price: cabin.price / 100, // Convert price to dollars (from cents)
+		discountPrice: cabin.discountPrice ? cabin.discountPrice / 100 : null // Convert price to dollars (from cents)
+	}));
 
 	return { cabins };
-}
-
-export async function action() {
-	console.log('ACTION CALLED');
-	return redirect('/dashboard/cabins');
 }
 
 export default function DashboardCabinsPage() {
@@ -24,9 +29,17 @@ export default function DashboardCabinsPage() {
 
 	return (
 		<>
-			<h1 className="mb-6 text-3xl font-bold">All Cabins</h1>
+			<div className="flex items-center">
+				<h1 className="mb-3 text-3xl font-bold">All Cabins</h1>
+				<Button className="ml-auto" asChild>
+					<Link to="/dashboard/cabins/add">
+						<PlusIcon size={16} className="mr-2" />
+						Add Cabin
+					</Link>
+				</Button>
+			</div>
 
-			<div className="container py-10">
+			<div className="py-4">
 				<CabinsTable data={cabins} />
 			</div>
 		</>

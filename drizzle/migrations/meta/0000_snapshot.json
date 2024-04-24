@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "d2e60773-d0bf-4a09-9d62-e38620bea5a3",
+  "id": "68d1d94e-6478-49b0-b346-e426bfe4f641",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "cabins": {
@@ -37,14 +37,14 @@
         },
         "price": {
           "name": "price",
-          "type": "real",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "discount_price": {
           "name": "discount_price",
-          "type": "real",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

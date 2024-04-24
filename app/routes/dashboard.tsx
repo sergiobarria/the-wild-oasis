@@ -13,7 +13,7 @@ export default function DashboardLayout() {
 	}
 
 	return (
-		<div className="bg-muted/40 min-h-screen w-full flex-col border-4 border-red-500">
+		<div className="bg-muted/40 min-h-screen w-full flex-col">
 			<DashboardSidebar isOpen={isDrawerOpen} />
 
 			<div
@@ -24,7 +24,7 @@ export default function DashboardLayout() {
 			>
 				<DashboardHeader isDrawerOpen={isDrawerOpen} toggleDrawer={toggleDrawer} />
 
-				<main className="my-6 flex-1 items-start gap-4 border-4 border-blue-500 px-4 sm:py-0 md:gap-8">
+				<main className="my-6 flex-1 items-start gap-4 px-4 sm:py-0 md:gap-8">
 					<Outlet />
 				</main>
 			</div>

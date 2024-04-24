@@ -1,7 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDownIcon } from 'lucide-react';
 
 import { DataTable } from '~/components/ui/data-table';
-import { Cabin } from '~/lib/schemas';
+import { Button } from '~/components/ui/button';
+import { Cabin } from '~/lib/schemas/cabins-schemas';
 import { formatCurrency } from '~/lib/utils/helpers';
 import { CabinsTableActionsMenu } from './cabins-table-actions';
 
@@ -16,20 +18,39 @@ const columns: ColumnDef<Cabin>[] = [
 		cell: ({ row }) => {
 			const image = (row.getValue('image') as string) ?? 'https://placehold.co/150x100';
 
-			return <img src={image} alt="Cabin" className="h-16 w-24 rounded-md object-cover" />;
+			return (
+				<div className="h-16 w-24  overflow-hidden rounded-lg">
+					<img src={image} alt="Cabin" width={96} height={54} className="rounded-md object-cover" />
+				</div>
+			);
 		}
 	},
 	{
 		accessorKey: 'name',
-		header: 'Name'
+		header: ({ column }) => (
+			<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+				Name
+				<ArrowUpDownIcon size={16} className="ml-2" />
+			</Button>
+		)
 	},
 	{
 		accessorKey: 'maxCapacity',
-		header: 'Max Capacity'
+		header: ({ column }) => (
+			<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+				Max Capacity
+				<ArrowUpDownIcon size={16} className="ml-2" />
+			</Button>
+		)
 	},
 	{
 		accessorKey: 'price',
-		header: () => <div className="text-right">Price (USD)</div>,
+		header: ({ column }) => (
+			<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+				Price (USD)
+				<ArrowUpDownIcon size={16} className="ml-2" />
+			</Button>
+		),
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('price'));
 
@@ -38,7 +59,12 @@ const columns: ColumnDef<Cabin>[] = [
 	},
 	{
 		accessorKey: 'discountPrice',
-		header: () => <div className="text-right">Discount Price (USD)</div>,
+		header: ({ column }) => (
+			<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+				Discount Price (USD)
+				<ArrowUpDownIcon size={16} className="ml-2" />
+			</Button>
+		),
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('discountPrice'));
 

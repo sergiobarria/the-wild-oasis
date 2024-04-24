@@ -16,8 +16,8 @@ async function main() {
 					name: cabin.name,
 					slug: slugify(cabin.name, { lower: true }),
 					maxCapacity: cabin.maxCapacity,
-					price: cabin.regularPrice,
-					discountPrice: cabin.discount,
+					price: cabin.regularPrice * 100,
+					discountPrice: cabin.discount ? cabin.discount * 100 : null,
 					description: cabin.description
 				}))
 			)
