@@ -89,5 +89,5 @@ interface CabinsTableProps {
 }
 
 export function CabinsTable({ data }: CabinsTableProps) {
-	return <DataTable columns={columns} data={data} />;
+	return <DataTable columns={columns} data={data} caption="A list of all available Cabins" />;
 }
