@@ -1,5 +1,5 @@
 CREATE TABLE `cabins` (
-	`id` integer PRIMARY KEY NOT NULL,
+	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`slug` text NOT NULL,
 	`max_capacity` integer NOT NULL,

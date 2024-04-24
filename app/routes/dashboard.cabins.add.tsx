@@ -13,6 +13,7 @@ import { InsertCabinSchema } from '~/lib/schemas/cabins-schemas';
 import { db } from '~/lib/db/db.server';
 import { cabins } from '~/lib/db/schema';
 import { redirectWithToast } from '~/lib/utils/toast.server';
+import { createId } from '@paralleldrive/cuid2';
 
 export const meta: MetaFunction = () => {
 	return [{ title: 'New Cabin | Hotel Booking System' }];
@@ -29,6 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	try {
 		const result = await db.insert(cabins).values({
 			...submission.value,
+			id: createId(), // Use cuid's as primary key instead of auto-incrementing integers
 			price: submission.value.price * 100, // Convert price to cents
 			discountPrice: submission.value.discountPrice ? submission.value.discountPrice * 100 : null, // Convert price to cents
 			slug: slugify(submission.value.name)

@@ -2,7 +2,8 @@ import { sql } from 'drizzle-orm';
 import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 
 export const cabins = sqliteTable('cabins', {
-	id: integer('id').primaryKey(),
+	// id: integer('id').primaryKey(),
+	id: text('id').primaryKey(), // Use cuid's as primary key instead of auto-incrementing integers
 
 	// Columns
 	name: text('name').notNull().unique(),

@@ -1,3 +1,4 @@
+import { createId } from '@paralleldrive/cuid2';
 import slugify from 'slugify';
 
 import { getTursoClient } from './get-client';
@@ -13,6 +14,7 @@ async function main() {
 			.insert(cabins)
 			.values(
 				cabinsData.map((cabin) => ({
+					id: createId(),
 					name: cabin.name,
 					slug: slugify(cabin.name, { lower: true }),
 					maxCapacity: cabin.maxCapacity,
