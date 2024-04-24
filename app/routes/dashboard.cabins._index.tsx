@@ -1,12 +1,14 @@
-import { LoaderFunctionArgs, MetaFunction, json } from '@remix-run/node';
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import { PlusIcon } from 'lucide-react';
 
 import { CabinsTable } from '~/components/cabins/cabins-table';
 import { Button } from '~/components/ui/button';
 import { db } from '~/lib/db/db.server';
-import { getToast } from '~/lib/utils/toast.server';
+import { getToast, redirectWithToast } from '~/lib/utils/toast.server';
 import { useShowToast } from '~/hooks/use-show-toast';
+import { cabins } from '~/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const meta: MetaFunction = () => {
 	return [{ title: 'Cabins | Hotel Booking System' }];
@@ -30,6 +32,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	}));
 
 	return json({ toast, cabins }, { headers });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+	const formData = await request.formData();
+	const cabinID = formData.get('cabinID');
+
+	try {
+		if (!cabinID) throw new Error('Cabin ID is required');
+
+		await db.delete(cabins).where(eq(cabins.id, Number(cabinID)));
+		const toast = { title: 'Success!', description: 'Cabin successfully deleted' };
+
+		return redirectWithToast('/dashboard/cabins', toast);
+	} catch (err: unknown) {
+		console.error('=> 💥 Something went wrong!', err);
+		const toast = { title: 'Something Went Wrong!', description: 'There was an error deleting the Cabin' };
+
+		return redirectWithToast('/dashboard/cabins', toast);
+	}
 }
 
 export default function DashboardCabinsPage() {
