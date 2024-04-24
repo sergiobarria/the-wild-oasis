@@ -7,7 +7,9 @@ import { Cabin } from '~/lib/schemas/cabins-schemas';
 import { formatCurrency } from '~/lib/utils/helpers';
 import { CabinsTableActionsMenu } from './cabins-table-actions';
 
-const columns: ColumnDef<Cabin>[] = [
+type CabinColumns = Omit<Cabin, 'description' | 'createdAt' | 'updatedAt'>;
+
+const columns: ColumnDef<CabinColumns>[] = [
 	{
 		accessorKey: 'id',
 		header: 'ID'
@@ -83,7 +85,7 @@ const columns: ColumnDef<Cabin>[] = [
 ];
 
 interface CabinsTableProps {
-	data: Cabin[];
+	data: CabinColumns[];
 }
 
 export function CabinsTable({ data }: CabinsTableProps) {

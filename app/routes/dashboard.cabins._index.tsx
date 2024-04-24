@@ -15,6 +15,11 @@ export const meta: MetaFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
 	const { toast, headers } = await getToast(request);
 	let cabins = await db.query.cabins.findMany({
+		columns: {
+			description: false,
+			createdAt: false,
+			updatedAt: false
+		},
 		orderBy: (cabins, { desc }) => [desc(cabins.createdAt), desc(cabins.name)]
 	});
 
