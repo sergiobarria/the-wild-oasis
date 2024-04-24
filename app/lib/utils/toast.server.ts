@@ -10,13 +10,16 @@ export const TOAST_KEY = 'toast';
 const ToastSchema = z.object({
 	id: z.string().default(() => cuid()),
 	description: z.string(),
-	title: z.string().optional(),
-	type: z.enum(['message', 'success', 'error']).default('message')
+	title: z.string().optional()
+	// type: z.enum(['message', 'success', 'error']).default('message')
 });
 
 export type Toast = z.infer<typeof ToastSchema>;
 export type ToastInput = z.input<typeof ToastSchema>;
 
+/**
+ * Create a cookie session storage for toast messages.
+ */
 export const toastSessionStorage = createCookieSessionStorage({
 	cookie: {
 		name: 'en_toast', // cookie name for the session
@@ -28,6 +31,12 @@ export const toastSessionStorage = createCookieSessionStorage({
 	}
 });
 
+/**
+ * Wrapper around `redirect` that sets a toast message in the session.
+ * @param url - The URL to redirect to.
+ * @param toast - The toast message to set.
+ * @param init - The response init object.
+ */
 export async function redirectWithToast(url: string, toast: ToastInput, init?: ResponseInit) {
 	return redirect(url, {
 		...init,
@@ -35,6 +44,10 @@ export async function redirectWithToast(url: string, toast: ToastInput, init?: R
 	});
 }
 
+/**
+ * Create a new toast message in the session.
+ * @param toastInput - The toast message input.
+ */
 export async function createToastHeaders(toastInput: ToastInput) {
 	const session = await toastSessionStorage.getSession();
 	const toast = ToastSchema.parse(toastInput);
@@ -45,6 +58,10 @@ export async function createToastHeaders(toastInput: ToastInput) {
 	return new Headers({ 'set-cookie': cookie });
 }
 
+/**
+ * Get the toast message from the session.
+ * @param request - The request object.
+ */
 export async function getToast(request: Request) {
 	const session = await toastSessionStorage.getSession(request.headers.get('cookie'));
 	const result = ToastSchema.safeParse(session.get(TOAST_KEY));
@@ -52,6 +69,6 @@ export async function getToast(request: Request) {
 
 	return {
 		toast,
-		headers: toast ? new Headers({ 'set-cookie': await toastSessionStorage.destroySession(session) }) : null
+		headers: toast ? new Headers({ 'set-cookie': await toastSessionStorage.destroySession(session) }) : undefined
 	};
 }

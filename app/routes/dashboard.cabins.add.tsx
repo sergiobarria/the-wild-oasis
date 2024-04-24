@@ -1,7 +1,8 @@
-import { ActionFunctionArgs, MetaFunction, json, redirect } from '@remix-run/node';
-import { Form, useActionData, useNavigation } from '@remix-run/react';
+import { ActionFunctionArgs, MetaFunction, json } from '@remix-run/node';
+import { Form, useActionData, useNavigate, useNavigation } from '@remix-run/react';
 import { useForm, getInputProps, getTextareaProps, getFormProps } from '@conform-to/react';
 import { parseWithZod } from '@conform-to/zod';
+import { ChevronLeftIcon, Loader2Icon } from 'lucide-react';
 import slugify from 'slugify';
 
 import { Button } from '~/components/ui/button';
@@ -11,7 +12,7 @@ import { Textarea } from '~/components/ui/textarea';
 import { InsertCabinSchema } from '~/lib/schemas/cabins-schemas';
 import { db } from '~/lib/db/db.server';
 import { cabins } from '~/lib/db/schema';
-import { Loader2Icon } from 'lucide-react';
+import { redirectWithToast } from '~/lib/utils/toast.server';
 
 export const meta: MetaFunction = () => {
 	return [{ title: 'New Cabin | Hotel Booking System' }];
@@ -35,7 +36,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		if (result.rowsAffected === 0) throw new Error('Failed to save the cabin');
 
-		return redirect('/dashboard/cabins');
+		const toast = { title: 'Success!', description: 'Cabin added successfully!' };
+
+		return redirectWithToast('/dashboard/cabins', toast);
 	} catch (err: unknown) {
 		console.error('=> 💥 Something went wrong!', err);
 		return json(
@@ -50,6 +53,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function AddNewCabinPage() {
 	const lastResult = useActionData<typeof action>();
 	const navigation = useNavigation();
+	const navigate = useNavigate();
 	const isSubmitting = navigation.state !== 'idle';
 
 	const [form, fields] = useForm({
@@ -63,6 +67,9 @@ export default function AddNewCabinPage() {
 
 	return (
 		<>
+			<Button variant="outline" size="icon" className="mb-3" onClick={() => navigate('/dashboard/cabins')}>
+				<ChevronLeftIcon size={20} />
+			</Button>
 			<h1 className="mb-3 text-3xl font-bold">Add New Cabin</h1>
 			<Form method="POST" className="max-w-lg space-y-3" {...getFormProps(form)}>
 				<div>

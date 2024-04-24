@@ -1,16 +1,19 @@
-import { MetaFunction } from '@remix-run/node';
+import { LoaderFunctionArgs, MetaFunction, json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import { PlusIcon } from 'lucide-react';
 
 import { CabinsTable } from '~/components/cabins/cabins-table';
 import { Button } from '~/components/ui/button';
 import { db } from '~/lib/db/db.server';
+import { getToast } from '~/lib/utils/toast.server';
+import { useShowToast } from '~/hooks/use-show-toast';
 
 export const meta: MetaFunction = () => {
 	return [{ title: 'Cabins | Hotel Booking System' }];
 };
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
+	const { toast, headers } = await getToast(request);
 	let cabins = await db.query.cabins.findMany({
 		orderBy: (cabins, { desc }) => [desc(cabins.createdAt), desc(cabins.name)]
 	});
@@ -21,11 +24,12 @@ export async function loader() {
 		discountPrice: cabin.discountPrice ? cabin.discountPrice / 100 : null // Convert price to dollars (from cents)
 	}));
 
-	return { cabins };
+	return json({ toast, cabins }, { headers });
 }
 
 export default function DashboardCabinsPage() {
-	const { cabins } = useLoaderData<typeof loader>();
+	const data = useLoaderData<typeof loader>();
+	useShowToast(data.toast);
 
 	return (
 		<>
@@ -40,7 +44,7 @@ export default function DashboardCabinsPage() {
 			</div>
 
 			<div className="py-4">
-				<CabinsTable data={cabins} />
+				<CabinsTable data={data.cabins} />
 			</div>
 		</>
 	);
