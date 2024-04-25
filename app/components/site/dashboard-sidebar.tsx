@@ -3,7 +3,8 @@ import { HomeIcon, CalendarIcon, FlameKindlingIcon, UsersIcon, SettingsIcon } fr
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { cn } from '~/lib/utils/helpers';
-import logo from '~/assets/logo-light.png';
+import logo from '~/assets/logo-light.webp';
+import logoSmall from '~/assets/logo-light-sm.webp';
 
 const NAV_LINKS = [
 	{ label: 'Home', to: '/dashboard', exact: true, icon: <HomeIcon size={20} /> },
@@ -64,7 +65,11 @@ export function DashboardSidebar({ isOpen }: DashboardSidebarProps) {
 		>
 			<nav className="flex flex-col items-center gap-4 px-2 sm:py-4">
 				<Link to="/dashboard" className="group flex items-center justify-center">
-					<img src={logo} alt="logo" className={cn(isOpen ? 'size-20 py-2' : 'size-8 shrink-0')} />
+					<img
+						src={isOpen ? logo : logoSmall}
+						alt="logo"
+						className={cn(isOpen ? 'size-20 py-2' : 'size-8 shrink-0')}
+					/>
 					<span className="sr-only">Logo</span>
 				</Link>
 
