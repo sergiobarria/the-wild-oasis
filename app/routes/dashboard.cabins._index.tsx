@@ -1,5 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
+import { eq } from 'drizzle-orm';
 import { PlusIcon } from 'lucide-react';
 
 import { CabinsTable } from '~/components/cabins/cabins-table';
@@ -8,7 +9,7 @@ import { db } from '~/lib/db/db.server';
 import { getToast, redirectWithToast } from '~/lib/utils/toast.server';
 import { useShowToast } from '~/hooks/use-show-toast';
 import { cabins } from '~/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { config } from '~/lib/utils/config.server';
 
 export const meta: MetaFunction = () => {
 	return [{ title: 'Cabins | Hotel Booking System' }];
@@ -25,23 +26,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		orderBy: (cabins, { desc }) => [desc(cabins.createdAt), desc(cabins.name)]
 	});
 
-	cabins = cabins.map((cabin) => ({
-		...cabin,
-		price: cabin.price / 100, // Convert price to dollars (from cents)
-		discountPrice: cabin.discountPrice ? cabin.discountPrice / 100 : null // Convert price to dollars (from cents)
-	}));
+	cabins = cabins.map((cabin) => {
+		const imageUrl = cabin.image ? `${config.R2_BUCKET_BASE_URL}/${cabin.image}` : 'https://placehold.co/150x100';
+
+		return {
+			...cabin,
+			price: cabin.price / 100, // Convert price to dollars (from cents)
+			discountPrice: cabin.discountPrice ? cabin.discountPrice / 100 : null, // Convert price to dollars (from cents)
+			image: imageUrl
+		};
+	});
 
 	return json({ toast, cabins }, { headers });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData();
-	const cabinID = formData.get('cabinID');
+	const cabinID = formData.get('cabinID') as string;
 
 	try {
 		if (!cabinID) throw new Error('Cabin ID is required');
 
-		await db.delete(cabins).where(eq(cabins.id, Number(cabinID)));
+		await db.delete(cabins).where(eq(cabins.id, cabinID));
 		const toast = { title: 'Success!', description: 'Cabin successfully deleted' };
 
 		return redirectWithToast('/dashboard/cabins', toast);

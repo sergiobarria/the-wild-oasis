@@ -3,7 +3,7 @@ import { createId as cuid } from '@paralleldrive/cuid2';
 import { z } from 'zod';
 
 import { combineHeaders } from './misc';
-import { config } from '~/lib/utils/config';
+import { config } from '~/lib/utils/config.server';
 
 export const TOAST_KEY = 'toast';
 

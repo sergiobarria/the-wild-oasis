@@ -5,6 +5,7 @@ import { ChevronLeftIcon, PencilIcon } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { useShowToast } from '~/hooks/use-show-toast';
 import { db } from '~/lib/db/db.server';
+import { config } from '~/lib/utils/config.server';
 import { getToast } from '~/lib/utils/toast.server';
 
 export const meta: MetaFunction = () => {
@@ -25,6 +26,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 	cabin.price = cabin.price / 100;
 	cabin.discountPrice = cabin.discountPrice ? cabin.discountPrice / 100 : null;
+	cabin.image = cabin.image ? `${config.R2_BUCKET_BASE_URL}/${cabin.image}` : 'https://placehold.co/150x100';
 
 	return json({ cabin, toast }, { headers });
 }

@@ -18,7 +18,7 @@ const columns: ColumnDef<CabinColumns>[] = [
 		accessorKey: 'image',
 		header: 'Image',
 		cell: ({ row }) => {
-			const image = (row.getValue('image') as string) ?? 'https://placehold.co/150x100';
+			const image = row.getValue('image') as string;
 
 			return (
 				<div className="h-16 w-24  overflow-hidden rounded-lg">
@@ -70,7 +70,7 @@ const columns: ColumnDef<CabinColumns>[] = [
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('discountPrice'));
 
-			return <div className="text-accent-foreground text-right font-medium">{formatCurrency(amount, 'USD')}</div>;
+			return <div className="text-right font-medium text-accent-foreground">{formatCurrency(amount, 'USD')}</div>;
 		}
 	},
 	{

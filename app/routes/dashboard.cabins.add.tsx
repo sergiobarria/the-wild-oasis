@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ActionFunctionArgs, MetaFunction, json } from '@remix-run/node';
 import { Form, useActionData, useNavigate, useNavigation } from '@remix-run/react';
 import { useForm, getInputProps, getTextareaProps, getFormProps } from '@conform-to/react';
@@ -33,7 +34,8 @@ export async function action({ request }: ActionFunctionArgs) {
 			id: createId(), // Use cuid's as primary key instead of auto-incrementing integers
 			price: submission.value.price * 100, // Convert price to cents
 			discountPrice: submission.value.discountPrice ? submission.value.discountPrice * 100 : null, // Convert price to cents
-			slug: slugify(submission.value.name)
+			slug: slugify(submission.value.name, { lower: true }),
+			image: submission.value.image
 		});
 
 		if (result.rowsAffected === 0) throw new Error('Failed to save the cabin');
@@ -53,6 +55,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AddNewCabinPage() {
+	const [previewImage, setPreviewImage] = useState<string | null>(null);
+	const [imageKey, setImageKey] = useState<string>('');
 	const lastResult = useActionData<typeof action>();
 	const navigation = useNavigation();
 	const navigate = useNavigate();
@@ -67,55 +71,126 @@ export default function AddNewCabinPage() {
 		}
 	});
 
+	async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+
+		if (!file) return;
+
+		try {
+			const fileReader = new FileReader();
+			fileReader.onloadend = () => {
+				setPreviewImage(fileReader.result as string);
+			};
+			fileReader.readAsDataURL(file);
+
+			// Get a presigned URL for the file
+			const response = await fetch('/resources/files/get-url', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					fileName: file.name,
+					fileType: file.type
+				})
+			});
+			const data = (await response.json()) as { presignedUrl: string; objectKey: string };
+
+			// Upload the file to the presigned URL using a PUT request
+			const uploadResponse = await fetch(data.presignedUrl, {
+				method: 'PUT',
+				headers: { 'Content-Type': file.type },
+				body: file
+			});
+
+			if (!uploadResponse.ok) throw new Error('Failed to upload the file');
+
+			// Save the object key to the state
+			setImageKey(data.objectKey);
+		} catch (err: unknown) {
+			console.error('=> 💥 Something went wrong!', err);
+		}
+	}
+
 	return (
 		<>
 			<Button variant="outline" size="icon" className="mb-3" onClick={() => navigate('/dashboard/cabins')}>
 				<ChevronLeftIcon size={20} />
 			</Button>
 			<h1 className="mb-3 text-3xl font-bold">Add New Cabin</h1>
-			<Form method="POST" className="max-w-lg space-y-3" {...getFormProps(form)}>
-				<div>
-					<Label htmlFor="name">*Cabin Name</Label>
-					<Input {...getInputProps(fields.name, { type: 'text' })} placeholder="e.g. The Wild Oasis" />
-					{fields.name.errors && <small className="text-destructive italic">*{fields.name.errors}</small>}
-				</div>
 
-				<div>
-					<Label htmlFor="maxCapacity">*Max. Capacity</Label>
-					<Input {...getInputProps(fields.maxCapacity, { type: 'number' })} placeholder="10" />
-					{fields.maxCapacity.errors && (
-						<small className="text-destructive italic">*{fields.maxCapacity.errors}</small>
-					)}
-				</div>
+			<div className="flex gap-8">
+				<Form
+					method="POST"
+					className="max-w-lg flex-1 space-y-3"
+					{...getFormProps(form)}
+					encType="multipart/form-data"
+				>
+					<div>
+						<Label htmlFor="name">*Cabin Name</Label>
+						<Input {...getInputProps(fields.name, { type: 'text' })} placeholder="e.g. The Wild Oasis" />
+						{fields.name.errors && <small className="italic text-destructive">*{fields.name.errors}</small>}
+					</div>
 
-				<div className="flex flex-col gap-6 md:flex-row">
-					<div className="w-full">
-						<Label htmlFor="price">*Price</Label>
-						<Input {...getInputProps(fields.price, { type: 'number' })} placeholder="99.99" />
-						{fields.price.errors && (
-							<small className="text-destructive italic">*{fields.price.errors}</small>
+					<div>
+						<Label htmlFor="maxCapacity">*Max. Capacity</Label>
+						<Input {...getInputProps(fields.maxCapacity, { type: 'number' })} placeholder="10" />
+						{fields.maxCapacity.errors && (
+							<small className="italic text-destructive">*{fields.maxCapacity.errors}</small>
 						)}
 					</div>
-					<div className="w-full">
-						<Label htmlFor="discountPrice">Price Discount</Label>
-						<Input {...getInputProps(fields.discountPrice, { type: 'number' })} placeholder="0.00" />
+
+					<div className="flex flex-col gap-6 md:flex-row">
+						<div className="w-full">
+							<Label htmlFor="price">*Price</Label>
+							<Input {...getInputProps(fields.price, { type: 'number' })} placeholder="99.99" />
+							{fields.price.errors && (
+								<small className="italic text-destructive">*{fields.price.errors}</small>
+							)}
+						</div>
+						<div className="w-full">
+							<Label htmlFor="discountPrice">Price Discount</Label>
+							<Input {...getInputProps(fields.discountPrice, { type: 'number' })} placeholder="0.00" />
+						</div>
 					</div>
-				</div>
 
-				<div>
-					<Label htmlFor="description">Description</Label>
-					<Textarea {...getTextareaProps(fields.description)} rows={5} placeholder="Cabin description..." />
-				</div>
-				{form.errors?.map((error) => (
-					<small key={error} className="text-destructive italic">
-						- {form.errors}
-					</small>
-				))}
+					<div>
+						<Label htmlFor="description">Description</Label>
+						<Textarea
+							{...getTextareaProps(fields.description)}
+							rows={5}
+							placeholder="Cabin description..."
+						/>
+					</div>
 
-				<Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
-					{isSubmitting ? <Loader2Icon size={16} className="animate-spin" /> : 'Add Cabin'}
-				</Button>
-			</Form>
+					<div>
+						<Label htmlFor="image">Cabin Image</Label>
+						<Input id="image" type="file" onChange={handleFileUpload} className="cursor-pointer" />
+					</div>
+
+					{/* Image key hidden input */}
+					<input type="hidden" name="image" value={imageKey} />
+
+					<div>
+						{form.errors?.map((error) => (
+							<small key={error} className="italic text-destructive">
+								- {form.errors}
+							</small>
+						))}
+					</div>
+
+					<Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
+						{isSubmitting ? <Loader2Icon size={16} className="animate-spin" /> : 'Add Cabin'}
+					</Button>
+				</Form>
+
+				<div className="h-auto max-w-[500px]">
+					<img
+						src={previewImage ?? 'https://placehold.co/500x400'}
+						alt="Cabin Preview"
+						className="h-96 w-full rounded-lg object-cover"
+					/>
+				</div>
+			</div>
 		</>
 	);
 }
