@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const CabinSchema = z.object({
-	id: z.number(),
+	id: z.string(), // Using CUIDs  as primary keys
 	name: z.string({ required_error: 'Cabin name is required' }),
 	slug: z.string(),
 	maxCapacity: z
