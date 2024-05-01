@@ -1,5 +1,5 @@
-import { getTursoClient } from './get-client';
 import { cabins } from '../app/lib/db/schema';
+import { getTursoClient } from './get-client';
 
 async function main() {
 	try {

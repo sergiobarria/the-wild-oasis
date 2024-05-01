@@ -1,9 +1,10 @@
-import { createId } from '@paralleldrive/cuid2';
 import slugify from 'slugify';
 
-import { getTursoClient } from './get-client';
+import { createId } from '@paralleldrive/cuid2';
+
 import { cabins } from '../app/lib/db/schema';
 import { cabins as cabinsData } from '../data/data-cabins';
+import { getTursoClient } from './get-client';
 
 async function main() {
 	try {
