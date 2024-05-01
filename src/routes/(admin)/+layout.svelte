@@ -46,7 +46,7 @@
 	<aside
 		class={cn(
 			'fixed inset-y-0 left-0 hidden border-r bg-white p-3 transition-all duration-300 ease-in-out sm:flex',
-			isOpen ? 'w-56' : 'w-16'
+			isOpen ? 'w-48' : 'w-16'
 		)}
 	>
 		<div class="flex w-full flex-col items-start gap-4 sm:py-4">
@@ -69,7 +69,7 @@
 				{/each}
 			</nav>
 
-			<div class="mb mt-auto w-full px-2">
+			<div class="mt-auto w-full">
 				<NavLink
 					name={settings.name}
 					href={settings.href}
@@ -83,30 +83,32 @@
 
 	<div
 		class={cn(
-			'flex h-full min-h-screen w-full flex-col px-6 transition-all duration-300 ease-in-out',
-			isOpen ? 'ml-56' : 'ml-16'
+			'flex h-full min-h-screen flex-col transition-all duration-300 ease-in-out',
+			isOpen ? 'pl-48' : 'pl-16'
 		)}
 	>
-		<header class="flex h-20 items-center justify-between">
-			<Breadcrumb.Root>
-				<Breadcrumb.List>
-					{#each breadcrumbs as { href, part }, i (part)}
-						<Breadcrumb.Item>
-							<Breadcrumb.Link {href} class="capitalize">{part}</Breadcrumb.Link>
-						</Breadcrumb.Item>
+		<div class="px-4">
+			<header class="flex h-20 items-center justify-between">
+				<Breadcrumb.Root>
+					<Breadcrumb.List>
+						{#each breadcrumbs as { href, part }, i (part)}
+							<Breadcrumb.Item>
+								<Breadcrumb.Link {href} class="capitalize">{part}</Breadcrumb.Link>
+							</Breadcrumb.Item>
 
-						{#if i !== breadcrumbs.length - 1}
-							<Breadcrumb.Separator />
-						{/if}
-					{/each}
-				</Breadcrumb.List>
-			</Breadcrumb.Root>
+							{#if i !== breadcrumbs.length - 1}
+								<Breadcrumb.Separator />
+							{/if}
+						{/each}
+					</Breadcrumb.List>
+				</Breadcrumb.Root>
 
-			<div>avatar</div>
-		</header>
-		<main class="flex-1">
-			<!-- NOTE: New Svelte 5 syntax to render children -->
-			{@render children()}
-		</main>
+				<div>avatar</div>
+			</header>
+			<main class="flex-1">
+				<!-- NOTE: New Svelte 5 syntax to render children -->
+				{@render children()}
+			</main>
+		</div>
 	</div>
 </div>
