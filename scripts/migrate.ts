@@ -1,13 +1,13 @@
-import { migrate } from 'drizzle-orm/libsql/migrator';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
 
-import { getTursoClient } from './get-client';
+import { getDBClient } from './get-client';
 
 async function main() {
 	try {
-		const { db, url } = getTursoClient();
+		const { db, uri } = getDBClient();
 
 		console.log('=> Migrating database...');
-		console.log('=> Database URL: ', url);
+		console.log('=> Database URI: ', uri);
 		await migrate(db, { migrationsFolder: 'drizzle/migrations' });
 
 		console.log('=> ✅ Migrations complete!');

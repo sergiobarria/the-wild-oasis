@@ -1,20 +1,18 @@
+import { drizzle } from 'drizzle-orm/postgres-js';
 import * as dotenv from 'dotenv';
-import { drizzle } from 'drizzle-orm/libsql';
-
-import { createClient } from '@libsql/client';
+import postgres from 'postgres';
 
 dotenv.config();
 
-export function getTursoClient() {
-	const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL as string;
-	const TURSO_DATABASE_TOKEN = process.env.TURSO_DATABASE_TOKEN as string;
+export function getDBClient() {
+	const PG_CONNECTION_STRING = process.env.PG_CONNECTION_STRING as string;
 
-	if (!TURSO_DATABASE_URL || !TURSO_DATABASE_TOKEN) {
-		throw new Error('Missing TURSO_DATABASE_URL or TURSO_DATABASE_TOKEN');
+	if (!PG_CONNECTION_STRING) {
+		throw new Error('Missing PG_CONNECTION_STRING');
 	}
 
-	const client = createClient({ url: TURSO_DATABASE_URL, authToken: TURSO_DATABASE_TOKEN });
+	const client = postgres(PG_CONNECTION_STRING, { max: 1 }); // Only one connection for migrations
 	const db = drizzle(client);
 
-	return { db, url: TURSO_DATABASE_URL };
+	return { db, uri: PG_CONNECTION_STRING };
 }
