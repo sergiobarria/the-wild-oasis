@@ -12,6 +12,7 @@ import {
 	PanelLeftOpenIcon,
 	PanelLeftCloseIcon
 } from 'lucide-react';
+
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -19,7 +20,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
-
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -58,7 +59,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 					{isOpen ? <PanelLeftCloseIcon size={24} /> : <PanelLeftOpenIcon size={24} />}
 				</Button>
 
-				<nav className="relative mt-24 flex flex-1 flex-col gap-3">
+				<nav className="relative mt-14 flex flex-1 flex-col gap-3">
 					{links.map((link) => (
 						<NavLink key={link.label} link={link} isOpen={isOpen} />
 					))}
@@ -71,7 +72,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 			<div className="flex-1 bg-gray-50 px-5">
 				<header className="flex h-20 items-center justify-between">
 					<Breadcrumbs />
-					<div>avatar</div>
+
+					<Avatar>
+						<AvatarImage src="" alt="@shadcn" />
+						<AvatarFallback>WO</AvatarFallback>
+					</Avatar>
 				</header>
 				<main className="my-8">{children}</main>
 			</div>

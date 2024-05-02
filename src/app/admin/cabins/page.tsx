@@ -3,7 +3,9 @@ import { PlusIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-export default function CabinsPage() {
+import { CabinsTable } from './cabins-table';
+
+export default async function CabinsPage() {
 	return (
 		<>
 			<div className="flex items-center justify-between">
@@ -14,6 +16,10 @@ export default function CabinsPage() {
 						Add Cabin
 					</Link>
 				</Button>
+			</div>
+
+			<div className="my-6">
+				<CabinsTable />
 			</div>
 		</>
 	);

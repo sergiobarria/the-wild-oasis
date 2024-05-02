@@ -1,9 +1,9 @@
-import { cabins } from '../app/lib/db/schema';
-import { getTursoClient } from './get-client';
+import { cabins } from '../src/db/schema';
+import { getDBClient } from './get-client';
 
 async function main() {
 	try {
-		const { db } = getTursoClient();
+		const { db } = getDBClient();
 
 		await db.delete(cabins);
 
