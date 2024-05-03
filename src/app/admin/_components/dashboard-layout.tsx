@@ -41,7 +41,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 				)}
 			>
 				<button
-					className="absolute -right-3.5 top-7 rounded-lg border bg-primary p-1.5 text-white"
+					className="absolute -right-3.5 top-7 rounded-full border bg-white p-1.5 text-primary"
 					onClick={() => setIsOpen((prev) => !prev)}
 					title="Toggle Sidebar"
 				>
