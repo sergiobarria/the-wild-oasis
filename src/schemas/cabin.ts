@@ -33,6 +33,8 @@ export const InsertCabinSchema = CabinSchema.omit({
 	slug: true,
 	createdAt: true,
 	updatedAt: true
+}).extend({
+	cover: z.string().optional()
 });
 
 export type Cabin = z.infer<typeof CabinSchema>;

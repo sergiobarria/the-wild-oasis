@@ -1,0 +1,1 @@
+ALTER TABLE cabins ADD `cover` text DEFAULT '';

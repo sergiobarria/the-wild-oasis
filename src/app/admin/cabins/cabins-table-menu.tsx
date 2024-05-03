@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EyeIcon, MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import Link from 'next/link';
-import { deleteCabinAction } from './actions';
+import { deleteCabinAction } from './_actions';
 import { toast } from 'sonner';
 
 type CabinsTableMenuProps = {

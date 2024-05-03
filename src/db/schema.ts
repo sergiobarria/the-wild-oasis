@@ -10,6 +10,7 @@ export const cabins = sqliteTable('cabins', {
 	price: integer('price').notNull().default(0),
 	discountPrice: integer('discount_price').default(0),
 	description: text('description').notNull().default(''),
+	cover: text('cover').default(''),
 
 	// Timestamps
 	createdAt: text('created_at')

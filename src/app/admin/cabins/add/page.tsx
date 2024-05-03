@@ -18,9 +18,8 @@ export default function AddCabinPage() {
 				</div>
 			</div>
 
-			<div className="flex gap-8 py-10">
+			<div className="mt-6">
 				<CabinForm />
-				<div>image</div>
 			</div>
 		</>
 	);

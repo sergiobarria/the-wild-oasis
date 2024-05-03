@@ -24,6 +24,7 @@ export async function createCabinAction(prevState: unknown, formData: FormData) 
 	let cabinId: string | undefined;
 
 	try {
+		console.log('=> Creating cabin', submission.value);
 		const result = await db
 			.insert(cabins)
 			.values({
