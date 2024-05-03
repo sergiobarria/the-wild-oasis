@@ -19,7 +19,6 @@ type CabinsTableMenuProps = {
 export function CabinsTableMenu({ cabinId }: CabinsTableMenuProps) {
 	async function deleteCabin(formData: FormData) {
 		const result = await deleteCabinAction(formData);
-		console.log('🚀 ~ deleteCabin ~ result:', result);
 
 		if (!result.success) {
 			toast.error('Error deleting cabin');

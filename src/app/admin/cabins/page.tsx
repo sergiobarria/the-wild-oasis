@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { PlusIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-
 import { CabinsTable } from './cabins-table';
 
 export default async function CabinsPage() {
@@ -18,9 +17,7 @@ export default async function CabinsPage() {
 				</Button>
 			</div>
 
-			<div className="my-6">
-				<CabinsTable />
-			</div>
+			<CabinsTable />
 		</>
 	);
 }

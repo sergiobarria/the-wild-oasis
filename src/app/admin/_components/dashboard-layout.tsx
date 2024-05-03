@@ -42,10 +42,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 
 	return (
-		<div className="flex">
+		<div className="flex min-h-screen">
 			<aside
 				className={cn(
-					'relative flex min-h-screen flex-col border-r p-3 duration-300',
+					'fixed inset-y-0 flex min-h-screen flex-col border-r bg-white p-3 duration-300',
 					isOpen ? 'w-40' : 'w-16'
 				)}
 			>
@@ -69,7 +69,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 					<NavLink link={settingsLink} isOpen={isOpen} />
 				</nav>
 			</aside>
-			<div className="flex-1 bg-gray-50 px-5">
+			<div className={cn('flex-1 bg-gray-50 px-5 duration-300', isOpen ? 'pl-48' : 'pl-24')}>
 				<header className="flex h-20 items-center justify-between">
 					<Breadcrumbs />
 
@@ -78,7 +78,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 						<AvatarFallback>WO</AvatarFallback>
 					</Avatar>
 				</header>
-				<main className="my-8">{children}</main>
+				<main className="my-2">{children}</main>
 			</div>
 		</div>
 	);
