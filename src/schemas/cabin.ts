@@ -18,12 +18,13 @@ export const CabinSchema = z.object({
 	price: z.number({
 		required_error: 'Price is required'
 	}),
-	discountPrice: z.coerce.number().optional(),
+	discountPrice: z.number().nullable().default(0),
 	description: z
 		.string({
 			required_error: 'Description is required'
 		})
 		.trim(),
+	cover: z.string().nullable().optional(),
 	createdAt: z.string(),
 	updatedAt: z.string()
 });
@@ -33,8 +34,6 @@ export const InsertCabinSchema = CabinSchema.omit({
 	slug: true,
 	createdAt: true,
 	updatedAt: true
-}).extend({
-	cover: z.string().optional()
 });
 
 export type Cabin = z.infer<typeof CabinSchema>;

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDownIcon } from 'lucide-react';
 
@@ -14,6 +15,20 @@ export const columns: ColumnDef<CabinTableColumns>[] = [
 	{
 		accessorKey: 'id',
 		header: 'ID'
+	},
+	{
+		accessorKey: 'cover',
+		header: 'Cover',
+		cell: ({ row }) => {
+			let cover = row.getValue('cover') as string;
+			if (!cover) cover = 'https://via.placeholder.com/100x70';
+
+			return (
+				<div className="flex items-center overflow-hidden">
+					<Image src={cover} alt="Cabin cover" width={100} height={100} className="rounded-lg" />
+				</div>
+			);
+		}
 	},
 	{
 		accessorKey: 'name',

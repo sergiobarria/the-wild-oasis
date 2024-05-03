@@ -20,3 +20,18 @@ export const getAllCabins = unstable_cache(
 		tags: ['cabins']
 	}
 );
+
+export const getCabinDetails = unstable_cache(
+	async (cabinId: string) => {
+		const result = await db.query.cabins.findFirst({
+			where: (cabins, { eq }) => eq(cabins.id, cabinId)
+		});
+
+		return result;
+	},
+	['cabinDetails'],
+	{
+		revalidate: 60 * 10, // 10 minutes
+		tags: ['cabinDetails']
+	}
+);

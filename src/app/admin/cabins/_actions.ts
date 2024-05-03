@@ -11,7 +11,7 @@ import slugify from 'slugify';
 
 import { db } from '@/db';
 import { cabins } from '@/db/schema';
-import { InsertCabinSchema } from '@/schemas/cabin';
+import { CabinSchema, InsertCabinSchema } from '@/schemas/cabin';
 
 const DeleteCabinSchema = z.object({
 	cabinId: z.string()
@@ -24,7 +24,6 @@ export async function createCabinAction(prevState: unknown, formData: FormData) 
 	let cabinId: string | undefined;
 
 	try {
-		console.log('=> Creating cabin', submission.value);
 		const result = await db
 			.insert(cabins)
 			.values({
@@ -45,6 +44,33 @@ export async function createCabinAction(prevState: unknown, formData: FormData) 
 
 	revalidateTag('cabins');
 	redirect('/admin/cabins/' + cabinId);
+}
+
+export async function updateCabinAction(prevState: unknown, formData: FormData) {
+	const submission = parseWithZod(formData, { schema: CabinSchema });
+
+	if (submission.status !== 'success') return submission.reply();
+
+	try {
+		await db
+			.update(cabins)
+			.set({
+				...submission.value,
+				slug: slugify(submission.value.name, { lower: true })
+			})
+			.where(eq(cabins.id, submission.value.id));
+
+		cookies().set('cabinUpdated', 'true', { maxAge: 5 }); // 5 seconds
+	} catch (err: unknown) {
+		console.error('=> 💥 ERROR updating cabin', err);
+		return submission.reply({
+			formErrors: ['Error updating cabin']
+		});
+	}
+
+	revalidateTag('cabins');
+	revalidateTag('cabinDetails');
+	redirect('/admin/cabins/' + submission.value.id);
 }
 
 export async function deleteCabinAction(formData: FormData) {

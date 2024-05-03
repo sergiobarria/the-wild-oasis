@@ -4,15 +4,7 @@ import { PencilIcon } from 'lucide-react';
 import { cookies } from 'next/headers';
 
 import { Button } from '@/components/ui/button';
-import { db } from '@/db';
-
-export async function getCabinDetails(cabinId: string) {
-	const result = await db.query.cabins.findFirst({
-		where: (cabins, { eq }) => eq(cabins.id, cabinId)
-	});
-
-	return result;
-}
+import { getCabinDetails } from '@/data/cabins';
 
 type CabinDetailsPageProps = {
 	params: {
@@ -23,6 +15,7 @@ type CabinDetailsPageProps = {
 export default async function CabinDetailsPage({ params }: CabinDetailsPageProps) {
 	const cabin = await getCabinDetails(params.id);
 	const success = cookies().get('cabinCreated');
+	const updated = cookies().get('cabinUpdated');
 
 	if (!cabin) redirect('/cabins');
 
@@ -35,6 +28,13 @@ export default async function CabinDetailsPage({ params }: CabinDetailsPageProps
 						<>
 							<span> -</span>
 							<p className="animate-bounce font-semibold text-green-400">New Cabin</p>
+						</>
+					)}
+
+					{updated && (
+						<>
+							<span> -</span>
+							<p className="animate-bounce font-semibold text-green-400">Cabin Updated</p>
 						</>
 					)}
 				</div>
