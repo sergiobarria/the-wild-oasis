@@ -3,15 +3,7 @@
 import { Fragment, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-	CalendarIcon,
-	FlameKindlingIcon,
-	HomeIcon,
-	UsersIcon,
-	SettingsIcon,
-	PanelLeftOpenIcon,
-	PanelLeftCloseIcon
-} from 'lucide-react';
+import { CalendarIcon, FlameKindlingIcon, HomeIcon, UsersIcon, SettingsIcon, ArrowLeftIcon } from 'lucide-react';
 
 import {
 	Breadcrumb,
@@ -22,7 +14,6 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const links = [
@@ -49,17 +40,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 					isOpen ? 'w-40' : 'w-16'
 				)}
 			>
-				<Button
-					size="icon"
-					variant="ghost"
-					className="rounded-lg text-muted-foreground hover:bg-transparent"
+				<button
+					className="absolute -right-3.5 top-7 rounded-lg border bg-primary p-1.5 text-white"
 					onClick={() => setIsOpen((prev) => !prev)}
 					title="Toggle Sidebar"
 				>
-					{isOpen ? <PanelLeftCloseIcon size={24} /> : <PanelLeftOpenIcon size={24} />}
-				</Button>
+					<ArrowLeftIcon size={16} className={cn(!isOpen && 'rotate-180')} />
+				</button>
 
-				<nav className="relative mt-14 flex flex-1 flex-col gap-3">
+				<nav className="relative mt-20 flex flex-1 flex-col gap-3">
 					{links.map((link) => (
 						<NavLink key={link.label} link={link} isOpen={isOpen} />
 					))}
