@@ -31,6 +31,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Button } from './button';
 import { useState } from 'react';
 import { Input } from './input';
+import { Skeleton } from './skeleton';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -221,6 +222,42 @@ export function DataTable<TData, TValue>({ columns, data, caption }: DataTablePr
 					</div>
 				</div>
 			</div>
+		</div>
+	);
+}
+
+type SkeletonTableProps = {
+	rows: number;
+	columns: number;
+};
+
+export function SkeletonTable({ rows, columns }: SkeletonTableProps) {
+	return (
+		<div className="rounded-md border">
+			<Table>
+				<TableCaption className="pb-6">Loading...</TableCaption>
+				<TableHeader>
+					<TableRow>
+						{Array.from({ length: columns }).map((_, index) => (
+							<TableHead key={index}>
+								<Skeleton className="h-6 w-full rounded-md" />
+							</TableHead>
+						))}
+					</TableRow>
+				</TableHeader>
+
+				<TableBody>
+					{Array.from({ length: rows }).map((_, index) => (
+						<TableRow key={index}>
+							{Array.from({ length: columns }).map((_, index) => (
+								<TableCell key={index}>
+									<Skeleton className="h-6 w-full rounded-md" />
+								</TableCell>
+							))}
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }

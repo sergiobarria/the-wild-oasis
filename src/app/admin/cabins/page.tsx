@@ -3,6 +3,8 @@ import { PlusIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { CabinsTable } from './cabins-table';
+import { Suspense } from 'react';
+import { SkeletonTable } from '@/components/ui/data-table';
 
 export default async function CabinsPage() {
 	return (
@@ -17,7 +19,15 @@ export default async function CabinsPage() {
 				</Button>
 			</div>
 
-			<CabinsTable />
+			<Suspense
+				fallback={
+					<div className="my-10">
+						<SkeletonTable rows={10} columns={5} />
+					</div>
+				}
+			>
+				<CabinsTable />
+			</Suspense>
 		</>
 	);
 }
