@@ -20,6 +20,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const links = [
 	{ label: 'Home', to: '/dashboard', exact: true, icon: <HomeIcon className="size-4" /> },
@@ -40,14 +41,14 @@ export function DashboardLayout() {
 		<div className="flex min-h-screen border-4 border-black">
 			<aside
 				className={cn(
-					'relative flex flex-col border-r border-gray-300 p-3 duration-300',
+					'relative flex flex-col border-r border-gray-300 p-3 duration-300 dark:border-gray-600',
 					isOpen ? 'w-40' : 'w-14'
 				)}
 			>
 				<button
 					className={cn(
 						'absolute -right-3 top-10 z-10 rounded-full border border-muted-foreground bg-white p-1 text-primary',
-						'transition-colors duration-200 hover:bg-gray-200'
+						'transition-colors duration-200 hover:bg-gray-200 dark:bg-black dark:text-gray-100 dark:hover:text-black'
 					)}
 					onClick={() => setIsOpen(prev => !prev)}
 				>
@@ -61,12 +62,14 @@ export function DashboardLayout() {
 				</nav>
 
 				<nav className="mt-auto flex flex-col space-y-3">
+					<ThemeToggle />
+
 					{bottomLinks.map(link => (
 						<NavLink key={link.label} link={link} isOpen={isOpen} />
 					))}
 				</nav>
 			</aside>
-			<div className="w-full bg-gray-50 px-8 pb-6">
+			<div className="w-full bg-gray-50 px-8 pb-6 dark:bg-background">
 				<header className="flex h-20 items-center justify-between">
 					<Breadcrumbs />
 
@@ -99,7 +102,7 @@ function NavLink({ link, isOpen }: { link: (typeof links)[0]; isOpen: boolean })
 					<Link
 						to={link.to}
 						className={cn('flex items-center gap-3 rounded-lg p-2 text-white', {
-							'bg-primary text-white': isActiveLink(link.to, link.exact),
+							'bg-primary text-white dark:bg-gray-100 dark:text-black': isActiveLink(link.to, link.exact),
 							'text-muted-foreground hover:bg-gray-200': !isActiveLink(link.to, link.exact)
 						})}
 					>
