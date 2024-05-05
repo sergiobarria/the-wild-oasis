@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 		<div className="flex h-screen">
 			<DashboardSidebar isOpen={isOpen} onClick={() => setIsOpen(prev => !prev)} />
 			<div className={cn('flex w-full flex-col px-8 duration-300', isOpen ? 'ml-40' : 'ml-14')}>
-				<header className="flex h-20 items-center">
+				<header className="flex items-center py-8">
 					<Breadcrumbs />
 				</header>
 				<main className="flex-1">{children}</main>

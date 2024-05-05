@@ -1,0 +1,11 @@
+{
+  "id": "mig_corcjsrjhp5tqv7hho6g",
+  "checksum": "1:b269daaf5530cf8a9daab41843e03f68089f5c51a3f782cc40cc123b1497c346",
+  "operations": [
+    {
+      "addTable": {
+        "table": "cabins"
+      }
+    }
+  ]
+}

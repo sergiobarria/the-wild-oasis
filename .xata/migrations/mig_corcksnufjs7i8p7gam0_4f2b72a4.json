@@ -1,0 +1,16 @@
+{
+  "id": "mig_corcksnufjs7i8p7gam0",
+  "parentID": "mig_corckmnufjs7i8p7gal0",
+  "checksum": "1:4f2b72a48b0400767ea7bfb8b58edc8f80fcb5640dcf2919ecf0d3e82d7647f7",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "price",
+          "type": "int"
+        },
+        "table": "cabins"
+      }
+    }
+  ]
+}

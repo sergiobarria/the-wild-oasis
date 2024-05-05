@@ -1,0 +1,13 @@
+{
+  "id": "mig_corckjpf1lrsht4td980",
+  "parentID": "mig_corckhjjhp5tqv7hho8g",
+  "checksum": "1:c2331881301ff61f19ee1fd3a5f96dfc48c96e3c5d5f442e35cb195796e4c31a",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "max_capacity",
+        "table": "cabins"
+      }
+    }
+  ]
+}
