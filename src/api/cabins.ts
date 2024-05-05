@@ -2,6 +2,7 @@ import { Query } from 'appwrite';
 
 import { databases } from '@/lib/appwrite';
 import { env } from '@/env';
+import { Cabin } from '@/schemas/cabin';
 
 const DATABASE_ID = env.VITE_DATABASE_ID;
 const CABINS_COLLECTION_ID = env.VITE_COLLECTION_ID_CABINS;
@@ -13,5 +14,5 @@ export async function getAllCabins() {
 		Query.select(['$id', 'name', 'max_capacity', 'price', 'discount_price'])
 	]);
 
-	return results.documents;
+	return (results.documents as unknown as Cabin[]) ?? [];
 }

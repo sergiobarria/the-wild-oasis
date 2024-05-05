@@ -43,7 +43,7 @@ export function DataTable<TData, TValue>({ columns, data, caption }: DataTablePr
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-		id: false
+		$id: false
 	}); // set which columns are visible by default
 
 	const table = useReactTable({
@@ -64,7 +64,7 @@ export function DataTable<TData, TValue>({ columns, data, caption }: DataTablePr
 	});
 
 	return (
-		<div>
+		<div className="mx-6">
 			<div className="flex items-center py-4">
 				<Input
 					placeholder="Search by cabin name..."
@@ -233,31 +233,38 @@ type SkeletonTableProps = {
 
 export function SkeletonTable({ rows, columns }: SkeletonTableProps) {
 	return (
-		<div className="rounded-md border">
-			<Table>
-				<TableCaption className="pb-6">Loading...</TableCaption>
-				<TableHeader>
-					<TableRow>
-						{Array.from({ length: columns }).map((_, index) => (
-							<TableHead key={index}>
-								<Skeleton className="h-6 w-full rounded-md" />
-							</TableHead>
-						))}
-					</TableRow>
-				</TableHeader>
+		<>
+			<div className="mb-6 flex justify-between">
+				<Skeleton className="h-10 w-1/4 rounded-md" />
 
-				<TableBody>
-					{Array.from({ length: rows }).map((_, index) => (
-						<TableRow key={index}>
+				<Skeleton className="h-10 w-1/3 rounded-md" />
+			</div>
+			<div className="rounded-md border">
+				<Table>
+					<TableCaption className="pb-6">Loading...</TableCaption>
+					<TableHeader>
+						<TableRow>
 							{Array.from({ length: columns }).map((_, index) => (
-								<TableCell key={index}>
+								<TableHead key={index}>
 									<Skeleton className="h-6 w-full rounded-md" />
-								</TableCell>
+								</TableHead>
 							))}
 						</TableRow>
-					))}
-				</TableBody>
-			</Table>
-		</div>
+					</TableHeader>
+
+					<TableBody>
+						{Array.from({ length: rows }).map((_, index) => (
+							<TableRow key={index}>
+								{Array.from({ length: columns }).map((_, index) => (
+									<TableCell key={index}>
+										<Skeleton className="h-6 w-full rounded-md" />
+									</TableCell>
+								))}
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+		</>
 	);
 }

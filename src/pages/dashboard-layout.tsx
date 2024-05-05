@@ -38,7 +38,7 @@ export function DashboardLayout() {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 
 	return (
-		<div className="flex min-h-screen border-4 border-black">
+		<div className="flex min-h-screen max-w-screen-2xl overflow-x-auto">
 			<aside
 				className={cn(
 					'relative flex flex-col border-r border-gray-300 p-3 duration-300 dark:border-gray-600',
@@ -69,7 +69,7 @@ export function DashboardLayout() {
 					))}
 				</nav>
 			</aside>
-			<div className="w-full bg-gray-50 px-8 pb-6 dark:bg-background">
+			<div className="w-full max-w-[100vw] bg-gray-50 px-8 pb-6 dark:bg-background">
 				<header className="flex h-20 items-center justify-between">
 					<Breadcrumbs />
 
