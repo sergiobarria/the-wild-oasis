@@ -26,3 +26,6 @@ dist-ssr
 # misc
 _old/
 .DS_Store
+
+
+.env

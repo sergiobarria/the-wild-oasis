@@ -46,12 +46,12 @@ export function DashboardLayout() {
 			>
 				<button
 					className={cn(
-						'absolute -right-3.5 top-10 z-10 rounded-full border border-muted-foreground bg-white p-0 text-primary',
+						'absolute -right-3 top-10 z-10 rounded-full border border-muted-foreground bg-white p-1 text-primary',
 						'transition-colors duration-200 hover:bg-gray-200'
 					)}
 					onClick={() => setIsOpen(prev => !prev)}
 				>
-					<ChevronRightIcon size={18} className={cn('text-primary', isOpen && 'rotate-180')} />
+					<ChevronRightIcon className={cn('size-4 text-primary', isOpen && 'rotate-180')} />
 				</button>
 
 				<nav className="mt-24 flex flex-col space-y-3">
@@ -66,7 +66,7 @@ export function DashboardLayout() {
 					))}
 				</nav>
 			</aside>
-			<div className="w-full border-4 border-blue-500 bg-gray-50 px-8 pb-6">
+			<div className="w-full bg-gray-50 px-8 pb-6">
 				<header className="flex h-20 items-center justify-between">
 					<Breadcrumbs />
 
