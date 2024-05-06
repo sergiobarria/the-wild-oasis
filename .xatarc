@@ -1,6 +1,0 @@
-{
-	"databaseURL": "https://Sergio-s-workspace-j88unm.us-east-1.xata.sh/db/the-wild-oasis",
-	"codegen": {
-		"output": "src/lib/xata.ts"
-	}
-}
