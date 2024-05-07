@@ -35,25 +35,25 @@
 	>
 		<button
 			class={cn(
-				'border-muted-foreground text-primary absolute -right-3 top-10 z-10 rounded-full border bg-white p-1'
+				'absolute -right-3 top-10 z-10 rounded-full border border-muted-foreground bg-white p-1 text-primary'
 			)}
 			on:click={() => (isOpen = !isOpen)}
 		>
 			<ChevronRightIcon
-				class={cn('text-primary size-4 duration-300', isOpen ? 'rotate-180' : '')}
+				class={cn('size-4 text-primary duration-300', isOpen ? 'rotate-180' : '')}
 			/>
 			<span class="sr-only">Toggle Sidebar</span>
 		</button>
 
 		<nav class="mt-24 flex flex-col space-y-2">
 			{#each links as { label, href, icon } (label)}
-				<NavLink {label} {href} {icon} />
+				<NavLink {label} {href} {icon} {isOpen} />
 			{/each}
 		</nav>
 
 		<nav class="mt-auto flex flex-col space-y-2">
 			{#each bottomLinks as { label, href, icon } (label)}
-				<NavLink {label} {href} {icon} />
+				<NavLink {label} {href} {icon} {isOpen} />
 			{/each}
 		</nav>
 	</aside>

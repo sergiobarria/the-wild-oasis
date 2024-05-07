@@ -2,6 +2,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { PlusIcon } from 'lucide-svelte';
 	import type { PageData } from './$types';
+	import CabinsTable from './cabins-table.svelte';
 
 	export let data: PageData;
 </script>
@@ -17,8 +18,5 @@
 		Add Cabin
 	</Button>
 </div>
-{#each data.cabins as cabin}
-	<div>{cabin.name}</div>
-	<div>{cabin.max_capacity}</div>
-	<div>{cabin.price}</div>
-{/each}
+
+<CabinsTable data={data.cabins} />

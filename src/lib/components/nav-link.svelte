@@ -7,9 +7,9 @@
 	export let label: string;
 	export let href: string;
 	export let icon: any;
-	let isOpen = false;
+	export let isOpen = false;
 
-	$: isOpen = $page.url.pathname.includes(href);
+	// $: isOpen = $page.url.pathname.includes(href);
 </script>
 
 <Tooltip.Root>
@@ -18,8 +18,7 @@
 			{href}
 			class={cn('flex items-center gap-3 rounded-lg p-2', {
 				'bg-primary text-white': $page.url.pathname.includes(href),
-				'text-muted-foreground bg-transparent hover:bg-gray-200':
-					!$page.url.pathname.includes(href)
+				'text-muted-foreground hover:bg-gray-200': !$page.url.pathname.includes(href)
 			})}
 		>
 			<div><svelte:component this={icon} class="size-4" /></div>
