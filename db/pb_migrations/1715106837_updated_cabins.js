@@ -4,20 +4,22 @@ migrate(
 		const dao = new Dao(db);
 		const collection = dao.findCollectionByNameOrId('3ebj97j1854phkn');
 
-		// update
+		// add
 		collection.schema.addField(
 			new SchemaField({
 				system: false,
-				id: 'ahrzpncy',
-				name: 'discount_price',
-				type: 'number',
+				id: '8fnask7p',
+				name: 'images',
+				type: 'file',
 				required: false,
 				presentable: false,
 				unique: false,
 				options: {
-					min: null,
-					max: null,
-					noDecimal: true
+					mimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+					thumbs: ['50x50', '100x100'],
+					maxSelect: 5,
+					maxSize: 5242880,
+					protected: false
 				}
 			})
 		);
@@ -28,23 +30,8 @@ migrate(
 		const dao = new Dao(db);
 		const collection = dao.findCollectionByNameOrId('3ebj97j1854phkn');
 
-		// update
-		collection.schema.addField(
-			new SchemaField({
-				system: false,
-				id: 'ahrzpncy',
-				name: 'discount_price',
-				type: 'number',
-				required: true,
-				presentable: false,
-				unique: false,
-				options: {
-					min: null,
-					max: null,
-					noDecimal: true
-				}
-			})
-		);
+		// remove
+		collection.schema.removeField('8fnask7p');
 
 		return dao.saveCollection(collection);
 	}

@@ -26,10 +26,10 @@
 	const bottomLinks = [{ label: 'Account', href: '/account', icon: CircleUserRoundIcon }];
 </script>
 
-<div class="flex h-screen">
+<div class="flex min-h-screen">
 	<aside
 		class={cn(
-			'fixed inset-y-0 flex flex-col border-r bg-white p-3 duration-300',
+			'fixed inset-y-0 z-10 flex flex-col border-r bg-white p-3 duration-300',
 			isOpen ? 'w-40' : 'w-14'
 		)}
 	>
@@ -61,7 +61,7 @@
 		<header class="flex h-20 items-center">
 			<Breadcrumbs />
 		</header>
-		<main class="flex-1">
+		<main class="mb-8 flex-1">
 			<slot />
 		</main>
 	</div>

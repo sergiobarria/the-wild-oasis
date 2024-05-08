@@ -48,6 +48,10 @@
 		// 	}
 		// }),
 		table.column({
+			accessor: 'image',
+			header: 'Cabin Image'
+		}),
+		table.column({
 			accessor: 'name',
 			header: 'Name'
 		}),
@@ -202,6 +206,12 @@
 											<div class="text-right">
 												<Render of={cell.render()} />
 											</div>
+										{:else if cell.id === 'image'}
+											<img
+												src={cell.render().toString()}
+												alt={cell.render().toString()}
+												class="h-auto w-20 rounded-lg"
+											/>
 										{:else}
 											<Render of={cell.render()} />
 										{/if}

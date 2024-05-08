@@ -9,7 +9,6 @@
 	const flash = getFlash(page);
 
 	$: if ($flash) {
-		console.log('🚀 ~ $flash:', $flash);
 		switch ($flash.type) {
 			case 'success': {
 				toast.success($flash.message);
@@ -28,5 +27,5 @@
 </svelte:head>
 
 <slot />
-<Toaster position="bottom-right" toastOptions={{ className: 'text-xs' }} />
+<Toaster position="top-right" toastOptions={{ className: 'text-xs' }} />
 <ModeWatcher defaultMode="light" />

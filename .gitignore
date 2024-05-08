@@ -14,3 +14,5 @@ _old3/
 
 # Pocketbase
 db/pb_data/
+
+.DS_Store

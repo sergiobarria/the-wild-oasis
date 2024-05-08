@@ -8,16 +8,18 @@ migrate(
 		collection.schema.addField(
 			new SchemaField({
 				system: false,
-				id: 'ahrzpncy',
-				name: 'discount_price',
-				type: 'number',
+				id: '8fnask7p',
+				name: 'cover',
+				type: 'file',
 				required: false,
 				presentable: false,
 				unique: false,
 				options: {
-					min: null,
-					max: null,
-					noDecimal: true
+					mimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+					thumbs: ['50x50', '100x100', '100x75'],
+					maxSelect: 1,
+					maxSize: 5242880,
+					protected: false
 				}
 			})
 		);
@@ -32,16 +34,18 @@ migrate(
 		collection.schema.addField(
 			new SchemaField({
 				system: false,
-				id: 'ahrzpncy',
-				name: 'discount_price',
-				type: 'number',
-				required: true,
+				id: '8fnask7p',
+				name: 'image',
+				type: 'file',
+				required: false,
 				presentable: false,
 				unique: false,
 				options: {
-					min: null,
-					max: null,
-					noDecimal: true
+					mimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+					thumbs: ['50x50', '100x100', '100x75'],
+					maxSelect: 1,
+					maxSize: 5242880,
+					protected: false
 				}
 			})
 		);
