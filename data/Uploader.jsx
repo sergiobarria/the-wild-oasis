@@ -56,8 +56,10 @@ async function createBookings() {
 		const totalPrice = cabinPrice + extrasPrice;
 
 		let status;
-		if (isPast(new Date(booking.endDate)) && !isToday(new Date(booking.endDate))) status = 'checked-out';
-		if (isFuture(new Date(booking.startDate)) || isToday(new Date(booking.startDate))) status = 'unconfirmed';
+		if (isPast(new Date(booking.endDate)) && !isToday(new Date(booking.endDate)))
+			status = 'checked-out';
+		if (isFuture(new Date(booking.startDate)) || isToday(new Date(booking.startDate)))
+			status = 'unconfirmed';
 		if (
 			(isFuture(new Date(booking.endDate)) || isToday(new Date(booking.endDate))) &&
 			isPast(new Date(booking.startDate)) &&

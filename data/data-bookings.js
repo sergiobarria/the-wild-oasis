@@ -260,7 +260,8 @@ export const bookings = [
 		cabinId: 8,
 		guestId: 1,
 		hasBreakfast: true,
-		observations: 'My wife has a gluten allergy so I would like to request a gluten-free breakfast if possible',
+		observations:
+			'My wife has a gluten allergy so I would like to request a gluten-free breakfast if possible',
 		isPaid: true,
 		numGuests: 9
 	},
@@ -271,7 +272,8 @@ export const bookings = [
 		cabinId: 8,
 		guestId: 23,
 		hasBreakfast: true,
-		observations: 'I am celebrating my anniversary, can you arrange for any special amenities or decorations?',
+		observations:
+			'I am celebrating my anniversary, can you arrange for any special amenities or decorations?',
 		isPaid: true,
 		numGuests: 10
 	},
