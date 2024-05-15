@@ -1,7 +1,5 @@
-# Ignore files for PNPM, NPM and YARN
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
 _old/
 _old2/
-_old3/
+public/
+data/
+node_modules
