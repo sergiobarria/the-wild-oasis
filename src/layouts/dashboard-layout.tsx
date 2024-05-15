@@ -13,7 +13,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 import { cn } from '@/lib/utils'
-import { Breadcrumbs } from '@/components/breadcrumbs'
+import { Breadcrumbs } from '@/components/site/breadcrumbs'
 
 const links = [
 	{
@@ -58,13 +58,13 @@ const bottomLinks = [
 ]
 
 export function DashboardLayout() {
-	const [isOpen, setIsOpen] = useState<boolean>(true)
+	const [isOpen, setIsOpen] = useState<boolean>(false)
 
 	return (
 		<div className="h-full min-h-screen">
 			<aside
 				className={cn(
-					'fixed inset-y-0 z-10 flex flex-col border-r p-3 duration-300',
+					'fixed inset-y-0 z-10 flex flex-col border-r bg-white p-3 duration-300',
 					isOpen ? 'w-36' : 'w-14',
 				)}
 			>
@@ -105,7 +105,7 @@ export function DashboardLayout() {
 
 			<div
 				className={cn(
-					'flex min-h-screen w-full flex-col bg-gray-50 px-8 duration-300',
+					'flex min-h-screen flex-col bg-gray-50 px-8 duration-300',
 					isOpen ? 'ml-36' : 'ml-14',
 				)}
 			>
