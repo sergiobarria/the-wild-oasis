@@ -10,5 +10,11 @@ export function CabinsTable() {
 	// NOTE: Convex queries are only undefined when the query is loading
 	if (cabins === undefined) return <TableSkeleton />
 
-	return <DataTable columns={columns} data={cabins} />
+	return (
+		<DataTable
+			columns={columns}
+			data={cabins}
+			options={{ filterInputPlaceholder: 'Search by cabin name...', filterColumn: 'name' }}
+		/>
+	)
 }

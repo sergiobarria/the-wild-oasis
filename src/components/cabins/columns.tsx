@@ -1,8 +1,10 @@
-import { formatCurrency } from '@/lib/utils'
 import { ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDownIcon } from 'lucide-react'
 
-import { Doc } from '~/_generated/dataModel'
+import { Button } from '@/components/ui/button'
+import { formatCurrency } from '@/lib/utils'
 import { TableActions } from './table-actions'
+import { Doc } from '~/_generated/dataModel'
 
 export const columns: ColumnDef<Doc<'cabins'>>[] = [
 	{
@@ -11,11 +13,33 @@ export const columns: ColumnDef<Doc<'cabins'>>[] = [
 	},
 	{
 		accessorKey: 'name',
-		header: 'Name',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+				>
+					Name
+					<ArrowUpDownIcon className="ml-2" size={16} />
+				</Button>
+			)
+		},
 	},
 	{
 		accessorKey: 'maxCapacity',
-		header: () => <div className="text-right">Max Capacity</div>,
+		header: ({ column }) => {
+			return (
+				<div className="flex justify-end">
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					>
+						Max Capacity
+						<ArrowUpDownIcon className="ml-2" size={16} />
+					</Button>
+				</div>
+			)
+		},
 		cell: ({ row }) => {
 			const amount = parseInt(row.getValue('maxCapacity'))
 
@@ -24,7 +48,19 @@ export const columns: ColumnDef<Doc<'cabins'>>[] = [
 	},
 	{
 		accessorKey: 'price',
-		header: () => <div className="text-right">Price (USD)</div>,
+		header: ({ column }) => {
+			return (
+				<div className="flex justify-end">
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					>
+						Price (USD)
+						<ArrowUpDownIcon className="ml-2" size={16} />
+					</Button>
+				</div>
+			)
+		},
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('price'))
 
@@ -47,5 +83,6 @@ export const columns: ColumnDef<Doc<'cabins'>>[] = [
 
 			return <TableActions cabinId={cabinId} />
 		},
+		enableHiding: false,
 	},
 ]
