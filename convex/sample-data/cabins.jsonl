@@ -1,0 +1,5 @@
+{ "name": "001", "maxCapacity": 10, "price": 125000, "discount": 10000, "description": "This is a description of the room" }
+{ "name": "002", "maxCapacity": 8, "price": 125000, "discount": 0, "description": "This is a description of the room" }
+{ "name": "003", "maxCapacity": 12, "price": 525000, "discount": 20000, "description": "This is a description of the room" }
+{ "name": "004", "maxCapacity": 14, "price": 325000, "discount": 0, "description": "This is a description of the room" }
+{ "name": "005", "maxCapacity": 10, "price": 175000, "discount": 50000, "description": "This is a description of the room" }
