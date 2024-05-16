@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { PlusCircleIcon } from 'lucide-react'
 
 import {
@@ -10,10 +11,18 @@ import {
 } from '@/components/ui/sheet'
 import { CabinsTable } from '@/components/cabins/cabins-table'
 import { Button } from '@/components/ui/button'
+import { CabinsForm } from '@/components/cabins/cabins-form'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function CabinsPage() {
+	const [sheetOpen, setSheetOpen] = useState<boolean>(false)
+
+	function handleCloseSheet() {
+		setSheetOpen(false)
+	}
+
 	return (
-		<Sheet>
+		<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 			<div className="flex items-center justify-between">
 				<h1 className="text-3xl font-bold">All Cabins</h1>
 				<SheetTrigger asChild>
@@ -28,7 +37,7 @@ export function CabinsPage() {
 				<CabinsTable />
 			</div>
 
-			<SheetContent>
+			<SheetContent className="w-[400px] sm:w-[540px] lg:max-w-none">
 				<SheetHeader>
 					<SheetTitle>Add new Cabin</SheetTitle>
 					<SheetDescription>
@@ -36,7 +45,9 @@ export function CabinsPage() {
 					</SheetDescription>
 				</SheetHeader>
 
-				<div>cabin form</div>
+				<ScrollArea className="h-full pb-8">
+					<CabinsForm onSubmitComplete={handleCloseSheet} />
+				</ScrollArea>
 			</SheetContent>
 		</Sheet>
 	)

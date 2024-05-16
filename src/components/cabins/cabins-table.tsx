@@ -8,7 +8,7 @@ export function CabinsTable() {
 	const cabins = useQuery(api.cabins.get)
 
 	// NOTE: Convex queries are only undefined when the query is loading
-	if (cabins === undefined) return <TableSkeleton />
+	if (cabins === undefined) return <TableSkeleton numRows={10} />
 
 	return (
 		<DataTable
