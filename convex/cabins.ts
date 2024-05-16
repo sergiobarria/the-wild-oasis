@@ -4,7 +4,15 @@ import { query, mutation } from './_generated/server'
 export const get = query({
 	args: {},
 	handler: async (ctx) => {
-		return await ctx.db.query('cabins').collect()
+		const cabins = await ctx.db.query('cabins').collect()
+		const cabinsWithImages = await Promise.all(
+			cabins.map(async (cabin) => ({
+				...cabin,
+				...(cabin.image ? { imageUrl: await ctx.storage.getUrl(cabin.image) } : {}),
+			})),
+		)
+
+		return cabinsWithImages
 	},
 })
 
@@ -15,6 +23,7 @@ export const create = mutation({
 		price: v.number(),
 		discount: v.number(),
 		description: v.string(),
+		image: v.optional(v.id('_storage')),
 	},
 	handler: async (ctx, args) => {
 		const id = await ctx.db.insert('cabins', args)

@@ -8,7 +8,7 @@ export default defineSchema({
 		price: v.number(),
 		discount: v.number(),
 		description: v.string(),
-		image: v.optional(v.string()),
+		image: v.optional(v.id('_storage')),
 	}),
 	guests: defineTable({
 		fullName: v.string(),

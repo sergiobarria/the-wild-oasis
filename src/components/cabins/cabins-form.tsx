@@ -1,10 +1,11 @@
+import { useRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
+import { useMutation } from 'convex/react'
 
-import { Button } from '@/components/ui/button'
 import {
 	Form,
 	FormControl,
@@ -14,10 +15,11 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useMutation } from 'convex/react'
 import { api } from '~/_generated/api'
+import { Id } from '~/_generated/dataModel'
 
 const formSchema = z.object({
 	name: z
@@ -30,6 +32,7 @@ const formSchema = z.object({
 	price: z.coerce.number(),
 	discount: z.coerce.number(),
 	description: z.string(),
+	image: z.any().optional(), // TODO: Find a way to validate that the image is of type Id<'_storage'>
 })
 
 interface CabinsFormProps {
@@ -37,7 +40,12 @@ interface CabinsFormProps {
 }
 
 export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
+	const [selectedImage, setSelectedImage] = useState<File | null>(null)
 	const createCabinMutation = useMutation(api.cabins.create)
+	const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+	const deleteImageMutation = useMutation(api.files.deleteById)
+	const imageInputRef = useRef<HTMLInputElement>(null)
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -49,6 +57,42 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 		},
 	})
 
+	async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+		const files = e.target.files
+		if (!files) return
+
+		const file = files[0]
+		const reader = new FileReader()
+		reader.onload = () => {
+			setSelectedImage(file)
+		}
+		reader.readAsDataURL(file)
+
+		const url = await generateUploadUrl()
+		const result = await fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': file.type },
+			body: file,
+		})
+
+		const { storageId } = (await result.json()) as { storageId: Id<'_storage'> }
+
+		// add the storageId to the cabin object
+		form.setValue('image', storageId)
+	}
+
+	async function handleDeleteImage() {
+		const storageId = form.getValues('image')
+		if (!storageId) return
+
+		await deleteImageMutation({ storageId: form.getValues('image') })
+
+		setSelectedImage(null)
+		form.setValue('image', null)
+		imageInputRef.current!.value = ''
+		toast.info('Image removed successfully.')
+	}
+
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			await createCabinMutation({
@@ -57,6 +101,7 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 				discount: data.discount * 100,
 			})
 			onSubmitComplete()
+			toast.success('Cabin created successfully.')
 		} catch (err: unknown) {
 			console.error('=> 💥 Error creating cabin: ', err)
 			toast.error('Failed to create cabin. Please try again.')
@@ -65,7 +110,7 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="my-8 space-y-6 px-1">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 px-1 pb-8">
 				<FormField
 					control={form.control}
 					name="name"
@@ -157,6 +202,26 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 							<FormMessage />
 						</FormItem>
 					)}
+				/>
+
+				{selectedImage && (
+					<div className="flex items-center gap-4">
+						<img
+							src={URL.createObjectURL(selectedImage)}
+							alt="Cabin"
+							className="h-32 w-32 rounded-lg object-cover"
+						/>
+						<Button type="button" variant="ghost" onClick={handleDeleteImage}>
+							Remove Image
+						</Button>
+					</div>
+				)}
+
+				<Input
+					type="file"
+					ref={imageInputRef}
+					accept="image/*"
+					onChange={handleImageUpload}
 				/>
 
 				<Button type="submit" disabled={form.formState.isSubmitting} className="w-full">

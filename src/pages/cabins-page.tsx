@@ -38,14 +38,14 @@ export function CabinsPage() {
 			</div>
 
 			<SheetContent className="w-[400px] sm:w-[540px] lg:max-w-none">
-				<SheetHeader>
+				<SheetHeader className="pb-4">
 					<SheetTitle>Add new Cabin</SheetTitle>
 					<SheetDescription>
 						Enter the details of the new cabin you want to add.
 					</SheetDescription>
 				</SheetHeader>
 
-				<ScrollArea className="h-full pb-8">
+				<ScrollArea className="h-full pb-10 pr-6">
 					<CabinsForm onSubmitComplete={handleCloseSheet} />
 				</ScrollArea>
 			</SheetContent>

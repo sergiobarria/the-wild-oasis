@@ -6,10 +6,29 @@ import { formatCurrency } from '@/lib/utils'
 import { TableActions } from './table-actions'
 import { Doc } from '~/_generated/dataModel'
 
-export const columns: ColumnDef<Doc<'cabins'>>[] = [
+type Column = ColumnDef<Doc<'cabins'> & { imageUrl: string }>
+
+export const columns: Column[] = [
 	{
 		accessorKey: '_id',
 		header: 'ID',
+	},
+	{
+		accessorKey: 'image',
+		header: 'Cover',
+		cell: ({ row }) => {
+			const imageUrl = row.original.imageUrl
+
+			return (
+				<div className="h-14 w-20 overflow-hidden rounded-lg">
+					<img
+						src={imageUrl ?? 'https://placehold.co/100'}
+						alt="Cabin"
+						className="h-full w-full object-cover"
+					/>
+				</div>
+			)
+		},
 	},
 	{
 		accessorKey: 'name',
