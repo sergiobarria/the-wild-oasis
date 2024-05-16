@@ -61,58 +61,53 @@ export function DashboardLayout() {
 	const [isOpen, setIsOpen] = useState<boolean>(false)
 
 	return (
-		<div className="h-full min-h-screen">
-			<aside
-				className={cn(
-					'fixed inset-y-0 z-10 flex flex-col border-r bg-white p-3 duration-300',
-					isOpen ? 'w-36' : 'w-14',
-				)}
-			>
-				<button
+		<div className="relative flex min-h-screen flex-col">
+			<header className="flex h-16 w-full items-center justify-between border-b px-6">
+				<Breadcrumbs />
+			</header>
+
+			<div className="flex w-full flex-1 overflow-hidden">
+				<aside
 					className={cn(
-						'absolute -right-3 top-10 z-10 rounded-full border border-muted-foreground bg-white p-1 text-primary',
+						'relative hidden h-[calc(100vh-4rem)] bg-background p-4 duration-300 ease-in-out md:flex md:flex-col md:border-r',
+						isOpen ? 'w-36' : 'w-16',
 					)}
-					onClick={() => setIsOpen((prev) => !prev)}
 				>
-					<ChevronRightIcon
+					<button
 						className={cn(
-							'size-4 text-primary duration-300',
-							isOpen ? 'rotate-180' : 'rotate-0',
+							'absolute -right-3 bottom-20 z-10 rounded-full border border-muted-foreground bg-white p-1 text-primary',
 						)}
-					/>
+						onClick={() => setIsOpen((prev) => !prev)}
+					>
+						<ChevronRightIcon
+							className={cn(
+								'size-4 text-primary duration-300',
+								isOpen ? 'rotate-180' : 'rotate-0',
+							)}
+						/>
+						<span className="sr-only">toggle sidebar</span>
+					</button>
 
-					<span className="sr-only">toggle sidebar</span>
-				</button>
-
-				<nav className="mt-24 flex h-full flex-col justify-between">
-					<ul className="space-y-2">
-						{links.map((link) => (
-							<li key={link.href}>
-								<NavLink {...link} isOpen={isOpen} />
-							</li>
-						))}
-					</ul>
-
-					<ul className="flex flex-col space-y-2 pb-6">
-						{bottomLinks.map((link) => (
-							<li key={link.href}>
-								<NavLink {...link} isOpen={isOpen} />
-							</li>
-						))}
-					</ul>
-				</nav>
-			</aside>
-
-			<div
-				className={cn(
-					'flex min-h-screen flex-col bg-gray-50 px-8 duration-300',
-					isOpen ? 'ml-36' : 'ml-14',
-				)}
-			>
-				<header className="flex h-20 items-center">
-					<Breadcrumbs />
-				</header>
-				<main>
+					<nav className="flex h-full flex-col justify-between overflow-x-hidden">
+						<ul className="space-y-2">
+							{links.map((link) => (
+								<li key={link.href}>
+									<NavLink {...link} isOpen={isOpen} />
+								</li>
+							))}
+						</ul>
+						<div className="border-t pt-4">
+							<ul className="space-y-2">
+								{bottomLinks.map((link) => (
+									<li key={link.href}>
+										<NavLink {...link} isOpen={isOpen} />
+									</li>
+								))}
+							</ul>
+						</div>
+					</nav>
+				</aside>
+				<main className="h-[calc(100vh-4rem)] flex-1 overflow-y-auto bg-gray-50 p-6">
 					<Outlet />
 				</main>
 			</div>
