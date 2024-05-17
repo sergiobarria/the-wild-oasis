@@ -1,10 +1,9 @@
-import { useRef, useState } from 'react'
+import { useMutation } from 'convex/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
-import { useMutation } from 'convex/react'
 
 import {
 	Form,
@@ -20,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { api } from '~/_generated/api'
 import { Doc, Id } from '~/_generated/dataModel'
+import { ImageUpload } from '../ui/image-upload'
 
 const formSchema = z.object({
 	name: z
@@ -41,12 +41,8 @@ interface CabinsFormProps {
 }
 
 export function CabinsForm({ onSubmitComplete, cabin }: CabinsFormProps) {
-	const [selectedImage, setSelectedImage] = useState<File | null>(null)
 	const createCabinMutation = useMutation(api.cabins.create)
 	const updateCabinMutation = useMutation(api.cabins.update)
-	const generateUploadUrl = useMutation(api.files.generateUploadUrl)
-	const deleteImageMutation = useMutation(api.files.deleteById)
-	const imageInputRef = useRef<HTMLInputElement>(null)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -61,50 +57,14 @@ export function CabinsForm({ onSubmitComplete, cabin }: CabinsFormProps) {
 		},
 	})
 
-	async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-		const files = e.target.files
-		if (!files) return
-
-		const file = files[0]
-		const reader = new FileReader()
-		reader.onload = () => {
-			setSelectedImage(file)
-		}
-		reader.readAsDataURL(file)
-
-		const url = await generateUploadUrl()
-		const result = await fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': file.type },
-			body: file,
-		})
-
-		const { storageId } = (await result.json()) as { storageId: Id<'_storage'> }
-
-		// add the storageId to the cabin object
-		form.setValue('image', storageId)
-	}
-
-	async function handleDeleteImage() {
-		const storageId = form.getValues('image')
-		if (!storageId) return
-
-		await deleteImageMutation({ storageId: form.getValues('image') })
-
-		setSelectedImage(null)
-		form.setValue('image', null)
-		imageInputRef.current!.value = ''
-		toast.info('Image removed successfully.')
-	}
-
 	async function onSubmit(data: z.infer<typeof formSchema>) {
-		try {
-			const payload = {
-				...data,
-				price: data.price * 100,
-				discount: data.discount * 100,
-			}
+		const payload = {
+			...data,
+			price: data.price * 100,
+			discount: data.discount * 100,
+		}
 
+		try {
 			if (cabin) {
 				await updateCabinMutation({
 					id: cabin._id,
@@ -219,33 +179,11 @@ export function CabinsForm({ onSubmitComplete, cabin }: CabinsFormProps) {
 					)}
 				/>
 
-				{(selectedImage || cabin?.imageUrl) && (
-					<div className="flex items-center gap-4">
-						{selectedImage && (
-							<img
-								src={URL.createObjectURL(selectedImage)}
-								alt="Cabin"
-								className="h-32 w-32 rounded-lg object-cover"
-							/>
-						)}
-						{cabin?.imageUrl && (
-							<img
-								src={cabin.imageUrl}
-								alt="Cabin"
-								className="h-32 w-32 rounded-lg object-cover"
-							/>
-						)}
-						<Button type="button" variant="ghost" onClick={handleDeleteImage}>
-							Remove Image
-						</Button>
-					</div>
-				)}
-
-				<Input
-					type="file"
-					ref={imageInputRef}
-					accept="image/*"
-					onChange={handleImageUpload}
+				<ImageUpload
+					storageId={form.getValues('image')}
+					imageUrl={cabin?.imageUrl}
+					onImageUpload={(storageId: Id<'_storage'>) => form.setValue('image', storageId)}
+					onDeleteImage={() => form.setValue('image', null)}
 				/>
 
 				<Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
