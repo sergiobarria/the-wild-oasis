@@ -16,6 +16,7 @@ import type {
 } from "convex/server";
 import type * as cabins from "../cabins.js";
 import type * as files from "../files.js";
+import type * as settings from "../settings.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -28,6 +29,7 @@ import type * as files from "../files.js";
 declare const fullApi: ApiFromModules<{
   cabins: typeof cabins;
   files: typeof files;
+  settings: typeof settings;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
