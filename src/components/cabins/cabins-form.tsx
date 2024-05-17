@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { api } from '~/_generated/api'
-import { Id } from '~/_generated/dataModel'
+import { Doc, Id } from '~/_generated/dataModel'
 
 const formSchema = z.object({
 	name: z
@@ -37,11 +37,13 @@ const formSchema = z.object({
 
 interface CabinsFormProps {
 	onSubmitComplete: () => void
+	cabin?: Doc<'cabins'> & { imageUrl: string }
 }
 
-export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
+export function CabinsForm({ onSubmitComplete, cabin }: CabinsFormProps) {
 	const [selectedImage, setSelectedImage] = useState<File | null>(null)
 	const createCabinMutation = useMutation(api.cabins.create)
+	const updateCabinMutation = useMutation(api.cabins.update)
 	const generateUploadUrl = useMutation(api.files.generateUploadUrl)
 	const deleteImageMutation = useMutation(api.files.deleteById)
 	const imageInputRef = useRef<HTMLInputElement>(null)
@@ -49,11 +51,13 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			name: '',
-			maxCapacity: 0,
-			price: 0,
-			discount: 0,
-			description: '',
+			...(cabin || {
+				name: '',
+				maxCapacity: 0,
+				price: 0,
+				discount: 0,
+				description: '',
+			}),
 		},
 	})
 
@@ -95,13 +99,24 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			await createCabinMutation({
+			const payload = {
 				...data,
 				price: data.price * 100,
 				discount: data.discount * 100,
-			})
+			}
+
+			if (cabin) {
+				await updateCabinMutation({
+					id: cabin._id,
+					data: payload,
+				})
+				toast.success('Cabin updated successfully.')
+			} else {
+				await createCabinMutation(payload)
+				toast.success('Cabin created successfully.')
+			}
+
 			onSubmitComplete()
-			toast.success('Cabin created successfully.')
 		} catch (err: unknown) {
 			console.error('=> 💥 Error creating cabin: ', err)
 			toast.error('Failed to create cabin. Please try again.')
@@ -204,13 +219,22 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 					)}
 				/>
 
-				{selectedImage && (
+				{(selectedImage || cabin?.imageUrl) && (
 					<div className="flex items-center gap-4">
-						<img
-							src={URL.createObjectURL(selectedImage)}
-							alt="Cabin"
-							className="h-32 w-32 rounded-lg object-cover"
-						/>
+						{selectedImage && (
+							<img
+								src={URL.createObjectURL(selectedImage)}
+								alt="Cabin"
+								className="h-32 w-32 rounded-lg object-cover"
+							/>
+						)}
+						{cabin?.imageUrl && (
+							<img
+								src={cabin.imageUrl}
+								alt="Cabin"
+								className="h-32 w-32 rounded-lg object-cover"
+							/>
+						)}
 						<Button type="button" variant="ghost" onClick={handleDeleteImage}>
 							Remove Image
 						</Button>
@@ -228,7 +252,7 @@ export function CabinsForm({ onSubmitComplete }: CabinsFormProps) {
 					{form.formState.isSubmitting && (
 						<Loader2Icon className="mr-2 size-4 animate-spin" />
 					)}
-					Save
+					{cabin ? 'Update Cabin' : 'Create Cabin'}
 				</Button>
 			</form>
 		</Form>

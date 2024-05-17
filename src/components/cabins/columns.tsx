@@ -83,7 +83,7 @@ export const columns: Column[] = [
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('price'))
 
-			return <div className="text-right font-medium">{formatCurrency(amount / 100)}</div>
+			return <div className="text-right font-medium">{formatCurrency(amount)}</div>
 		},
 	},
 	{
@@ -92,15 +92,15 @@ export const columns: Column[] = [
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('discount'))
 
-			return <div className="text-right font-medium">{formatCurrency(amount / 100)}</div>
+			return <div className="text-right font-medium">{formatCurrency(amount)}</div>
 		},
 	},
 	{
 		id: 'actions',
 		cell: ({ row }) => {
-			const cabinId = row.original._id
+			const cabin = row.original
 
-			return <TableActions cabinId={cabinId} />
+			return <TableActions cabin={cabin} />
 		},
 		enableHiding: false,
 	},
