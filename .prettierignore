@@ -1,5 +1,5 @@
-_old/
-_old2/
-public/
-data/
-node_modules
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+_old
