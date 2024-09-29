@@ -1,6 +1,7 @@
 import { createId } from '@paralleldrive/cuid2';
 import { relations } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
 import { bookings } from './booking';
 
 export const guests = sqliteTable('guests', {
@@ -16,11 +17,11 @@ export const guests = sqliteTable('guests', {
 	email: text('email', { length: 255 }).notNull().unique(),
 	nationalId: text('national_id', { length: 255 }).notNull().unique(),
 	nationality: text('national', { length: 255 }),
-	countryFlag: text('country_flag', { length: 255 })
+	countryFlag: text('country_flag', { length: 255 }),
 });
 
 export const guestRelations = relations(guests, ({ many }) => ({
-	bookings: many(bookings)
+	bookings: many(bookings),
 }));
 
 export type Guest = typeof guests.$inferSelect;

@@ -1,6 +1,7 @@
 import { createId } from '@paralleldrive/cuid2';
 import { relations } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
 import { bookings } from './booking';
 
 export const cabins = sqliteTable('cabins', {
@@ -16,11 +17,11 @@ export const cabins = sqliteTable('cabins', {
 	regularPrice: integer('regular_price').notNull(),
 	discount: integer('discount'), // -> in percent
 	description: text('description'),
-	image: text('image')
+	image: text('image'),
 });
 
 export const cabinsRelations = relations(cabins, ({ many }) => ({
-	bookings: many(bookings)
+	bookings: many(bookings),
 }));
 
 export type Cabin = typeof cabins.$inferSelect;

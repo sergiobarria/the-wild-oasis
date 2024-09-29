@@ -12,7 +12,7 @@ export const settings = sqliteTable('settings', {
 	minBookingLength: integer('min_booking_length').notNull(),
 	maxBookingLength: integer('max_booking_length').notNull(),
 	maxGuests: integer('max_guests').notNull(),
-	breakfastPrice: integer('breakfast_price').notNull()
+	breakfastPrice: integer('breakfast_price').notNull(),
 });
 
 export type Setting = typeof settings.$inferSelect;
