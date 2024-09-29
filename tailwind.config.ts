@@ -1,19 +1,14 @@
-import type { Config } from 'tailwindcss'
-import defaultTheme from 'tailwindcss/defaultTheme'
+import type { Config } from 'tailwindcss';
 
-export default {
+const config: Config = {
 	darkMode: ['class'],
-	content: ['./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}'],
+	content: [
+		'./src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+		'./src/components/**/*.{js,ts,jsx,tsx,mdx}',
+		'./src/app/**/*.{js,ts,jsx,tsx,mdx}',
+	],
 	theme: {
 		extend: {
-			fontFamily: {
-				sans: ['Inter', ...defaultTheme.fontFamily.sans],
-			},
-			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)',
-			},
 			colors: {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
@@ -56,7 +51,17 @@ export default {
 					'5': 'hsl(var(--chart-5))',
 				},
 			},
+			fontFamily: {
+				sans: ['var(--font-geist-sans)'],
+				mono: ['var(--font-geist-mono)'],
+			},
+			borderRadius: {
+				lg: 'var(--radius)',
+				md: 'calc(var(--radius) - 2px)',
+				sm: 'calc(var(--radius) - 4px)',
+			},
 		},
 	},
 	plugins: [require('tailwindcss-animate')],
-} satisfies Config
+};
+export default config;
