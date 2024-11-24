@@ -17,7 +17,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: 'I have a gluten allergy and would like to request a gluten-free breakfast.',
 		isPaid: false,
-		numGuests: 1,
+		numGuests: 1
 	},
 	{
 		created_at: fromToday(-33, true),
@@ -28,7 +28,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 2,
+		numGuests: 2
 	},
 	{
 		created_at: fromToday(-27, true),
@@ -39,7 +39,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: '',
 		isPaid: false,
-		numGuests: 2,
+		numGuests: 2
 	},
 
 	// CABIN 002
@@ -52,7 +52,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: '',
 		isPaid: true,
-		numGuests: 2,
+		numGuests: 2
 	},
 	{
 		created_at: fromToday(-2, true),
@@ -63,7 +63,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 2,
+		numGuests: 2
 	},
 	{
 		created_at: fromToday(-5, true),
@@ -74,7 +74,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: false,
-		numGuests: 2,
+		numGuests: 2
 	},
 
 	// CABIN 003
@@ -87,7 +87,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 4,
+		numGuests: 4
 	},
 	{
 		created_at: fromToday(-2, true),
@@ -98,7 +98,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: 'We will be bringing our small dog with us',
 		isPaid: true,
-		numGuests: 3,
+		numGuests: 3
 	},
 	{
 		created_at: fromToday(-14, true),
@@ -109,7 +109,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 4,
+		numGuests: 4
 	},
 
 	// CABIN 004
@@ -122,7 +122,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 4,
+		numGuests: 4
 	},
 	{
 		created_at: fromToday(-1, true),
@@ -133,7 +133,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: false,
-		numGuests: 4,
+		numGuests: 4
 	},
 	{
 		created_at: fromToday(-3, true),
@@ -144,7 +144,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: '',
 		isPaid: true,
-		numGuests: 1,
+		numGuests: 1
 	},
 
 	// CABIN 005
@@ -157,7 +157,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: false,
-		numGuests: 5,
+		numGuests: 5
 	},
 	{
 		created_at: fromToday(-6, true),
@@ -168,7 +168,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 4,
+		numGuests: 4
 	},
 	{
 		created_at: fromToday(-4, true),
@@ -179,7 +179,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: '',
 		isPaid: true,
-		numGuests: 6,
+		numGuests: 6
 	},
 
 	// CABIN 006
@@ -192,7 +192,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: "We will be checking in late, around midnight. Hope that's okay :)",
 		isPaid: true,
-		numGuests: 6,
+		numGuests: 6
 	},
 	{
 		created_at: fromToday(-16, true),
@@ -203,7 +203,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: 'I will need a rollaway bed for one of the guests',
 		isPaid: true,
-		numGuests: 4,
+		numGuests: 4
 	},
 	{
 		created_at: fromToday(-18, true),
@@ -214,7 +214,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 6,
+		numGuests: 6
 	},
 
 	// CABIN 007
@@ -227,7 +227,7 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: '',
 		isPaid: false,
-		numGuests: 8,
+		numGuests: 8
 	},
 	{
 		created_at: fromToday(-7, true),
@@ -238,7 +238,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 7,
+		numGuests: 7
 	},
 	{
 		created_at: fromToday(-55, true),
@@ -249,7 +249,7 @@ export const bookings = [
 		hasBreakfast: true,
 		observations: '',
 		isPaid: true,
-		numGuests: 6,
+		numGuests: 6
 	},
 
 	// CABIN 008
@@ -263,7 +263,7 @@ export const bookings = [
 		observations:
 			'My wife has a gluten allergy so I would like to request a gluten-free breakfast if possible',
 		isPaid: true,
-		numGuests: 9,
+		numGuests: 9
 	},
 	{
 		created_at: fromToday(0, true),
@@ -275,7 +275,7 @@ export const bookings = [
 		observations:
 			'I am celebrating my anniversary, can you arrange for any special amenities or decorations?',
 		isPaid: true,
-		numGuests: 10,
+		numGuests: 10
 	},
 	{
 		created_at: fromToday(-10, true),
@@ -286,6 +286,6 @@ export const bookings = [
 		hasBreakfast: false,
 		observations: '',
 		isPaid: true,
-		numGuests: 7,
-	},
+		numGuests: 7
+	}
 ];

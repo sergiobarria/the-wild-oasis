@@ -2,4 +2,4 @@
 	import { Button } from '$lib/components/ui/button';
 </script>
 
-<Button onclick={() => alert('IT WORKS!!')}>Click Me</Button>
+<Button href="/dashboard">Go to Dashboard</Button>
