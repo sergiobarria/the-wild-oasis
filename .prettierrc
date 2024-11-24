@@ -1,19 +1,25 @@
 {
-	"arrowParens": "avoid",
-	"bracketSameLine": false,
-	"endOfLine": "lf",
-	"bracketSpacing": true,
-	"printWidth": 100,
-	"semi": true,
-	"singleQuote": true,
-	"tabWidth": 4,
 	"useTabs": true,
-	"plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
+	"singleQuote": true,
+	"trailingComma": "none",
+	"printWidth": 100,
+	"plugins": [
+		"@trivago/prettier-plugin-sort-imports",
+		"prettier-plugin-svelte",
+		"prettier-plugin-tailwindcss"
+	],
+	"overrides": [
+		{
+			"files": "*.svelte",
+			"options": {
+				"parser": "svelte"
+			}
+		}
+	],
 	"importOrder": [
-		"server-only",
-		"^(react|next(/.*)?)$",
+		"^(svelte|@sveltejs/kit|\\$env|\\$app)(/.*)?$",
 		"<THIRD_PARTY_MODULES>",
-		"^@/(.*)$",
+		"^\\$lib(/.*)?$",
 		"^../(.*)$",
 		"^./(.*)$"
 	],
