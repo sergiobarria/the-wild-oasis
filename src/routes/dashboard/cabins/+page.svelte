@@ -17,3 +17,7 @@
 {/snippet}
 
 <PageHeader title="Cabins" {actions} />
+
+<pre>
+	{JSON.stringify(data.cabins, null, 2)}
+</pre>
