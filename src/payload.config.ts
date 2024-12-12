@@ -1,39 +1,54 @@
-// storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres';
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
+import { s3Storage } from '@payloadcms/storage-s3';
 import path from 'path';
 import { buildConfig } from 'payload';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 
-import { Media } from './collections/Media';
-import { Users } from './collections/Users';
+import { Bookings, Cabins, Guests, Media, Settings, Users } from './collections';
+import { env } from './env';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 export default buildConfig({
+	secret: env.PAYLOAD_SECRET || '',
+	db: postgresAdapter({
+		pool: { connectionString: env.DATABASE_URI || '' },
+	}),
 	admin: {
+		components: {
+			beforeDashboard: ['@/components/payload/before-dashboard'],
+			afterDashboard: ['@/components/payload/after-dashboard'],
+		},
 		user: Users.slug,
 		importMap: {
 			baseDir: path.resolve(dirname),
 		},
 	},
-	collections: [Users, Media],
+	collections: [Bookings, Cabins, Guests, Media, Settings, Users],
 	editor: lexicalEditor(),
-	secret: process.env.PAYLOAD_SECRET || '',
 	typescript: {
 		outputFile: path.resolve(dirname, 'payload-types.ts'),
 	},
-	db: postgresAdapter({
-		pool: {
-			connectionString: process.env.DATABASE_URI || '',
-		},
-	}),
 	sharp,
 	plugins: [
 		payloadCloudPlugin(),
-		// storage-adapter-placeholder
+		s3Storage({
+			collections: {
+				media: true,
+			},
+			bucket: env.R2_BUCKET,
+			config: {
+				credentials: {
+					accessKeyId: env.R2_ACCESS_KEY_ID,
+					secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+				},
+				region: env.R2_REGION,
+				endpoint: env.R2_ENDPOINT,
+			},
+		}),
 	],
 });
