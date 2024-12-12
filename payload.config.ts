@@ -7,8 +7,9 @@ import { buildConfig } from 'payload';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 
+import { env } from '@/env';
+
 import { Bookings, Cabins, Guests, Media, Settings, Users } from './collections';
-import { env } from './env';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -20,8 +21,8 @@ export default buildConfig({
 	}),
 	admin: {
 		components: {
-			beforeDashboard: ['@/components/payload/before-dashboard'],
-			afterDashboard: ['@/components/payload/after-dashboard'],
+			beforeDashboard: ['@/_components/payload/before-dashboard'],
+			afterDashboard: ['@/_components/payload/after-dashboard'],
 		},
 		user: Users.slug,
 		importMap: {
