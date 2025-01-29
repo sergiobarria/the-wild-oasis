@@ -18,11 +18,12 @@
 				"name": "next"
 			}
 		],
+		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./app/*"],
-			"@payload-config": ["./payload.config.ts"]
+			"@/convex/*": ["./convex/*"],
+			"@/*": ["./app/*"]
 		}
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-	"exclude": ["node_modules", "_old"]
+	"exclude": ["node_modules", "./_old/**/*"]
 }
