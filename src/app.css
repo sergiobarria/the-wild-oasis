@@ -10,3 +10,8 @@
 @theme {
 	--font-display: 'Inter', 'sans-serif';
 }
+
+#nprogress .bar {
+	/* background: rgb(221, 34, 40) !important; */
+	height: 2.5px !important;
+}
