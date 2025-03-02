@@ -1,12 +1,12 @@
-# The Wild Oasis
+# The Wild Oasis App
 
-## Table of Contents
+> Full stack application build for a small boutique hotel, for cabin management
 
-## Commands
+## Table Of Content
 
-### Seed Data
+## Stack
 
-```bash
-# Seed the cabins table
-$ bunx convex import --table cabins ./convex/sample-data/cabins.jsonl
-```
+- **Language:** TypeScript
+- **Framework:** SvelteKit
+- **UI Styling:** Tailwind CSS
+- **Database :** PostgreSQL + Drizzle ORM
