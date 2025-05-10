@@ -1,12 +1,17 @@
-# The Wild Oasis App
+# The Wild Oasis Web App
 
-> Full stack application build for a small boutique hotel, for cabin management
+> Full stack web application for a boutique hotel, where users can rent cabins in the woods.
 
-## Table Of Content
+## Table of Contents
 
 ## Stack
 
-- **Language:** TypeScript
-- **Framework:** SvelteKit
-- **UI Styling:** Tailwind CSS
-- **Database :** PostgreSQL + Drizzle ORM
+- **Language**: PHP
+- **Framework**: Laravel
+- **UI**: Inertia (React) + Blade Templates
+- **Styling**: Tailwind CSS + Shadcn
+- **Database**: PostgreSQL
+
+## Running Locally
+
+## Commands
