@@ -1,6 +1,12 @@
 <x-layouts.app :title="$cabin->name">
     <section class="max-w-7xl mx-auto px-8 pt-12 space-y-20">
-        {{-- Imagen destacada --}}
+        <a href="{{ route('cabins.index') }}"
+           class="mb-4 inline-flex items-center hover:text-accent transition-colors duration-300 ease-in-out">
+            <x-lucide-arrow-left-circle class="size-8 mr-2"/>
+            <span>Return to all cabins</span>
+        </a>
+
+        {{-- Cover Image --}}
         <div class="relative h-[60vh] rounded-xl overflow-hidden shadow">
             <img src="{{ asset($cabin->main_image) }}" alt="{{ $cabin->name }}"
                  class="object-cover w-full h-full"/>
@@ -11,12 +17,11 @@
             </div>
         </div>
 
-        {{-- Contenido principal --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {{-- Columna izquierda --}}
+            {{-- Left Column --}}
             <div class="md:col-span-2 space-y-10 text-zinc-400 leading-relaxed">
 
-                {{-- Descripción + Testimonial --}}
+                {{-- Description + Testimonial --}}
                 <div class="space-y-4">
                     <h2 class="text-2xl text-zinc-100 font-semibold">Description</h2>
                     <p>{{ $cabin->description }}</p>
@@ -26,7 +31,7 @@
                     </blockquote>
                 </div>
 
-                {{-- Tags emocionales --}}
+                {{-- Tags --}}
                 <div class="space-y-2 text-sm">
                     <p>🌿 Perfect for couples seeking peace & nature</p>
                     <p>🔥 Great for winter retreats with fireplace & hot tub</p>
@@ -46,21 +51,47 @@
                     </ul>
                 </div>
 
-                {{-- Galería --}}
+                {{-- Gallery --}}
                 @if($cabin->gallery && count($cabin->gallery))
-                    <div>
+                    {{-- Galería con modal expandible --}}
+                    <div x-data="{ show: false, image: '' }">
                         <h3 class="text-lg text-zinc-100 font-medium mb-6">Gallery</h3>
+
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             @foreach($cabin->gallery as $image)
-                                <img src="{{ asset($image) }}"
-                                     alt="{{ $cabin->name }} photo"
-                                     class="rounded-lg object-cover h-48 w-full"/>
+                                <img
+                                    src="{{ asset($image) }}"
+                                    alt="{{ $cabin->name }} photo"
+                                    class="rounded-lg object-cover h-48 w-full cursor-pointer hover:brightness-110 transition"
+                                    @click="show = true; image = '{{ asset($image) }}'"
+                                />
                             @endforeach
+                        </div>
+
+                        {{-- Modal de imagen expandida --}}
+                        <div
+                            x-show="show"
+                            x-transition
+                            x-cloak
+                            @keydown.escape.window="show = false"
+                            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur"
+                        >
+                            <div @click.outside="show = false" class="max-w-4xl w-full px-4 relative">
+                                <img :src="image" alt="Expanded image"
+                                     class="rounded-lg shadow-xl mx-auto max-h-[90vh]"/>
+                                <button
+                                    @click="show = false"
+                                    class="absolute top-5 cursor-pointer right-10 text-zinc-300 hover:text-white text-3xl font-bold"
+                                    aria-label="Close"
+                                >
+                                    <x-lucide-x-circle class="size-10"/>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 @endif
 
-                {{-- Reseñas --}}
+                {{-- Reviews --}}
                 @if($cabin->reviews && count($cabin->reviews))
                     <div class="space-y-8">
                         <h3 class="text-lg text-zinc-100 font-medium">Guest Reviews</h3>
@@ -83,7 +114,7 @@
                     </div>
                 @endif
 
-                {{-- Políticas --}}
+                {{-- Policies --}}
                 <div class="pt-12 border-t border-zinc-700/30">
                     <h3 class="text-lg text-zinc-100 font-medium mb-4">Good to know</h3>
                     <div class="text-sm text-zinc-400 space-y-2">
@@ -95,9 +126,9 @@
 
             </div>
 
-            {{-- Columna derecha (Info rápida y CTA) --}}
+            {{-- Right Column (Booking Card) --}}
             <div class="self-start sticky top-6 bg-base-100 border border-zinc-700/50 rounded-xl p-6 shadow space-y-6">
-                {{-- Precio --}}
+                {{-- Price --}}
                 <div>
                     <p class="text-zinc-400 text-sm">From</p>
                     <p class="text-3xl text-accent font-bold">
@@ -113,7 +144,7 @@
                     <span>({{ $cabin->reviews_count }} reviews)</span>
                 </div>
 
-                {{-- Especificaciones --}}
+                {{-- Specifications --}}
                 <ul class="text-sm text-zinc-400 space-y-3">
                     <li class="flex items-center gap-2">
                         <x-lucide-users class="size-4 text-accent"/>

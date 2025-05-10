@@ -14,7 +14,7 @@
             @foreach($cabins as $cabin)
                 <div
                     class="bg-base-100 border border-zinc-700/50 rounded-2xl overflow-hidden shadow-sm transition hover:shadow-lg">
-                    <img src="{{ asset($cabin->image) }}" alt="{{ $cabin['name'] }}"
+                    <img src="{{ asset($cabin->image) }}" alt="{{ $cabin->name }}"
                          class="w-full h-56 object-cover"/>
 
                     <div class="p-6 space-y-4">
@@ -45,7 +45,7 @@
 
                         <div class="pt-4">
                             <a
-                                href="{{ route('cabins.show', ['slug' => $cabinslug]) }}"
+                                href="{{ route('cabins.show', ['slug' => $cabin->slug]) }}"
                                 class="inline-block bg-accent text-accent-foreground px-4 py-2 text-sm font-medium rounded hover:bg-accent-content transition"
                             >
                                 View Details
