@@ -9,3 +9,4 @@ Route::get('/about', [PageController::class, 'about'])->name('pages.about');
 Route::get('/contact', [PageController::class, 'contact'])->name('pages.contact');
 
 Route::get('/cabins', [CabinController::class, 'index'])->name('cabins.index');
+Route::get('/cabins/{slug}', [CabinController::class, 'show'])->name('cabins.show');
