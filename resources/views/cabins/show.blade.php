@@ -8,12 +8,12 @@
 
         {{-- Cover Image --}}
         <div class="relative h-[60vh] rounded-xl overflow-hidden shadow">
-            <img src="{{ asset($cabin->main_image) }}" alt="{{ $cabin->name }}"
+            <img src="{{ asset($cabin->mainImageUrl()) }}" alt="{{ $cabin->name }}"
                  class="object-cover w-full h-full"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
             <div class="absolute bottom-6 left-6 text-white">
                 <h1 class="text-4xl font-bold">{{ $cabin->name }}</h1>
-                <p class="text-zinc-300 mt-2">{{ $cabin->location }}</p>
+                <p class="text-zinc-300 mt-2">{{ $cabin->summary }}</p>
             </div>
         </div>
 
@@ -23,12 +23,12 @@
 
                 {{-- Description + Testimonial --}}
                 <div class="space-y-4">
-                    <h2 class="text-2xl text-zinc-100 font-semibold">Description</h2>
-                    <p>{{ $cabin->description }}</p>
-
-                    <blockquote class="border-l-4 border-accent pl-4 text-lg italic text-zinc-300">
+                    <blockquote class="border-l-4 border-accent pl-4 text-lg mb-8 italic text-zinc-300">
                         “The most relaxing vacation we've had in years. We’ll be back every winter.”
                     </blockquote>
+
+                    <h2 class="text-2xl text-zinc-100 font-semibold">Description</h2>
+                    <p>{{ $cabin->description }}</p>
                 </div>
 
                 {{-- Tags --}}
@@ -40,12 +40,12 @@
 
                 {{-- Amenities --}}
                 <div>
-                    <h3 class="text-lg text-zinc-100 font-medium mb-4">Features</h3>
+                    <h3 class="text-lg text-zinc-100 font-medium mb-4">Amenities</h3>
                     <ul class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                         @foreach($cabin->amenities as $amenity)
                             <li class="flex items-center gap-2">
                                 <x-lucide-check class="text-accent size-4"/>
-                                {{ $amenity }}
+                                {{ $amenity['name'] }}
                             </li>
                         @endforeach
                     </ul>
@@ -99,7 +99,7 @@
                         @foreach($cabin->reviews as $review)
                             <div class="border border-zinc-700/40 rounded-xl p-6 bg-base-100">
                                 <div class="flex items-center justify-between mb-2">
-                                    <div class="text-zinc-100 font-semibold">{{ $review['author'] }}</div>
+                                    <div class="text-zinc-100 font-semibold">{{ $review['author_name'] }}</div>
                                     <div class="flex items-center gap-1 text-yellow-400">
                                         @for($i = 1; $i <= 5; $i++)
                                             <x-lucide-star
@@ -108,7 +108,7 @@
                                     </div>
                                 </div>
                                 <p class="text-zinc-400 text-sm">{{ $review['comment'] }}</p>
-                                <p class="text-zinc-500 text-xs mt-2">{{ $review['date'] }}</p>
+                                <p class="text-zinc-500 text-xs mt-2">{{ $review->formatted_date }}</p>
                             </div>
                         @endforeach
                     </div>
@@ -140,25 +140,31 @@
                 {{-- Rating --}}
                 <div class="flex items-center gap-2 text-sm text-zinc-400">
                     <x-lucide-star class="size-4 text-yellow-400"/>
-                    <span class="text-zinc-100 font-medium">{{ number_format($cabin->rating, 1) }}</span>
+                    <span class="text-zinc-100 font-medium">{{ $cabin->getRatingAttribute() }}</span>
                     <span>({{ $cabin->reviews_count }} reviews)</span>
                 </div>
 
                 {{-- Specifications --}}
-                <ul class="text-sm text-zinc-400 space-y-3">
-                    <li class="flex items-center gap-2">
-                        <x-lucide-users class="size-4 text-accent"/>
-                        Sleeps {{ $cabin->capacity }}
+                <ul class="text-sm flex items-center justify-between gap-4 text-zinc-400">
+                    <li class="flex flex-col justify-center items-center gap-2">
+                        <x-lucide-bath class="size-4 text-accent"/>
+                        {{ $cabin->bathrooms }} {{ \Illuminate\Support\Str::plural('bathrooms', $cabin->bathrooms) }}
                     </li>
-                    <li class="flex items-center gap-2">
+                    <li class="flex flex-col justify-center items-center gap-2">
                         <x-lucide-bed class="size-4 text-accent"/>
-                        {{ $cabin->beds }} bed(s)
+                        {{ $cabin->bedrooms }} {{ \Illuminate\Support\Str::plural('bed', $cabin->bedrooms) }}
                     </li>
-                    <li class="flex items-center gap-2">
-                        <x-lucide-map-pin class="size-4 text-accent"/>
-                        {{ $cabin->location }}
+                    <li class="flex flex-col justify-center items-center gap-2">
+                        <x-lucide-users-2 class="size-4 text-accent"/>
+                        Max {{ $cabin->max_guests }} guests
                     </li>
                 </ul>
+
+                <hr class="border-zinc-800"/>
+
+                <div class="bg-zinc-800 rounded-lg">
+                    <flux:calendar size="xs" mode="range" months="1"/>
+                </div>
 
                 {{-- CTA --}}
                 <div class="pt-4">

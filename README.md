@@ -15,3 +15,9 @@
 ## Running Locally
 
 ## Commands
+
+### Prune R2 Bucket
+
+```bash
+$ aws s3 rm s3://<bucket-name> --endpoint-url https://<cloudflare-id>.r2.cloudflarestorage.com --recursive --dryrun
+```
