@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -51,6 +52,25 @@ class Cabin extends Model implements AuditableContract, HasMedia
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function getUnavailableDatesAttribute(): string
+    {
+        $dates = [];
+
+        foreach ($this->availability as $range) {
+            // Exclude check-in y check-out
+            $period = CarbonPeriod::create(
+                $range->start_date->copy()->addDay(),
+                $range->end_date->copy()->subDay()
+            );
+
+            foreach ($period as $date) {
+                $dates[] = $date->toDateString();
+            }
+        }
+
+        return implode(',', $dates);
     }
 
     public function getSlugOptions(): SlugOptions

@@ -162,19 +162,35 @@
 
                 <hr class="border-zinc-800"/>
 
-                <div class="bg-zinc-800 rounded-lg">
-                    <flux:calendar size="xs" mode="range" months="1"/>
-                </div>
+                <form method="GET" action="{{ route('checkout.summary') }}" class="space-y-6">
+                    <input type="hidden" name="cabinId" value="{{ $cabin->id }}"/>
 
-                {{-- CTA --}}
-                <div class="pt-4">
-                    <a
-                        href="{{ route('cabins.show', $cabin->slug) }}"
-                        class="block text-center bg-accent text-accent-foreground px-6 py-3 text-sm font-medium rounded hover:bg-accent-content transition"
-                    >
+                    <flux:field>
+                        <flux:label>Pick your Dates</flux:label>
+                        <div class="bg-zinc-800 rounded-lg">
+                            <flux:calendar
+                                name="dates"
+                                :selectable-header="true"
+                                size="xs"
+                                mode="range"
+                                months="1"
+                                min="today"
+                                unavailable="{{ $cabin->unavailable_dates }}"
+                            />
+                        </div>
+                        <flux:error name="range"/>
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Number of Guests</flux:label>
+                        <flux:input name="guests" type="number" value="{{ old('guests', 2) }}"/>
+                        <flux:error name="guests"/>
+                    </flux:field>
+
+                    <flux:button type="submit" variant="primary" spinner="submit" class="cursor-pointer w-full">
                         Book this cabin
-                    </a>
-                </div>
+                    </flux:button>
+                </form>
             </div>
         </div>
     </section>
