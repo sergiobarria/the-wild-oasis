@@ -203,29 +203,28 @@
                 @foreach($recommendedCabins as $cabin)
                     <div
                         class="bg-base-100 border border-zinc-700/40 rounded-xl overflow-hidden shadow hover:shadow-lg transition">
-                        <img src="{{ asset($cabin->image) }}" alt="{{ $cabin->name }}"
+                        <img src="{{ asset($cabin->mainImageUrl()) }}" alt="{{ $cabin->name }}"
                              class="w-full h-48 object-cover"/>
 
                         <div class="p-5 space-y-3">
                             <h3 class="text-lg font-semibold text-zinc-100">{{ $cabin->name }}</h3>
-                            <p class="text-zinc-400 text-sm">{{ $cabin->location }}</p>
 
                             <div class="text-zinc-100 font-medium">
                                 ${{ $cabin->price_per_night }} <span class="text-sm text-zinc-400">/ night</span>
                             </div>
 
-                            <ul class="flex gap-4 text-sm text-zinc-400">
+                            <ul class="flex gap-6 text-zinc-400 text-sm">
                                 <li class="flex items-center gap-1">
                                     <x-lucide-bed class="size-4 text-accent"/>
-                                    {{ $cabin->beds }} beds
+                                    {{ $cabin->num_beds }} Beds
                                 </li>
                                 <li class="flex items-center gap-1">
                                     <x-lucide-users class="size-4 text-accent"/>
                                     Sleeps {{ $cabin->capacity }}
                                 </li>
                                 <li class="flex items-center gap-1">
-                                    <x-lucide-map-pin class="size-4 text-accent"/>
-                                    {{ $cabin->location }}
+                                    <x-lucide-users-2 class="size-4 text-accent"/>
+                                    Max {{ $cabin->max_guests }} guests
                                 </li>
                             </ul>
 

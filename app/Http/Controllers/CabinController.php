@@ -35,6 +35,7 @@ class CabinController extends Controller
             ->inRandomOrder()
             ->take(3)
             ->get();
+        ray($recommendedCabins);
 
         return view('cabins.show', compact('cabin', 'recommendedCabins'));
     }
