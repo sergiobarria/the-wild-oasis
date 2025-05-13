@@ -23,7 +23,7 @@
             </a>
 
             <div class="mt-auto">
-                <form method="POST" action="{{ route('account.index') }}">
+                <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
                             class="flex items-center gap-4 px-5 py-3 font-semibold w-full text-left hover:bg-zinc-700 rounded-lg cursor-pointer">

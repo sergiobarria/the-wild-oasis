@@ -33,7 +33,7 @@
             <span class="text-xl font-semibold text-zinc-100">The Wild Oasis</span>
         </a>
 
-        <nav class="flex gap-16 items-center">
+        <nav class="flex gap-12 items-center">
             <x-nav-link :href="route('cabins.index')" :active="request()->routeIs('cabins.index')">
                 Cabins
             </x-nav-link>
@@ -47,7 +47,17 @@
             </x-nav-link>
 
             @auth
-                <x-nav-link :href="route('pages.')">Guest Area</x-nav-link>
+                <x-nav-link :href="route('account.index')">Guest Area</x-nav-link>
+            @else
+                <div class="space-x-3">
+                    <flux:button href="{{ route('login') }}" variant="primary" icon="log-in" size="sm"
+                                 class="cursor-pointer">
+                        Sign In
+                    </flux:button>
+                    <flux:button href="{{ route('register') }}" icon="user-plus" size="sm" class="cursor-pointer">
+                        Register
+                    </flux:button>
+                </div>
             @endauth
         </nav>
 

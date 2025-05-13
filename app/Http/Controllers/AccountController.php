@@ -6,7 +6,9 @@ class AccountController extends Controller
 {
     public function index()
     {
-        return view('account.index');
+        $user = auth()->user()->load('profile');
+        
+        return view('account.index', compact('user'));
     }
 
     public function reservations()

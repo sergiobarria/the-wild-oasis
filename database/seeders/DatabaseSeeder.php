@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            RoleSeeder::class,
             AmenitySeeder::class,
         ]);
 
@@ -25,7 +26,6 @@ class DatabaseSeeder extends Seeder
             ]);
 
             User::create([
-                'name' => 'Admin User',
                 'email' => 'admin@oasis.test',
                 'password' => Hash::make('password'),
             ]);

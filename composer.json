@@ -21,6 +21,7 @@
         "nnjeim/world": "^1.1",
         "owen-it/laravel-auditing": "^14.0",
         "spatie/laravel-medialibrary": "^11.12",
+        "spatie/laravel-permission": "^6.17",
         "spatie/laravel-ray": "^1.40",
         "spatie/laravel-sluggable": "^3.7",
         "stripe/stripe-php": "^17.2"
