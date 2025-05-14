@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
 use App\Services\BookingCheckoutService;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
@@ -26,7 +27,7 @@ class CheckoutController extends Controller
         $data = $request->toBookingData();
 
         try {
-            $userId = auth()->id() ?? 1; // TODO: Hardcoded for now
+            $userId = Auth::id();
             $session = BookingCheckoutService::createSession($data, $userId);
         } catch (\Exception $e) {
             \Log::error($e);

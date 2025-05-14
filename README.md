@@ -21,3 +21,9 @@
 ```bash
 $ aws s3 rm s3://<bucket-name> --endpoint-url https://<cloudflare-id>.r2.cloudflarestorage.com --recursive --dryrun
 ```
+
+### Seed Countries and Cities data
+
+```bash
+$ php artisan db:seed --class=WorldSeeder
+```

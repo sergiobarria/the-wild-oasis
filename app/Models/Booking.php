@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
@@ -13,6 +14,11 @@ class Booking extends Model implements AuditableContract
 
     protected $fillable = [
         'cabin_id', 'user_id', 'start_date', 'end_date',
-        'guests', 'nights', 'subtotal', 'booking_fee', 'taxes', 'total', 'stripe_session_id'
+        'guests', 'nights', 'subtotal', 'booking_fee', 'taxes', 'total', 'stripe_session_id', 'receipt_url'
     ];
+
+    public function cabin(): BelongsTo
+    {
+        return $this->belongsTo(Cabin::class);
+    }
 }

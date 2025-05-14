@@ -48,17 +48,24 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('checkout.store') }}" class="flex justify-center">
-            @csrf
+        @auth
+            <form method="POST" action="{{ route('checkout.store') }}" class="flex justify-center">
+                @csrf
 
-            <input type="hidden" name="dates[start]" value="{{ $checkin->toDateString() }}">
-            <input type="hidden" name="dates[end]" value="{{ $checkout->toDateString() }}">
-            <input type="hidden" name="guests" value="{{ $guests }}">
-            <input type="hidden" name="cabinId" value="{{ $cabin->id }}">
+                <input type="hidden" name="dates[start]" value="{{ $checkin->toDateString() }}">
+                <input type="hidden" name="dates[end]" value="{{ $checkout->toDateString() }}">
+                <input type="hidden" name="guests" value="{{ $guests }}">
+                <input type="hidden" name="cabinId" value="{{ $cabin->id }}">
 
-            <flux:button type="submit" variant="primary" class="cursor-pointer">
-                Continue to Checkout
-            </flux:button>
-        </form>
+                <flux:button type="submit" variant="primary" class="cursor-pointer">
+                    Continue to Checkout
+                </flux:button>
+            </form>
+        @else
+            <a href="{{ route('login', ['redirect' => url()->full()]) }}"
+               class="block text-center font-semibold text-primary underline hover:text-primary/80 transition">
+                Please log in to continue to checkout
+            </a>
+        @endauth
     </section>
 </x-layouts.app>

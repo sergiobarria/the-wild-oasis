@@ -6,9 +6,16 @@
             Thank you for booking with us! A confirmation email has been sent to you.
         </p>
 
-        <flux:button href="{{ route('pages.home') }}">
-            Return to Homepage
-        </flux:button>
+        <div class="space-x-3">
+            <flux:button href="{{ route('pages.home') }}">
+                Return to Homepage
+            </flux:button>
+            @auth
+                <flux:button variant="primary" href="{{ route('account.reservations') }}">
+                    My Reservations
+                </flux:button>
+            @endauth
+        </div>
     </div>
 </x-layouts.app>
 

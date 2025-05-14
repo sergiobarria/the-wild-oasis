@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'redirect' => $request->query('redirect'),
+        ]);
     }
 
     public function store(Request $request)
@@ -21,9 +23,17 @@ class LoginController extends Controller
         ]);
 
         $remember = $request->boolean('remember');
+        $redirect = $request->input('redirect');
+        ray($redirect);
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+
+            if ($redirect && str_starts_with($redirect, config('app.url'))) {
+                ray('INSIDE IF');
+                return redirect()->to($redirect);
+            }
+
             return redirect()->intended(route('account.index'));
         }
 
