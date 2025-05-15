@@ -53,11 +53,11 @@
                             <ul class="flex gap-6 text-zinc-400 text-sm">
                                 <li class="flex items-center gap-1">
                                     <x-lucide-bed class="size-4 text-accent"/>
-                                    {{ $cabin->num_beds }} Beds
+                                    {{ $cabin->bedrooms }} Beds
                                 </li>
                                 <li class="flex items-center gap-1">
-                                    <x-lucide-users class="size-4 text-accent"/>
-                                    Sleeps {{ $cabin->capacity }}
+                                    <x-lucide-bath class="size-4 text-accent"/>
+                                    {{ $cabin->bathrooms }} Bathrooms
                                 </li>
                                 <li class="flex items-center gap-1">
                                     <x-lucide-users-2 class="size-4 text-accent"/>

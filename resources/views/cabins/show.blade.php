@@ -162,6 +162,17 @@
 
                 <hr class="border-zinc-800"/>
 
+                @if ($errors->any())
+                    <div class="p-4 mb-4 rounded-lg border border-red-600/30 bg-red-900/20 text-red-300 space-y-2">
+                        <p class="font-semibold text-red-400">There were some problems with your submission:</p>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form method="GET" action="{{ route('checkout.summary') }}" class="space-y-6">
                     <input type="hidden" name="cabinId" value="{{ $cabin->id }}"/>
 

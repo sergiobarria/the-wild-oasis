@@ -27,10 +27,25 @@ class StoreBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'dates' => ['required', 'array'],
             'dates.start' => ['required', 'date', 'after_or_equal:today'],
             'dates.end' => ['required', 'date', 'after:dates.start'],
             'guests' => ['required', 'integer', 'min:1'],
             'cabinId' => ['required', 'string', 'exists:cabins,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'dates.required' => 'Please select your check-in and check-out dates.',
+            'dates.start.required' => 'Please select a valid check-in date.',
+            'dates.start.after_or_equal' => 'Check-in date must be today or later.',
+            'dates.end.required' => 'Please select a valid check-out date.',
+            'dates.end.after' => 'Check-out date must be after check-in date.',
+            'guests.required' => 'Please enter how many guests will be staying',
+            'guests.integer' => 'Number of guests must be a number.',
+            'guests.min' => 'At least one guest is required',
         ];
     }
 

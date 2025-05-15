@@ -59,18 +59,43 @@ class Cabin extends Model implements AuditableContract, HasMedia
         $dates = [];
 
         foreach ($this->availability as $range) {
-            // Exclude check-in y check-out
-            $period = CarbonPeriod::create(
-                $range->start_date->copy()->addDay(),
-                $range->end_date->copy()->subDay()
-            );
+            $start = $range->start_date->copy();
+            $end = $range->end_date->copy();
 
+            // Check if there is an adyacent booking
+            $hasPrevious = $this->availability->contains(fn($r) => $r->end_date->isSameDay($start->copy()->subDay()));
+            $hasNex = $this->availability->contains(fn($r) => $r->start_date->isSameDay($end->copy()->subDay()));
+
+            if (!$hasPrevious) {
+                $dates[] = $start->toDateString();
+            };
+
+            if (!$hasNex) {
+                $dates[] = $end->toDateString();
+            }
+
+            // Block all in between days
+            $period = CarbonPeriod::create($start->copy()->addDay(), $end->copy()->subDay());
             foreach ($period as $date) {
                 $dates[] = $date->toDateString();
             }
         }
 
-        return implode(',', $dates);
+        return implode(',', array_unique($dates));
+
+//        foreach ($this->availability as $range) {
+//            // Exclude check-in y check-out
+//            $period = CarbonPeriod::create(
+//                $range->start_date->copy()->addDay(),
+//                $range->end_date->copy()->subDay()
+//            );
+//
+//            foreach ($period as $date) {
+//                $dates[] = $date->toDateString();
+//            }
+//        }
+//
+//        return implode(',', $dates);
     }
 
     public function getSlugOptions(): SlugOptions

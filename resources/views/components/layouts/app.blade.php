@@ -47,7 +47,11 @@
             </x-nav-link>
 
             @auth
-                <x-nav-link :href="route('account.index')">Guest Area</x-nav-link>
+                <x-nav-link :href="route('account.index')" match="account*"
+                            class="bg-accent text-accent-foreground px-3 py-1.5 rounded-lg flex items-center">
+                    <x-lucide-user-round class="size-4 leading-none"/>
+                    Guest Area
+                </x-nav-link>
             @else
                 <div class="space-x-3">
                     <flux:button href="{{ route('login') }}" variant="primary" icon="log-in" size="sm"
