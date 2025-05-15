@@ -2,9 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Mail\WelcomeEmail;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -40,6 +42,8 @@ class RegisterForm extends Component
         ]);
 
         Auth::login($user);
+
+        Mail::to($user->email)->queue(new WelcomeEmail($user));
 
         return redirect()->route('account.index');
     }

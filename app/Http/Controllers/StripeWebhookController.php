@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmedEmail;
 use App\Models\Booking;
 use App\Models\CabinAvailability;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Charge;
 use Stripe\Exception\ApiErrorException;
 use Stripe\PaymentIntent;
@@ -30,35 +32,28 @@ class StripeWebhookController extends Controller
         }
 
         if ($event->type == 'checkout.session.completed') {
-            Log::info('Checkout session completed event received.');
             $session = $event->data->object;
-            Log::info('Stripe Webhook received session: ' . $session);
 
             if (Booking::where('stripe_session_id', $session->id)->exists()) {
                 return response()->noContent();
             }
 
-            // Get Payment Receipt
             Stripe::setApiKey(config('services.stripe.secret_key'));
 
             $receiptUrl = null;
             try {
                 $paymentIntent = PaymentIntent::retrieve($session->payment_intent);
-                Log::info('Stripe Webhook received payment intent: ' . $paymentIntent);
                 $charge = Charge::retrieve($paymentIntent->latest_charge);
-                Log::info('Stripe Webhook received charge: ' . $charge);
                 $receiptUrl = $charge?->receipt_url;
             } catch (ApiErrorException $e) {
                 \Log::error('Stripe webhook error: ' . $e->getMessage());
             }
 
-            Log::info('Stripe Webhook received receipt: ' . $receiptUrl);
-
             try {
                 DB::beginTransaction();
 
                 // Create Booking
-                Booking::create([
+                $booking = Booking::create([
                     'cabin_id' => $session->metadata->cabin_id,
                     'user_id' => $session->metadata->user_id,
                     'start_date' => $session->metadata->startDate,
@@ -82,6 +77,9 @@ class StripeWebhookController extends Controller
                 ]);
 
                 DB::commit();
+
+                Mail::to($booking->user)->queue(new BookingConfirmedEmail($booking));
+
             } catch (\Throwable $e) {
                 DB::rollBack();
                 Log::error('Stripe webhook DB transaction failed: ' . $e->getMessage());

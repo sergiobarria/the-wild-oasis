@@ -5,6 +5,10 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CabinController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
+use App\Mail\BookingConfirmedEmail;
+use App\Models\Booking;
+use App\Models\Cabin;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'index'])->name('pages.home');
@@ -29,3 +33,36 @@ Route::get('/register', fn() => view('auth.register'))->name('register');
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Testing routes
+Route::get('/mailable', function () {
+    $user = \App\Models\User::factory()->make(['email' => 'john@example.com']);
+
+    $user->setRelation('profile', new \App\Models\Profile(['name' => 'John Doe']));
+
+    return new \App\Mail\WelcomeEmail($user);
+});
+
+Route::get('/mailable/booking-confirmed', function () {
+    // New user
+    $user = User::factory()->make(['email' => 'jane@example.com']);
+    $user->setRelation('profile', new \App\Models\Profile(['name' => 'Jane Doe']));
+
+    $cabin = Cabin::factory()->make(['name' => 'Sunset Cabin',]);
+
+    $booking = new Booking([
+        'start_date' => now()->addDays(7),
+        'end_date' => now()->addDays(10),
+        'guests' => 2,
+        'nights' => 3,
+        'subtotal' => 45000,
+        'booking_fee' => 1500,
+        'taxes' => 6000,
+        'total' => 52500,
+    ]);
+
+    $booking->setRelation('user', $user);
+    $booking->setRelation('cabin', $cabin);
+
+    return new BookingConfirmedEmail($booking);
+});
