@@ -82,20 +82,6 @@ class Cabin extends Model implements AuditableContract, HasMedia
         }
 
         return implode(',', array_unique($dates));
-
-//        foreach ($this->availability as $range) {
-//            // Exclude check-in y check-out
-//            $period = CarbonPeriod::create(
-//                $range->start_date->copy()->addDay(),
-//                $range->end_date->copy()->subDay()
-//            );
-//
-//            foreach ($period as $date) {
-//                $dates[] = $date->toDateString();
-//            }
-//        }
-//
-//        return implode(',', $dates);
     }
 
     public function getSlugOptions(): SlugOptions
