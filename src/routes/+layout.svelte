@@ -8,6 +8,7 @@
 	import { APP_DESCRIPTION, APP_NAME } from '$lib/config/constants';
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
+	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
 </script>
@@ -25,4 +26,5 @@
 </svelte:head>
 
 <ModeWatcher defaultMode="system" />
+<Toaster />
 {@render children?.()}
