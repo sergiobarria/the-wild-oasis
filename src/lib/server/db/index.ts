@@ -7,11 +7,13 @@ import { env } from '$env/dynamic/private';
 import * as cabins from './schema/cabin';
 import * as settings from './schema/settings';
 import * as bookings from './schema/booking';
+import * as media from './schema/media';
 
 const schema = {
 	...cabins,
 	...settings,
-	...bookings
+	...bookings,
+	...media
 };
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');

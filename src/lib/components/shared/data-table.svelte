@@ -16,8 +16,7 @@
 		ChevronRightIcon,
 		ChevronsLeftIcon,
 		ChevronsRightIcon,
-		Settings2Icon,
-		SlidersHorizontalIcon
+		Settings2Icon
 	} from '@lucide/svelte';
 
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table';

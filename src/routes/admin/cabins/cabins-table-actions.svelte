@@ -10,12 +10,24 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
+	import { deleteCabin, getCabins } from '$lib/data-access/cabins.remote';
 
 	let { id }: { id: string } = $props();
 
 	function handleCopyId() {
 		navigator.clipboard.writeText(id);
 		toast('ID Copied to clipboard');
+	}
+
+	async function handleDeleteCabin() {
+		try {
+			await deleteCabin(id);
+			getCabins().refresh();
+			toast.success('Cabin deleted successfully');
+		} catch (err: unknown) {
+			console.error(err);
+			toast.error('Failed to delete cabin');
+		}
 	}
 </script>
 
@@ -55,7 +67,7 @@
 				Edit Cabin
 			</DropdownMenu.Item>
 
-			<DropdownMenu.Item class="text-destructive">
+			<DropdownMenu.Item class="text-destructive" onclick={handleDeleteCabin}>
 				<Trash2Icon class="text-destructive" />
 				Delete Cabin
 			</DropdownMenu.Item>
