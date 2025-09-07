@@ -2,7 +2,6 @@
 	import CabinsTable from './cabins-table.svelte';
 	import Loader from '$lib/components/shared/loader.svelte';
 
-	import type { PageProps } from './$types';
 	import NewCabinDialog from '$lib/components/cabins/new-cabin-dialog.svelte';
 </script>
 
@@ -11,7 +10,7 @@
 	<NewCabinDialog />
 </div>
 
-<div class="mt-6">
+<div class="pt-6 pb-12">
 	<svelte:boundary>
 		<CabinsTable />
 

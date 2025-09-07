@@ -4,14 +4,15 @@
 		FlameKindlingIcon,
 		HouseIcon,
 		Settings2Icon,
+		SettingsIcon,
 		UsersIcon
 	} from '@lucide/svelte';
 
 	import { page } from '$app/state';
 	import logo from '$lib/assets/logo.webp';
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { useSidebar } from '$lib/components/ui/sidebar';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import { useSidebar } from '$lib/components/ui/sidebar';
 	import { cn } from '$lib/utils';
 
 	const sidebar = useSidebar();
@@ -100,13 +101,13 @@
 					{#snippet child({ props })}
 						<a href="/admin/settings" {...props}>
 							{#if sidebar.open}
-								<Settings2Icon class="size-4" />
+								<SettingsIcon class="size-4" />
 								<span>Settings</span>
 							{:else}
 								<Tooltip.Provider>
 									<Tooltip.Root>
 										<Tooltip.Trigger>
-											<Settings2Icon class="size-4" />
+											<SettingsIcon class="size-4" />
 										</Tooltip.Trigger>
 										<Tooltip.Content side="right">
 											<p>Settings</p>

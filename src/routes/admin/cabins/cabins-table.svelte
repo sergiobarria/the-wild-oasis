@@ -12,13 +12,17 @@
 	import { ArrowUpDownIcon } from '@lucide/svelte';
 
 	let data = $derived(await getCabins());
+	$inspect(data);
 
-	const columns: ColumnDef<Omit<Cabin, 'createdAt' | 'updatedAt'>>[] = [
+	type CabinWithImages = Cabin & { images: string[] };
+
+	const columns: ColumnDef<Omit<CabinWithImages, 'createdAt' | 'updatedAt' | 'description'>>[] = [
 		{
 			id: 'image',
 			header: 'Cabin Image',
-			cell: () => {
-				return renderSnippet(image);
+			cell: ({ row }) => {
+				const cover = row.original.images?.[0] || '';
+				return renderSnippet(image, cover);
 			}
 		},
 		{
@@ -58,10 +62,10 @@
 	];
 </script>
 
-{#snippet image()}
+{#snippet image(url: string)}
 	<div class="relative h-16 w-24">
 		<img
-			src={placeholder}
+			src={url || placeholder}
 			alt="placeholder"
 			width={96}
 			height={64}

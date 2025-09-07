@@ -15,11 +15,14 @@
 <Sidebar.Provider>
 	<AppSidebar />
 
-	<main class="w-full">
-		<header class="mb-8 flex h-16 w-full items-center justify-between border-b px-5 py-2">
+	<main class="flex h-screen w-full flex-col">
+		<header class="flex h-16 w-full items-center justify-between border-b px-5 py-2">
 			<SidebarToggle />
 			<ModeToggle />
 		</header>
-		<div class="w-full px-5">{@render children?.()}</div>
+
+		<div class="flex-1 overflow-y-auto px-5 py-5">
+			{@render children?.()}
+		</div>
 	</main>
 </Sidebar.Provider>
