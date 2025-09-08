@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Amenity;
 use App\Models\Cabin;
+use App\Models\Review;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -37,10 +38,9 @@ class CabinSeeder extends Seeder
                 $this->command->info("Cabin {$cabin->name} created with image {$image}");
             }
 
-            // TODO: Add related data
-            // $cabin->availability()->saveMany(
-            //     CabinAvailability::factory()->count(3)->make()
-            // );
+            $cabin->reviews()->saveMany(
+                Review::factory()->count(rand(1, 20))->make()
+            );
 
             $cabin->amenities()->attach(
                 Amenity::inRandomOrder()->take(rand(1, 5))->pluck('id')

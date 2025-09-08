@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use OwenIt\Auditing\Contracts\Auditable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -26,6 +27,11 @@ class Cabin extends Model implements Auditable, HasMedia
         return $this->belongsToMany(Amenity::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
@@ -37,5 +43,10 @@ class Cabin extends Model implements Auditable, HasMedia
     {
         $this->addMediaCollection('cabins')
             ->useDisk('r2');
+    }
+
+    public function getRatingAttribute(): float
+    {
+        return round($this->reviews->avg('rating') ?? 0, 1);
     }
 }

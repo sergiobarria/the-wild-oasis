@@ -13,8 +13,27 @@ class CabinController extends Controller
 
     public function show(string $slug)
     {
-        $cabin = Cabin::where('slug', $slug)->firstOrFail();
+        $cabin = Cabin::with([
+            'media',
+            'amenities',
+            'reviews' => fn($query) => $query->latest()->take(3),
+            // load other relations if needed...
+        ])
+            ->where('slug', $slug)
+            ->firstOrFail();
 
-        return view('cabins.show', ['cabin' => $cabin]);
+        ds($cabin);
+
+        $recommendedCabins = Cabin::where('id', '!=', $cabin->id)
+            ->select(['id', 'name', 'slug', 'price_per_night', 'beds', 'baths', 'summary', 'max_guests'])
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
+        ds($recommendedCabins);
+
+        return view('cabins.show', [
+            'cabin' => $cabin,
+            'recommendedCabins' => $recommendedCabins,
+        ]);
     }
 }

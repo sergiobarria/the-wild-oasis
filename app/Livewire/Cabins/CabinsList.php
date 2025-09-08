@@ -22,6 +22,7 @@ class CabinsList extends Component
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%');
             })
+            ->select(['id', 'name', 'slug', 'price_per_night', 'beds', 'baths', 'summary', 'max_guests'])
             ->paginate(self::DEFAULT_PER_PAGE);
 
         ds($cabins);
