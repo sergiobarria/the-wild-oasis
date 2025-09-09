@@ -81,10 +81,10 @@
                         <div class="flex justify-between text-green-400"> {{-- Color verde para descuento --}}
                             <dt>Discount ({{ number_format($cabin->discount_percentage, 0) }}%):</dt>
                             <dd>
-                                -${{ number_format($cabin->price_per_night * ($cabin->discount_percentage / 100) * $nights, 2) }}</dd>
+                                -${{ number_format($cabin->price_per_night * ($cabin->discount_percentage / 100) * $nights, 2) }}
+                            </dd>
                         </div>
                     @endif
-
 
                     {{-- Booking fee --}}
                     <div class="flex justify-between">
@@ -127,11 +127,13 @@
                 @else
                     <div class="text-center">
                         <p class="text-zinc-300 mb-4">You need to be logged in to complete your booking.</p>
-                        <a href="#"
-                           class="inline-flex items-center justify-center bg-accent hover:bg-accent-content text-zinc-900 font-bold py-3 px-6 rounded-lg transition text-lg w-full md:w-auto">
+                        <flux:button
+                            href="#"
+                            variant="primary"
+                            icon="calendar-date-range"
+                        >
                             Login to Book
-                            <flux:icon.calendar class="size-5 ml-2"/>
-                        </a>
+                        </flux:button>
                     </div>
                 @endauth
             </div>
