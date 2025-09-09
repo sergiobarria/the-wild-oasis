@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CabinController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use Spatie\Health\Http\Controllers\HealthCheckResultsController;
@@ -14,6 +15,10 @@ Route::get('contact', [PageController::class, 'contact'])->name('contact');
 
 Route::get('cabins', [CabinController::class, 'index'])->name('cabins.index');
 Route::get('cabins/{slug}', [CabinController::class, 'show'])->name('cabins.show');
+
+Route::get('checkout', [CheckoutController::class, 'summary'])->name('checkout.summary');
+Route::get('checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 
 Route::prefix('admin')->group(function () {
     Route::get('', [AdminController::class, 'overview'])->name('admin.overview');

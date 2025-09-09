@@ -47,7 +47,7 @@
         </header>
 
         <div class="flex-1 grid ">
-            <main class="max-w-7xl mx-auto w-full">
+            <main class="w-full">
                 {{ $slot }}
             </main>
         </div>

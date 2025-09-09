@@ -17,6 +17,11 @@ class CabinController extends Controller
             'media',
             'amenities',
             'reviews' => fn($query) => $query->latest()->take(3),
+            'bookings',
+            'availabilities' => function ($query) {
+                $query->select(['id', 'cabin_id', 'start_date', 'end_date'])
+                    ->where('is_available', false);
+            },
             // load other relations if needed...
         ])
             ->where('slug', $slug)
@@ -29,7 +34,6 @@ class CabinController extends Controller
             ->inRandomOrder()
             ->take(3)
             ->get();
-        ds($recommendedCabins);
 
         return view('cabins.show', [
             'cabin' => $cabin,

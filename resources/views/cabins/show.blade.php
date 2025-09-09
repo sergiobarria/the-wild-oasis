@@ -146,7 +146,7 @@
                 {{-- Rating --}}
                 <div class="flex items-center gap-2 text-sm text-zinc-400">
                     <flux:icon.star class="size-4 text-accent"/>
-                    <span class="text-zinc-100 font-medium">{{ $cabin->rating }}</span>
+                    <span class="text-zinc-100 font-medium">{{ number_format($cabin->rating, 2) }}</span>
                     <span>of {{ $cabin->reviews_count }} reviews</span>
                 </div>
 
@@ -168,7 +168,7 @@
 
                 <flux:separator/>
 
-                {{-- TODO: Add booking errors here --}}
+                <livewire:booking-card :cabin="$cabin"/>
             </div>
         </div>
 

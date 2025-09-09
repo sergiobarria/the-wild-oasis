@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,16 @@ class Cabin extends Model implements Auditable, HasMedia
         'name', 'slug', 'summary', 'description', 'price_per_night', 'discount_percentage',
         'beds', 'baths', 'max_guests'
     ];
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(CabinAvailability::class);
+    }
 
     public function amenities(): BelongsToMany
     {
@@ -48,5 +59,46 @@ class Cabin extends Model implements Auditable, HasMedia
     public function getRatingAttribute(): float
     {
         return round($this->reviews->avg('rating') ?? 0, 1);
+    }
+
+    public function getUnavailableDatesAttribute(): string
+    {
+        if (!$this->relationLoaded('availabilities')) {
+            $this->load('availabilities');
+        }
+
+        if (!$this->relationLoaded('bookings')) {
+            $this->load('bookings');
+        }
+
+        $allBlockedDates = collect();
+
+        // 1. From cabin_availabilities
+        foreach($this->availabilities as $blockedPeriod) {
+            $period = CarbonPeriod::create($blockedPeriod->start_date, $blockedPeriod->end_date);
+            foreach($period as $date) {
+                $allBlockedDates->push($date->toDateString());
+            }
+        }
+
+        // 3. From bookings
+        foreach ($this->bookings as $booking) {
+            if ($booking->end_date->greatherThan($booking->start_date)) {
+                $period = CarbonPeriod::create(
+                    $booking->start_date->copy()->addDay(),
+                    $booking->end_date->copy()->subDay()
+                );
+
+                foreach($period as $date) {
+                    $allBlockedDates->push($date->toDateString());
+                }
+            }
+
+            if ($booking->start_date->isSameDay($booking->end_date)) {
+                $allBlockedDates->push($booking->start_date->toDateString());
+            }
+        }
+
+        return $allBlockedDates->unique()->sort()->implode(',');
     }
 }
