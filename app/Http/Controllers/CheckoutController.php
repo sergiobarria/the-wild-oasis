@@ -80,6 +80,11 @@ class CheckoutController extends Controller
         ]);
     }
 
+    public function store()
+    {
+        // ...
+    }
+
     public function success()
     {
         return view('checkout.success');

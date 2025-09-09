@@ -78,7 +78,7 @@
                     </div>
 
                     @if ($cabin->discount_percentage && $cabin->discount_percentage > 0)
-                        <div class="flex justify-between text-green-400"> {{-- Color verde para descuento --}}
+                        <div class="flex justify-between text-green-400">
                             <dt>Discount ({{ number_format($cabin->discount_percentage, 0) }}%):</dt>
                             <dd>
                                 -${{ number_format($cabin->price_per_night * ($cabin->discount_percentage / 100) * $nights, 2) }}
@@ -113,30 +113,26 @@
                 </dl>
             </div>
 
-            <flux:separator/>
-
             {{-- Actions --}}
-            <div class="pt-6">
-                @auth
-                    <form action="{{ route('checkout.store') }}" method="POST">
-                        @csrf
-                        <flux:button type="submit" variant="primary" class="w-full text-lg py-3">
-                            Confirm Booking & Pay
-                        </flux:button>
-                    </form>
-                @else
-                    <div class="text-center">
-                        <p class="text-zinc-300 mb-4">You need to be logged in to complete your booking.</p>
-                        <flux:button
-                            href="#"
-                            variant="primary"
-                            icon="calendar-date-range"
-                        >
-                            Login to Book
-                        </flux:button>
-                    </div>
-                @endauth
-            </div>
+            @auth
+                <form action="{{ route('checkout.store') }}" method="POST">
+                    @csrf
+                    <flux:button type="submit" variant="primary" class="w-full text-lg py-3">
+                        Confirm Booking & Pay
+                    </flux:button>
+                </form>
+            @else
+                <div class="text-center">
+                    <p class="text-zinc-300 mb-4">You need to be logged in to complete your booking.</p>
+                    <flux:button
+                        href="{{ route('login', ['redirect' => url()->current()]) }}"
+                        variant="primary"
+                        icon="calendar-date-range"
+                    >
+                        Login to Book
+                    </flux:button>
+                </div>
+            @endauth
         </div>
     </section>
 </x-pages-layout>

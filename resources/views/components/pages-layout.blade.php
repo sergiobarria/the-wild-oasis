@@ -21,26 +21,39 @@
                     </x-nav-link>
 
                     @auth
-                        <x-nav-link :href="route('account.index')" match="account*"
-                                    class="bg-accent text-accent-foreground px-3 py-1.5 rounded-lg flex items-center">
-                            <flux:icon.user-round class="size-4 leading-none"/>
-                            Guest Area
-                        </x-nav-link>
+                        <div class="space-x-3 flex items-center">
+                            <flux:button variant="primary" href="{{ route('admin.overview') }}" icon="user-group"
+                                         size="sm"
+                                         class="cursor-pointer">
+                                Guest Area
+                            </flux:button>
+
+                            <flux:button href="{{ route('admin.overview') }}" icon="layout-dashboard" size="sm"
+                                         class="cursor-pointer">
+                                Dashboard
+                            </flux:button>
+
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+
+                                <flux:button type="submit" variant="subtle" icon="log-out" size="sm"
+                                             class="cursor-pointer">
+                                    Logout
+                                </flux:button>
+                            </form>
+                        </div>
                     @else
                         <div class="space-x-3">
-                            <flux:button href="#" variant="primary" icon="log-in" size="sm"
+                            <flux:button href="{{ route('login') }}" variant="primary" icon="log-in" size="sm"
                                          class="cursor-pointer">
                                 Sign In
                             </flux:button>
-                            <flux:button href="#" icon="user-plus" size="sm" class="cursor-pointer">
+                            <flux:button href="{{ route('register') }}" icon="user-plus" size="sm"
+                                         class="cursor-pointer">
                                 Register
                             </flux:button>
                         </div>
                     @endauth
-                    <flux:button href="{{ route('admin.overview') }}" icon="arrow-up-right" size="sm"
-                                 class="cursor-pointer">
-                        Dashboard
-                    </flux:button>
                 </nav>
 
             </div>

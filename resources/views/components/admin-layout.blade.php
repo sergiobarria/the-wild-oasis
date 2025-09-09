@@ -1,5 +1,4 @@
 <x-app-layout>
-
     <flux:sidebar sticky collapsible class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700">
         <flux:sidebar.header>
             <flux:sidebar.brand
@@ -49,6 +48,7 @@
             <flux:sidebar.collapse
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2"
             />
+            <flux:button size="sm" href="{{ route('home') }}" icon="home">Visit Home</flux:button>
             <flux:spacer/>
             <flux:button x-data x-on:click="$flux.dark = ! $flux.dark">Toggle</flux:button>
         </flux:navbar>
