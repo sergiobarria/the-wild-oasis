@@ -1,0 +1,89 @@
+import { TanStackDevtools } from '@tanstack/react-devtools'
+import type { QueryClient } from '@tanstack/react-query'
+import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+
+import { NuqsAdapter } from 'nuqs/adapters/tanstack-router'
+
+import { Toaster } from '@/components/ui/sonner'
+import { APP_DESCRIPTION, APP_KEYWORDS, APP_NAME } from '@/config/constants'
+import { ThemeProvider } from '@/context/theme-provider'
+import { authQueries } from '@/features/auth/queries'
+import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools'
+import { seo } from '@/lib/seo'
+
+import appCss from '../styles.css?url'
+
+interface RouterContext {
+    queryClient: QueryClient
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+    beforeLoad: async ({ context }) => {
+        // Inject the user session and user into the context for all routes
+        const session = await context.queryClient.fetchQuery(authQueries.session())
+
+        return {
+            session: session?.session ?? null,
+            user: session?.user ?? null,
+        }
+    },
+    head: () => ({
+        meta: [
+            { charSet: 'utf-8' },
+            { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+            ...seo({
+                title: APP_NAME,
+                description: APP_DESCRIPTION,
+                keywords: APP_KEYWORDS,
+            }),
+        ],
+        links: [
+            { rel: 'stylesheet', href: appCss },
+            { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+            { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+            {
+                rel: 'stylesheet',
+                href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap',
+            },
+            { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+            { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+            { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+            { rel: 'manifest', href: '/site.webmanifest', color: '#fffff' },
+            { rel: 'icon', href: '/favicon.ico' },
+        ],
+    }),
+    shellComponent: RootDocument,
+    notFoundComponent: () => <div>404 Not Found</div>, // TODO: Create a 404 page
+})
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <HeadContent />
+            </head>
+            <body>
+                <NuqsAdapter>
+                    <ThemeProvider>
+                        {children}
+                        <Toaster />
+                    </ThemeProvider>
+                </NuqsAdapter>
+                <TanStackDevtools
+                    config={{
+                        position: 'bottom-right',
+                    }}
+                    plugins={[
+                        {
+                            name: 'Tanstack Router',
+                            render: <TanStackRouterDevtoolsPanel />,
+                        },
+                        TanStackQueryDevtools,
+                    ]}
+                />
+                <Scripts />
+            </body>
+        </html>
+    )
+}
