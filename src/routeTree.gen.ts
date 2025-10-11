@@ -24,13 +24,13 @@ import { Route as webPrivacyRouteImport } from './routes/(web)/privacy'
 import { Route as webGuestRouteImport } from './routes/(web)/guest'
 import { Route as webContextRouteImport } from './routes/(web)/context'
 import { Route as webContactRouteImport } from './routes/(web)/contact'
-import { Route as webCabinsRouteImport } from './routes/(web)/cabins'
 import { Route as webAboutRouteImport } from './routes/(web)/about'
 import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
+import { Route as webCabinsIndexRouteImport } from './routes/(web)/cabins.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as webCabinsCabinIdRouteImport } from './routes/(web)/cabins.$cabinId'
+import { Route as webCabinsCabinSlugRouteImport } from './routes/(web)/cabins.$cabinSlug'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -106,11 +106,6 @@ const webContactRoute = webContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => webRouteRoute,
 } as any)
-const webCabinsRoute = webCabinsRouteImport.update({
-  id: '/cabins',
-  path: '/cabins',
-  getParentRoute: () => webRouteRoute,
-} as any)
 const webAboutRoute = webAboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -131,15 +126,20 @@ const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const webCabinsIndexRoute = webCabinsIndexRouteImport.update({
+  id: '/cabins/',
+  path: '/cabins/',
+  getParentRoute: () => webRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const webCabinsCabinIdRoute = webCabinsCabinIdRouteImport.update({
-  id: '/$cabinId',
-  path: '/$cabinId',
-  getParentRoute: () => webCabinsRoute,
+const webCabinsCabinSlugRoute = webCabinsCabinSlugRouteImport.update({
+  id: '/cabins/$cabinSlug',
+  path: '/cabins/$cabinSlug',
+  getParentRoute: () => webRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -149,7 +149,6 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof authSignInRoute
   '/sign-up': typeof authSignUpRoute
   '/about': typeof webAboutRoute
-  '/cabins': typeof webCabinsRouteWithChildren
   '/contact': typeof webContactRoute
   '/context': typeof webContextRoute
   '/guest': typeof webGuestRoute
@@ -162,15 +161,15 @@ export interface FileRoutesByFullPath {
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
-  '/cabins/$cabinId': typeof webCabinsCabinIdRoute
+  '/cabins/$cabinSlug': typeof webCabinsCabinSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/cabins': typeof webCabinsIndexRoute
 }
 export interface FileRoutesByTo {
   '/forgot-password': typeof authForgotPasswordRoute
   '/sign-in': typeof authSignInRoute
   '/sign-up': typeof authSignUpRoute
   '/about': typeof webAboutRoute
-  '/cabins': typeof webCabinsRouteWithChildren
   '/contact': typeof webContactRoute
   '/context': typeof webContextRoute
   '/guest': typeof webGuestRoute
@@ -184,8 +183,9 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/': typeof webIndexRoute
   '/admin': typeof AdminIndexRoute
-  '/cabins/$cabinId': typeof webCabinsCabinIdRoute
+  '/cabins/$cabinSlug': typeof webCabinsCabinSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/cabins': typeof webCabinsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -195,7 +195,6 @@ export interface FileRoutesById {
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sign-up': typeof authSignUpRoute
   '/(web)/about': typeof webAboutRoute
-  '/(web)/cabins': typeof webCabinsRouteWithChildren
   '/(web)/contact': typeof webContactRoute
   '/(web)/context': typeof webContextRoute
   '/(web)/guest': typeof webGuestRoute
@@ -209,8 +208,9 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/(web)/': typeof webIndexRoute
   '/admin/': typeof AdminIndexRoute
-  '/(web)/cabins/$cabinId': typeof webCabinsCabinIdRoute
+  '/(web)/cabins/$cabinSlug': typeof webCabinsCabinSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/(web)/cabins/': typeof webCabinsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,7 +221,6 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/about'
-    | '/cabins'
     | '/contact'
     | '/context'
     | '/guest'
@@ -234,15 +233,15 @@ export interface FileRouteTypes {
     | '/admin/subscribers'
     | '/admin/users'
     | '/admin/'
-    | '/cabins/$cabinId'
+    | '/cabins/$cabinSlug'
     | '/api/auth/$'
+    | '/cabins'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forgot-password'
     | '/sign-in'
     | '/sign-up'
     | '/about'
-    | '/cabins'
     | '/contact'
     | '/context'
     | '/guest'
@@ -256,8 +255,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/'
     | '/admin'
-    | '/cabins/$cabinId'
+    | '/cabins/$cabinSlug'
     | '/api/auth/$'
+    | '/cabins'
   id:
     | '__root__'
     | '/(web)'
@@ -266,7 +266,6 @@ export interface FileRouteTypes {
     | '/(auth)/sign-in'
     | '/(auth)/sign-up'
     | '/(web)/about'
-    | '/(web)/cabins'
     | '/(web)/contact'
     | '/(web)/context'
     | '/(web)/guest'
@@ -280,8 +279,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/(web)/'
     | '/admin/'
-    | '/(web)/cabins/$cabinId'
+    | '/(web)/cabins/$cabinSlug'
     | '/api/auth/$'
+    | '/(web)/cabins/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -400,13 +400,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof webContactRouteImport
       parentRoute: typeof webRouteRoute
     }
-    '/(web)/cabins': {
-      id: '/(web)/cabins'
-      path: '/cabins'
-      fullPath: '/cabins'
-      preLoaderRoute: typeof webCabinsRouteImport
-      parentRoute: typeof webRouteRoute
-    }
     '/(web)/about': {
       id: '/(web)/about'
       path: '/about'
@@ -435,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(web)/cabins/': {
+      id: '/(web)/cabins/'
+      path: '/cabins'
+      fullPath: '/cabins'
+      preLoaderRoute: typeof webCabinsIndexRouteImport
+      parentRoute: typeof webRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -442,48 +442,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(web)/cabins/$cabinId': {
-      id: '/(web)/cabins/$cabinId'
-      path: '/$cabinId'
-      fullPath: '/cabins/$cabinId'
-      preLoaderRoute: typeof webCabinsCabinIdRouteImport
-      parentRoute: typeof webCabinsRoute
+    '/(web)/cabins/$cabinSlug': {
+      id: '/(web)/cabins/$cabinSlug'
+      path: '/cabins/$cabinSlug'
+      fullPath: '/cabins/$cabinSlug'
+      preLoaderRoute: typeof webCabinsCabinSlugRouteImport
+      parentRoute: typeof webRouteRoute
     }
   }
 }
 
-interface webCabinsRouteChildren {
-  webCabinsCabinIdRoute: typeof webCabinsCabinIdRoute
-}
-
-const webCabinsRouteChildren: webCabinsRouteChildren = {
-  webCabinsCabinIdRoute: webCabinsCabinIdRoute,
-}
-
-const webCabinsRouteWithChildren = webCabinsRoute._addFileChildren(
-  webCabinsRouteChildren,
-)
-
 interface webRouteRouteChildren {
   webAboutRoute: typeof webAboutRoute
-  webCabinsRoute: typeof webCabinsRouteWithChildren
   webContactRoute: typeof webContactRoute
   webContextRoute: typeof webContextRoute
   webGuestRoute: typeof webGuestRoute
   webPrivacyRoute: typeof webPrivacyRoute
   webTermsRoute: typeof webTermsRoute
   webIndexRoute: typeof webIndexRoute
+  webCabinsCabinSlugRoute: typeof webCabinsCabinSlugRoute
+  webCabinsIndexRoute: typeof webCabinsIndexRoute
 }
 
 const webRouteRouteChildren: webRouteRouteChildren = {
   webAboutRoute: webAboutRoute,
-  webCabinsRoute: webCabinsRouteWithChildren,
   webContactRoute: webContactRoute,
   webContextRoute: webContextRoute,
   webGuestRoute: webGuestRoute,
   webPrivacyRoute: webPrivacyRoute,
   webTermsRoute: webTermsRoute,
   webIndexRoute: webIndexRoute,
+  webCabinsCabinSlugRoute: webCabinsCabinSlugRoute,
+  webCabinsIndexRoute: webCabinsIndexRoute,
 }
 
 const webRouteRouteWithChildren = webRouteRoute._addFileChildren(

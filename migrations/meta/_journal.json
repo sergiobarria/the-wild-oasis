@@ -8,6 +8,34 @@
             "when": 1760135546126,
             "tag": "0000_bouncy_silver_centurion",
             "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "6",
+            "when": 1760147739211,
+            "tag": "0001_cool_talkback",
+            "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "6",
+            "when": 1760148685008,
+            "tag": "0002_dizzy_loa",
+            "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "6",
+            "when": 1760149257260,
+            "tag": "0003_quick_red_ghost",
+            "breakpoints": true
+        },
+        {
+            "idx": 4,
+            "version": "6",
+            "when": 1760150134265,
+            "tag": "0004_amazing_luminals",
+            "breakpoints": true
         }
     ]
 }
