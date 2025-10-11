@@ -18,6 +18,7 @@ export const Route = createFileRoute('/(web)')({
 
 function RouteComponent() {
     const location = useLocation()
+    const { session } = Route.useRouteContext()
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -42,27 +43,32 @@ function RouteComponent() {
                             </Link>
                         ))}
 
-                        <div className="flex items-center gap-3">
-                            <Button size="sm" asChild>
-                                <Link to="/guest">Guest Area</Link>
-                            </Button>
-                            <Button size="sm" variant="outline" asChild>
-                                <Link to="/admin">Dashboard</Link>
-                            </Button>
-                            <Button size="sm" variant="outline">
-                                <LogOutIcon />
-                                Logout
-                            </Button>
-                        </div>
+                        {session && (
+                            <div className="flex items-center gap-3">
+                                <Button size="sm" asChild>
+                                    <Link to="/guest">Guest Area</Link>
+                                </Button>
+                                {/* TODO: Only admins can see the dashboard button */}
+                                <Button size="sm" variant="outline" asChild>
+                                    <Link to="/admin">Dashboard</Link>
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                    <LogOutIcon />
+                                    Logout
+                                </Button>
+                            </div>
+                        )}
 
-                        <div className="flex items-center gap-3">
-                            <Button size="sm" variant="outline" asChild>
-                                <Link to="/sign-in">Sign In</Link>
-                            </Button>
-                            <Button size="sm" variant="outline" asChild>
-                                <Link to="/sign-up">Sign Up</Link>
-                            </Button>
-                        </div>
+                        {!session && (
+                            <div className="flex items-center gap-3">
+                                <Button size="sm" variant="outline" asChild>
+                                    <Link to="/sign-in">Sign In</Link>
+                                </Button>
+                                <Button size="sm" variant="outline" asChild>
+                                    <Link to="/sign-up">Sign Up</Link>
+                                </Button>
+                            </div>
+                        )}
                     </nav>
                 </div>
             </header>
