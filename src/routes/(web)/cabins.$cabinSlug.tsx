@@ -8,7 +8,7 @@ import { ArrowLeftIcon, BathIcon, BedDoubleIcon, CheckIcon, StarIcon, UserPlusIc
 import { Typography } from '@/components/shared/typography'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { CabinCard } from '@/features/cabins/components/cabin-list'
+import { CabinCard } from '@/features/cabins/components/cabin-card'
 import { cabinQueries } from '@/features/cabins/queries'
 
 export const Route = createFileRoute('/(web)/cabins/$cabinSlug')({
