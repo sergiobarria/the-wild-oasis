@@ -7,10 +7,10 @@ import { getCabinBySlugFn, getCabinsFn } from './api'
 export const cabinQueries = {
     all: ['cabins'] as const,
 
-    list: () =>
+    list: (searchQuery?: string) =>
         queryOptions({
-            queryKey: [...cabinQueries.all, 'list'],
-            queryFn: () => getCabinsFn(),
+            queryKey: [...cabinQueries.all, 'list', searchQuery],
+            queryFn: () => getCabinsFn({ data: { searchQuery } }),
             staleTime: DEFAULT_STALE_TIME,
         }),
 

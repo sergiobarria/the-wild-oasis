@@ -2,11 +2,20 @@ import { Suspense } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
+import { createStandardSchemaV1, parseAsString, useQueryStates } from 'nuqs'
+
 import { Typography } from '@/components/shared/typography'
 import { CabinList } from '@/features/cabins/components/cabin-list'
 import { cabinQueries } from '@/features/cabins/queries'
 
+const searchParams = {
+    search: parseAsString.withDefault(''),
+}
+
 export const Route = createFileRoute('/(web)/cabins/')({
+    validateSearch: createStandardSchemaV1(searchParams, {
+        partialOutput: true,
+    }),
     component: RouteComponent,
     loader: async ({ context }) => {
         context.queryClient.ensureQueryData(cabinQueries.list())
@@ -14,6 +23,8 @@ export const Route = createFileRoute('/(web)/cabins/')({
 })
 
 function RouteComponent() {
+    const [{ search }] = useQueryStates(searchParams)
+
     return (
         <section className="container mx-auto max-w-7xl px-8 py-12">
             <Typography variant="h1" size="3xl" className="text-primary">
@@ -27,7 +38,7 @@ function RouteComponent() {
             </Typography>
 
             <Suspense fallback={<div>Loading...</div>}>
-                <CabinList />
+                <CabinList searchQuery={search} />
             </Suspense>
         </section>
     )

@@ -1,19 +1,26 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { SearchIcon } from 'lucide-react'
+import { parseAsString, useQueryState } from 'nuqs'
 
 import { Input } from '@/components/ui/input'
 import { cabinQueries } from '@/features/cabins/queries'
 
 import { CabinCard } from './cabin-card'
 
-export function CabinList() {
-    const { data } = useSuspenseQuery(cabinQueries.list())
+export function CabinList({ searchQuery }: { searchQuery: string }) {
+    const { data } = useSuspenseQuery(cabinQueries.list(searchQuery))
+    const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''))
 
     return (
         <div className="mt-8">
             <div className="relative">
-                <Input placeholder="Search cabins..." className="w-full" />
+                <Input
+                    placeholder="Search cabins..."
+                    className="w-full"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
                 <SearchIcon className="absolute top-1/2 right-3 size-4 -translate-y-1/2" />
             </div>
 
