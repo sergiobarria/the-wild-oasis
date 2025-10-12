@@ -2,199 +2,128 @@
 	import { toast } from 'svelte-sonner';
 
 	import { EyeIcon, EyeOffIcon } from '@lucide/svelte';
-	import { createForm, formOptions } from '@tanstack/svelte-form';
 
 	import { goto } from '$app/navigation';
-	import { authClient } from '$lib/auth-client';
+	import { signUp } from '$lib/api/auth.remote';
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from '$lib/components/ui/field';
+	import { Input } from '$lib/components/ui/input';
 	import {
 		InputGroup,
 		InputGroupAddon,
 		InputGroupButton,
 		InputGroupInput
 	} from '$lib/components/ui/input-group';
-	import Input from '$lib/components/ui/input/input.svelte';
 	import { Spinner } from '$lib/components/ui/spinner';
-
-	import { RegisterSchema } from './schema';
+	import { SignUpSchema } from '$lib/schemas/auth';
 
 	let showPassword = $state<boolean>(false);
 	let showPasswordConfirmation = $state<boolean>(false);
 	let status = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-	const form = createForm(() => ({
-		defaultValues: {
-			email: '',
-			password: '',
-			passwordConfirmation: ''
-		},
-		validators: {
-			onChangeAsync: RegisterSchema,
-			onChangeAsyncDebounceMs: 500
-		},
-		onSubmit: async ({ value }) => {
-			await authClient.signUp.email(
-				{
-					email: value.email,
-					password: value.password,
-					name: '',
-					callbackURL: '/'
-				},
-				{
-					onRequest: () => {
-						status = 'loading';
-					},
-					onSuccess: () => {
-						status = 'success';
-						toast.success('Account created successfully');
-						goto('/');
-					},
-					onError: () => {
-						status = 'error';
-						toast.error('Something went wrong');
-					}
-				}
-			);
-		}
-	}));
 </script>
 
 <form
-	onsubmit={(e) => {
-		e.preventDefault();
-		e.stopPropagation();
+	{...signUp.preflight(SignUpSchema).enhance(async ({ data, form, submit }) => {
+		try {
+			status = 'loading';
+			await submit();
+			form.reset();
 
-		form.handleSubmit();
-	}}
+			if (signUp.result?.success) {
+				goto('/');
+				toast.success('Account created successfully');
+			}
+		} catch (err: unknown) {
+			toast.error('Something went wrong');
+		} finally {
+			status = 'idle';
+		}
+	})}
 	class="space-y-6"
 >
 	<FieldSet>
 		<FieldGroup class="gap-3">
-			<form.Field name="email">
-				{#snippet children(field)}
-					{@const hasErrors = field.state.meta.errors?.length > 0}
-					<Field data-invalid={hasErrors}>
-						<FieldLabel for={field.name}>Tell us your email address</FieldLabel>
-						<Input
-							id={field.name}
-							type="email"
-							placeholder="iamawesome@email.com"
-							value={field.state.value}
-							onblur={() => field.handleBlur()}
-							oninput={(e: Event) => {
-								const target = e.target as HTMLInputElement;
-								field.handleChange(target.value);
-							}}
-							aria-invalid={hasErrors}
-						/>
-						{#if hasErrors}
-							{#each field.state.meta.errors as error}
-								<FieldError>{error?.message}</FieldError>
-							{/each}
-						{/if}
-					</Field>
-				{/snippet}
-			</form.Field>
+			{@const emailIssues = signUp.fields.email.issues() ?? []}
+			<Field data-invalid={emailIssues.length > 0}>
+				<FieldLabel for="email">Tell us your email address</FieldLabel>
+				<Input
+					placeholder="iamawesome@email.com"
+					{...signUp.fields.email.as('email')}
+					aria-invalid={emailIssues.length > 0}
+				/>
+				{#each emailIssues as issue}
+					<FieldError>{issue.message}</FieldError>
+				{/each}
+			</Field>
 
-			<form.Field name="password">
-				{#snippet children(field)}
-					{@const hasErrors = field.state.meta.errors?.length > 0}
-					<Field data-invalid={hasErrors}>
-						<FieldLabel for={field.name}>Choose a secure password</FieldLabel>
-						<InputGroup>
-							<InputGroupInput
-								type={showPassword ? 'text' : 'password'}
-								placeholder="*********"
-								value={field.state.value}
-								onblur={() => field.handleBlur()}
-								oninput={(e: Event) => {
-									const target = e.target as HTMLInputElement;
-									field.handleChange(target.value);
-								}}
-								aria-invalid={hasErrors}
-							/>
-							<InputGroupAddon align="inline-end">
-								<InputGroupButton
-									aria-label="Show password"
-									title="show password"
-									size="icon-xs"
-									tabindex={-1}
-									onclick={() => (showPassword = !showPassword)}
-								>
-									{#if showPassword}
-										<EyeOffIcon />
-									{:else}
-										<EyeIcon />
-									{/if}
-								</InputGroupButton>
-							</InputGroupAddon>
-						</InputGroup>
-						{#if hasErrors}
-							{#each field.state.meta.errors as error}
-								<FieldError>{error?.message}</FieldError>
-							{/each}
-						{/if}
-					</Field>
-				{/snippet}
-			</form.Field>
+			{@const passwordIssues = signUp.fields.password.issues() ?? []}
+			<Field data-invalid={passwordIssues.length > 0}>
+				<FieldLabel for="password">Choose a secure password</FieldLabel>
+				<InputGroup>
+					<InputGroupInput
+						placeholder="*********"
+						{...signUp.fields.password.as(showPassword ? 'text' : 'password')}
+						aria-invalid={passwordIssues.length > 0}
+					/>
+					<InputGroupAddon align="inline-end">
+						<InputGroupButton
+							aria-label="Show password"
+							title="show password"
+							size="icon-xs"
+							tabindex={-1}
+							onclick={() => (showPassword = !showPassword)}
+						>
+							{#if showPassword}
+								<EyeOffIcon />
+							{:else}
+								<EyeIcon />
+							{/if}
+						</InputGroupButton>
+					</InputGroupAddon>
+				</InputGroup>
+				{#each passwordIssues as issue}
+					<FieldError>{issue.message}</FieldError>
+				{/each}
+			</Field>
 
-			<form.Field name="passwordConfirmation">
-				{#snippet children(field)}
-					{@const hasErrors = field.state.meta.errors?.length > 0}
-					<Field data-invalid={hasErrors}>
-						<FieldLabel for={field.name}>Confirm your password</FieldLabel>
-						<InputGroup>
-							<InputGroupInput
-								type={showPasswordConfirmation ? 'text' : 'password'}
-								placeholder="*********"
-								value={field.state.value}
-								onblur={() => field.handleBlur()}
-								oninput={(e: Event) => {
-									const target = e.target as HTMLInputElement;
-									field.handleChange(target.value);
-								}}
-							/>
-							<InputGroupAddon align="inline-end">
-								<InputGroupButton
-									aria-label="Show password"
-									title="show password"
-									size="icon-xs"
-									tabindex={-1}
-									onclick={() => (showPasswordConfirmation = !showPasswordConfirmation)}
-								>
-									{#if showPasswordConfirmation}
-										<EyeOffIcon />
-									{:else}
-										<EyeIcon />
-									{/if}
-								</InputGroupButton>
-							</InputGroupAddon>
-						</InputGroup>
-						{#if hasErrors}
-							{#each field.state.meta.errors as error}
-								<FieldError>{error?.message}</FieldError>
-							{/each}
-						{/if}
-					</Field>
-				{/snippet}
-			</form.Field>
+			{@const passwordConfirmationIssues = signUp.fields.passwordConfirmation.issues() ?? []}
+			<Field data-invalid={passwordConfirmationIssues.length > 0}>
+				<FieldLabel for="passwordConfirmation">Confirm your password</FieldLabel>
+				<InputGroup>
+					<InputGroupInput
+						placeholder="*********"
+						{...signUp.fields.passwordConfirmation.as(
+							showPasswordConfirmation ? 'text' : 'password'
+						)}
+						aria-invalid={passwordConfirmationIssues.length > 0}
+					/>
+					<InputGroupAddon align="inline-end">
+						<InputGroupButton
+							aria-label="Show password"
+							title="show password"
+							size="icon-xs"
+							tabindex={-1}
+							onclick={() => (showPasswordConfirmation = !showPasswordConfirmation)}
+						>
+							{#if showPasswordConfirmation}
+								<EyeOffIcon />
+							{:else}
+								<EyeIcon />
+							{/if}
+						</InputGroupButton>
+					</InputGroupAddon>
+				</InputGroup>
+				{#each passwordConfirmationIssues as issue}
+					<FieldError>{issue.message}</FieldError>
+				{/each}
+			</Field>
 		</FieldGroup>
 	</FieldSet>
 
-	<form.Subscribe
-		selector={(state) => ({
-			canSubmit: state.canSubmit,
-			isSubmitting: state.isSubmitting
-		})}
-	>
-		{#snippet children({ canSubmit, isSubmitting })}
-			<Button type="submit" disabled={!canSubmit} class="w-full">
-				{#if isSubmitting}
-					<Spinner />
-				{/if}
-				{isSubmitting ? 'Signing up...' : 'Sign Up'}
-			</Button>
-		{/snippet}
-	</form.Subscribe>
+	<Button type="submit" disabled={status === 'loading'} class="w-full">
+		{#if status === 'loading'}
+			<Spinner />
+		{/if}
+		{status === 'loading' ? 'Signing up...' : 'Sign Up'}
+	</Button>
 </form>
