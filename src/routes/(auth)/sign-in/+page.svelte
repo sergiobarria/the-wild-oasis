@@ -83,6 +83,12 @@
 						Don't have an account?{' '}
 						<a href="/sign-up" class="font-medium text-primary hover:underline"> Sign up </a>
 					</div>
+
+					<div class="text-center text-sm text-muted-foreground">
+						<a href="/forgot-password" class="font-medium text-primary hover:underline">
+							Forgot your password?
+						</a>
+					</div>
 				</CardContent>
 			</Card>
 

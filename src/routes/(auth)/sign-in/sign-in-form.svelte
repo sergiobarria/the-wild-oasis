@@ -16,8 +16,7 @@
 	} from '$lib/components/ui/input-group';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Spinner } from '$lib/components/ui/spinner';
-
-	import { SignInSchema } from './schema';
+	import { SignInSchema } from '$lib/schemas/auth';
 
 	let showPassword = $state<boolean>(false);
 	let status = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
