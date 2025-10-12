@@ -11,10 +11,12 @@
 	import { format } from 'date-fns';
 
 	import placeholder from '$lib/assets/placeholder.jpg';
+	import BookingCard from '$lib/components/booking/booking-card.svelte';
 	import CabinCard from '$lib/components/cabins/cabin-card.svelte';
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import { APP_NAME } from '$lib/config/constants';
 
 	import { getCabin } from '../queries.remote';
 	import type { PageProps } from './$types';
@@ -56,6 +58,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>{cabin?.name} | {APP_NAME}</title>
+</svelte:head>
 
 <section class="mx-auto max-w-7xl px-8 py-12">
 	<Button href="/cabins" variant="outline" class="mb-8">
@@ -215,6 +221,8 @@
 			</ul>
 
 			<Separator />
+
+			<BookingCard />
 		</div>
 	</div>
 </section>
