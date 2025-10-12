@@ -7,9 +7,11 @@
 </script>
 
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
+
 	import { LogOutIcon } from '@lucide/svelte';
 
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { authClient } from '$lib/auth-client';
 	import { Button } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
@@ -25,6 +27,8 @@
 
 	const handleSignOut = async () => {
 		await authClient.signOut();
+		await invalidateAll();
+		toast.success('Signed out successfully');
 		await goto('/');
 	};
 </script>
