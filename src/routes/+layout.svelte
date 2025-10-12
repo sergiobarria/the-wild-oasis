@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { ModeWatcher } from 'mode-watcher';
+	import nprogress from 'nprogress';
+	import 'nprogress/nprogress.css';
 
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import appleTouchIcon from '$lib/assets/favicon/apple-touch-icon.png';
 	import favicon16 from '$lib/assets/favicon/favicon-16x16.png';
 	import favicon32 from '$lib/assets/favicon/favicon-32x32.png';
@@ -12,6 +15,24 @@
 	import '../app.css';
 
 	let { children } = $props();
+
+	// Configure NProgress
+	nprogress.configure({
+		showSpinner: false,
+		minimum: 0.1,
+		speed: 300,
+		easing: 'ease'
+	});
+
+	// Start NProgress before navigation
+	beforeNavigate(() => {
+		nprogress.start();
+	});
+
+	// Stop NProgress after navigation
+	afterNavigate(() => {
+		nprogress.done();
+	});
 </script>
 
 <svelte:head>
