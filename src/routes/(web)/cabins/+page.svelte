@@ -1,10 +1,15 @@
 <script lang="ts">
 	import Typography from '$lib/components/shared/typography.svelte';
+	import { APP_NAME } from '$lib/config/constants';
 
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 </script>
+
+<svelte:head>
+	<title>Our Cabins | {APP_NAME}</title>
+</svelte:head>
 
 <section class="container mx-auto max-w-6xl px-8 py-12">
 	<Typography variant="h1" size="3xl" class="text-primary">Our Luxury Cabins</Typography>
