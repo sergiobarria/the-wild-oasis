@@ -10,6 +10,7 @@
 	} from '@lucide/svelte';
 	import { format } from 'date-fns';
 
+	import { getCabin } from '$lib/api/cabins.remote';
 	import placeholder from '$lib/assets/placeholder.jpg';
 	import BookingCard from '$lib/components/booking/booking-card.svelte';
 	import CabinCard from '$lib/components/cabins/cabin-card.svelte';
@@ -18,7 +19,6 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import { APP_NAME } from '$lib/config/constants';
 
-	import { getCabin } from '../queries.remote';
 	import type { PageProps } from './$types';
 
 	let { params }: PageProps = $props();

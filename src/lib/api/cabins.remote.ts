@@ -1,13 +1,18 @@
 import { error } from '@sveltejs/kit';
-import { desc, eq, ne } from 'drizzle-orm';
+import { and, desc, eq, like, ne, sql } from 'drizzle-orm';
 import * as v from 'valibot';
 
 import { query } from '$app/server';
 import { db } from '$lib/server/db';
 import { cabins } from '$lib/server/db/schemas';
 
-export const getCabins = query(async () => {
+export const getCabins = query(v.optional(v.string()), async (search) => {
+	const conditions = [];
+
+	if (search) conditions.push(like(sql`lower(${cabins.name})`, `%${search.toLowerCase()}%`));
+
 	const results = await db.query.cabins.findMany({
+		where: and(...conditions),
 		orderBy: [desc(cabins.createdAt)]
 	});
 
