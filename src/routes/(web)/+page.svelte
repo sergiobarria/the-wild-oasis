@@ -1,6 +1,7 @@
 <script lang="ts">
 	import heroBg from '$lib/assets/bg.webp';
 	import placeholder from '$lib/assets/placeholder.jpg';
+	import NewsletterForm from '$lib/components/newsletter/newsletter-form.svelte';
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { BENEFITS } from '$lib/data/benefits';
@@ -114,7 +115,6 @@
 			Be the first to know about new cabins, exclusive offers, and travel inspiration.
 		</Typography>
 
-		<!-- TODO: implement newsletter form -->
-		<div>newsletter form</div>
+		<NewsletterForm />
 	</div>
 </section>

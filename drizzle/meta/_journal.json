@@ -29,6 +29,20 @@
       "when": 1760287110877,
       "tag": "0003_nostalgic_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1760302451582,
+      "tag": "0004_unique_hemingway",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1760303756545,
+      "tag": "0005_parallel_prism",
+      "breakpoints": true
     }
   ]
 }
