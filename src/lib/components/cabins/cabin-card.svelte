@@ -4,8 +4,9 @@
 	import placeholder from '$lib/assets/placeholder.jpg';
 	import { Button } from '$lib/components/ui/button';
 	import { Item, ItemContent, ItemTitle } from '$lib/components/ui/item';
+	import type { Cabin } from '$lib/server/db/schemas';
 
-	let { cabin }: { cabin: any } = $props();
+	let { cabin }: { cabin: Cabin } = $props();
 </script>
 
 <Item class="bg-background p-0">

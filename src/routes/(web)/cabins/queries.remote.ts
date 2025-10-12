@@ -1,23 +1,43 @@
+import { error } from '@sveltejs/kit';
+import { desc, eq, ne } from 'drizzle-orm';
 import * as v from 'valibot';
 
 import { query } from '$app/server';
-
-import { amenities } from '../../../../data/data-amenities';
-import { cabins } from '../../../../data/data-cabins';
-import { reviews } from '../../../../data/data-reviews';
+import { db } from '$lib/server/db';
+import { cabins } from '$lib/server/db/schemas';
 
 export const getCabins = query(async () => {
-	await new Promise((resolve) => setTimeout(resolve, 3000));
-	return cabins;
+	const results = await db.query.cabins.findMany({
+		orderBy: [desc(cabins.createdAt)]
+	});
+
+	return results;
 });
 
 export const getCabin = query(v.string(), async (slug) => {
-	const cabin = cabins.find((cabin) => cabin.slug === slug);
+	const [cabin, amenities, recommended] = await Promise.all([
+		// Find cabin by slug
+		db.query.cabins.findFirst({
+			where: eq(cabins.slug, slug),
+			with: { reviews: true }
+		}),
+		// Find amenities
+		db.query.amenities.findMany({
+			limit: Math.floor(Math.random() * 5) + 5 // Random number of amenities (5 - 10)
+		}),
+		// Find recommended cabins
+		db.query.cabins.findMany({
+			where: ne(cabins.slug, slug),
+			orderBy: [desc(cabins.createdAt)],
+			limit: 3
+		})
+	]);
+
+	if (!cabin) error(404, 'Cabin not found');
 
 	return {
 		cabin,
-		reviews: reviews.slice(0, 3),
-		amenities: amenities.slice(0, 8),
-		recommended: cabins.filter((cabin) => cabin.slug !== slug).slice(0, 3)
+		amenities,
+		recommended
 	};
 });

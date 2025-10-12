@@ -23,11 +23,11 @@
 
 	let { params }: PageProps = $props();
 
-	const { cabin, reviews, amenities, recommended } = $derived(await getCabin(params.slug));
+	const { cabin, recommended, amenities } = $derived(await getCabin(params.slug));
 
 	const rating = $derived(
-		reviews?.length > 0
-			? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+		cabin.reviews?.length > 0
+			? cabin.reviews.reduce((acc, review) => acc + review.rating, 0) / cabin.reviews.length
 			: 0
 	);
 
@@ -155,15 +155,15 @@
 			<div class="space-y-6">
 				<Typography size="xl" class="font-semibold text-primary">Latest Reviews</Typography>
 
-				{#if reviews.length === 0}
+				{#if cabin.reviews.length === 0}
 					<Typography class="text-muted-foreground">
 						There are no reviews for this cabin at this time.
 					</Typography>
 				{/if}
 
-				{#if reviews.length > 0}
+				{#if cabin.reviews.length > 0}
 					<ul class="space-y-4">
-						{#each reviews as review}
+						{#each cabin.reviews as review}
 							<li class="rounded-xl border p-6">
 								<div class="mb-2 flex items-center justify-between">
 									<div class="font-semibold">{review.author_name}</div>
@@ -175,7 +175,7 @@
 								</div>
 								<Typography class="text-sm">{review.comment}</Typography>
 								<Typography class="mt-2 mb-0 text-xs text-muted-foreground">
-									{format(review.created_at, 'PP')}
+									{format(review.createdAt, 'PP')}
 								</Typography>
 							</li>
 						{/each}
@@ -199,7 +199,7 @@
 			<div class="flex items-center gap-2 text-sm">
 				<StarIcon class="size-4 text-primary" />
 				<span class="font-medium">{rating.toFixed(2)}</span>
-				<span>of {reviews.length} reviews</span>
+				<span>of {cabin.reviews.length} reviews</span>
 			</div>
 
 			<!-- Specifications -->
