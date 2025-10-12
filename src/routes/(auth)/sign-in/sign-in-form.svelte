@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
 
-	import { CircleAlertIcon, EyeIcon, EyeOffIcon, FileWarningIcon } from '@lucide/svelte';
-	import { createForm, formOptions } from '@tanstack/svelte-form';
+	import { CircleAlertIcon, EyeIcon, EyeOffIcon } from '@lucide/svelte';
+	import { createForm } from '@tanstack/svelte-form';
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
