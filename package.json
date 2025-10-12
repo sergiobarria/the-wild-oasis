@@ -36,6 +36,7 @@
 		"@types/node": "^24",
 		"bits-ui": "^2.11.0",
 		"clsx": "^2.1.1",
+		"date-fns": "^4.1.0",
 		"drizzle-kit": "^0.31.4",
 		"drizzle-orm": "^0.44.5",
 		"eslint": "^9.36.0",
