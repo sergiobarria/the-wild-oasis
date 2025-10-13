@@ -24,9 +24,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { APP_NAME } from '@/config/constants'
-import { cn } from '@/lib/utils'
 
 const SIDEBAR_ITEMS = [
     { title: 'Home', path: '/admin', icon: HouseIcon, badge: false },
@@ -57,24 +55,17 @@ export function DashboardSidebar() {
                         <SidebarMenu className="space-y-3">
                             {SIDEBAR_ITEMS.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <SidebarMenuButton asChild isActive={location.pathname === item.path}>
-                                                    <Link to={item.path} className="flex items-center gap-2">
-                                                        <item.icon className="h-5 w-5" />
-                                                        {item.title}
-                                                    </Link>
-                                                </SidebarMenuButton>
-                                            </TooltipTrigger>
-                                            <TooltipContent
-                                                side="right"
-                                                className={cn('font-medium', open && 'hidden')}
-                                            >
-                                                <p>{item.title}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
+                                    <SidebarMenuButton
+                                        asChild
+                                        tooltip={item.title}
+                                        isActive={location.pathname === item.path}
+                                    >
+                                        <Link to={item.path} className="flex items-center gap-2">
+                                            <item.icon className="h-5 w-5" />
+                                            {item.title}
+                                        </Link>
+                                    </SidebarMenuButton>
+
                                     {/* TODO: Add badge total */}
                                     {item.badge && <SidebarMenuBadge>24</SidebarMenuBadge>}
                                 </SidebarMenuItem>
@@ -87,21 +78,16 @@ export function DashboardSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <SidebarMenuButton asChild isActive={location.pathname === '/admin/settings'}>
-                                        <Link to="/admin/settings" className="flex items-center gap-2">
-                                            <SettingsIcon />
-                                            Settings
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className={cn('font-medium', open && 'hidden')}>
-                                    <p>Settings</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <SidebarMenuButton
+                            asChild
+                            tooltip="Settings"
+                            isActive={location.pathname === '/admin/settings'}
+                        >
+                            <Link to="/admin/settings" className="flex items-center gap-2">
+                                <SettingsIcon />
+                                Settings
+                            </Link>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
