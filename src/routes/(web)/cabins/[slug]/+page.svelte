@@ -222,7 +222,7 @@
 
 			<Separator />
 
-			<BookingCard />
+			<BookingCard {cabin} />
 		</div>
 	</div>
 </section>

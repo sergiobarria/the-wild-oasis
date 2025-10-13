@@ -1,0 +1,15 @@
+import {
+	PUBLIC_BOOKING_CLEANING_FEE,
+	PUBLIC_BOOKING_FEE_PERCENTAGE,
+	PUBLIC_BOOKING_PROCESSING_FEE_PERCENTAGE,
+	PUBLIC_BOOKING_SERVICE_FEE_PERCENTAGE,
+	PUBLIC_BOOKING_TAX_RATE
+} from '$env/static/public';
+
+export const bookingConfig = {
+	taxRate: parseFloat(PUBLIC_BOOKING_TAX_RATE),
+	bookingFeePercentage: parseFloat(PUBLIC_BOOKING_FEE_PERCENTAGE),
+	processingFeePercentage: parseFloat(PUBLIC_BOOKING_PROCESSING_FEE_PERCENTAGE),
+	cleaningFee: parseFloat(PUBLIC_BOOKING_CLEANING_FEE),
+	serviceFeePercentage: parseFloat(PUBLIC_BOOKING_SERVICE_FEE_PERCENTAGE)
+} as const;
