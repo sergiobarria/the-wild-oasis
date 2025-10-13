@@ -10,5 +10,8 @@ count.txt
 .output
 .vinxi
 
+# Database
+local.db*
+
 # Misc
 _old*

@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as webRouteRouteImport } from './routes/(web)/route'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as webIndexRouteImport } from './routes/(web)/index'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSubscribersRouteImport } from './routes/admin/subscribers'
@@ -26,12 +28,22 @@ import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as webCabinsIndexRouteImport } from './routes/(web)/cabins.index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as webCabinsCabinIdRouteImport } from './routes/(web)/cabins.$cabinId'
 
-const webIndexRoute = webIndexRouteImport.update({
-  id: '/(web)/',
-  path: '/',
+const webRouteRoute = webRouteRouteImport.update({
+  id: '/(web)',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const webIndexRoute = webIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => webRouteRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/admin/users',
@@ -64,34 +76,34 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const webTermsRoute = webTermsRouteImport.update({
-  id: '/(web)/terms',
+  id: '/terms',
   path: '/terms',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => webRouteRoute,
 } as any)
 const webPrivacyRoute = webPrivacyRouteImport.update({
-  id: '/(web)/privacy',
+  id: '/privacy',
   path: '/privacy',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => webRouteRoute,
 } as any)
 const webGuestRoute = webGuestRouteImport.update({
-  id: '/(web)/guest',
+  id: '/guest',
   path: '/guest',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => webRouteRoute,
 } as any)
 const webContactRoute = webContactRouteImport.update({
-  id: '/(web)/contact',
+  id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => webRouteRoute,
 } as any)
 const webCabinsRoute = webCabinsRouteImport.update({
-  id: '/(web)/cabins',
+  id: '/cabins',
   path: '/cabins',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => webRouteRoute,
 } as any)
 const webAboutRoute = webAboutRouteImport.update({
-  id: '/(web)/about',
+  id: '/about',
   path: '/about',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => webRouteRoute,
 } as any)
 const authSignUpRoute = authSignUpRouteImport.update({
   id: '/(auth)/sign-up',
@@ -113,6 +125,11 @@ const webCabinsIndexRoute = webCabinsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => webCabinsRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const webCabinsCabinIdRoute = webCabinsCabinIdRouteImport.update({
   id: '/$cabinId',
   path: '/$cabinId',
@@ -120,6 +137,7 @@ const webCabinsCabinIdRoute = webCabinsCabinIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof webIndexRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/sign-in': typeof authSignInRoute
   '/sign-up': typeof authSignUpRoute
@@ -135,8 +153,9 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/admin/users': typeof AdminUsersRoute
-  '/': typeof webIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/cabins/$cabinId': typeof webCabinsCabinIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/cabins/': typeof webCabinsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -155,11 +174,14 @@ export interface FileRoutesByTo {
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/admin/users': typeof AdminUsersRoute
   '/': typeof webIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/cabins/$cabinId': typeof webCabinsCabinIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/cabins': typeof webCabinsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/(web)': typeof webRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sign-up': typeof authSignUpRoute
@@ -176,12 +198,15 @@ export interface FileRoutesById {
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/admin/users': typeof AdminUsersRoute
   '/(web)/': typeof webIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/(web)/cabins/$cabinId': typeof webCabinsCabinIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/(web)/cabins/': typeof webCabinsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/forgot-password'
     | '/sign-in'
     | '/sign-up'
@@ -197,8 +222,9 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/subscribers'
     | '/admin/users'
-    | '/'
+    | '/admin'
     | '/cabins/$cabinId'
+    | '/api/auth/$'
     | '/cabins/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -217,10 +243,13 @@ export interface FileRouteTypes {
     | '/admin/subscribers'
     | '/admin/users'
     | '/'
+    | '/admin'
     | '/cabins/$cabinId'
+    | '/api/auth/$'
     | '/cabins'
   id:
     | '__root__'
+    | '/(web)'
     | '/(auth)/forgot-password'
     | '/(auth)/sign-in'
     | '/(auth)/sign-up'
@@ -237,37 +266,49 @@ export interface FileRouteTypes {
     | '/admin/subscribers'
     | '/admin/users'
     | '/(web)/'
+    | '/admin/'
     | '/(web)/cabins/$cabinId'
+    | '/api/auth/$'
     | '/(web)/cabins/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  webRouteRoute: typeof webRouteRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authSignInRoute: typeof authSignInRoute
   authSignUpRoute: typeof authSignUpRoute
-  webAboutRoute: typeof webAboutRoute
-  webCabinsRoute: typeof webCabinsRouteWithChildren
-  webContactRoute: typeof webContactRoute
-  webGuestRoute: typeof webGuestRoute
-  webPrivacyRoute: typeof webPrivacyRoute
-  webTermsRoute: typeof webTermsRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCabinsRoute: typeof AdminCabinsRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSubscribersRoute: typeof AdminSubscribersRoute
   AdminUsersRoute: typeof AdminUsersRoute
-  webIndexRoute: typeof webIndexRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(web)': {
+      id: '/(web)'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof webRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(web)/': {
       id: '/(web)/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof webIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/admin/users': {
       id: '/admin/users'
@@ -316,42 +357,42 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof webTermsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/(web)/privacy': {
       id: '/(web)/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof webPrivacyRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/(web)/guest': {
       id: '/(web)/guest'
       path: '/guest'
       fullPath: '/guest'
       preLoaderRoute: typeof webGuestRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/(web)/contact': {
       id: '/(web)/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof webContactRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/(web)/cabins': {
       id: '/(web)/cabins'
       path: '/cabins'
       fullPath: '/cabins'
       preLoaderRoute: typeof webCabinsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/(web)/about': {
       id: '/(web)/about'
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof webAboutRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof webRouteRoute
     }
     '/(auth)/sign-up': {
       id: '/(auth)/sign-up'
@@ -381,6 +422,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof webCabinsIndexRouteImport
       parentRoute: typeof webCabinsRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(web)/cabins/$cabinId': {
       id: '/(web)/cabins/$cabinId'
       path: '/$cabinId'
@@ -405,23 +453,43 @@ const webCabinsRouteWithChildren = webCabinsRoute._addFileChildren(
   webCabinsRouteChildren,
 )
 
-const rootRouteChildren: RootRouteChildren = {
-  authForgotPasswordRoute: authForgotPasswordRoute,
-  authSignInRoute: authSignInRoute,
-  authSignUpRoute: authSignUpRoute,
+interface webRouteRouteChildren {
+  webAboutRoute: typeof webAboutRoute
+  webCabinsRoute: typeof webCabinsRouteWithChildren
+  webContactRoute: typeof webContactRoute
+  webGuestRoute: typeof webGuestRoute
+  webPrivacyRoute: typeof webPrivacyRoute
+  webTermsRoute: typeof webTermsRoute
+  webIndexRoute: typeof webIndexRoute
+}
+
+const webRouteRouteChildren: webRouteRouteChildren = {
   webAboutRoute: webAboutRoute,
   webCabinsRoute: webCabinsRouteWithChildren,
   webContactRoute: webContactRoute,
   webGuestRoute: webGuestRoute,
   webPrivacyRoute: webPrivacyRoute,
   webTermsRoute: webTermsRoute,
+  webIndexRoute: webIndexRoute,
+}
+
+const webRouteRouteWithChildren = webRouteRoute._addFileChildren(
+  webRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  webRouteRoute: webRouteRouteWithChildren,
+  authForgotPasswordRoute: authForgotPasswordRoute,
+  authSignInRoute: authSignInRoute,
+  authSignUpRoute: authSignUpRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminCabinsRoute: AdminCabinsRoute,
   AdminMessagesRoute: AdminMessagesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSubscribersRoute: AdminSubscribersRoute,
   AdminUsersRoute: AdminUsersRoute,
-  webIndexRoute: webIndexRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

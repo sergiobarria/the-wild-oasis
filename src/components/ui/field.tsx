@@ -206,7 +206,7 @@ function FieldError({
         <div
             role="alert"
             data-slot="field-error"
-            className={cn('text-destructive text-sm font-normal', className)}
+            className={cn('text-destructive text-xs font-normal italic', className)}
             {...props}
         >
             {content}
@@ -216,13 +216,13 @@ function FieldError({
 
 export {
     Field,
-    FieldLabel,
+    FieldContent,
     FieldDescription,
     FieldError,
     FieldGroup,
+    FieldLabel,
     FieldLegend,
     FieldSeparator,
     FieldSet,
-    FieldContent,
     FieldTitle,
 }

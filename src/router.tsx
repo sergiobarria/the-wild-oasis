@@ -4,7 +4,7 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
-import * as TanstackQuery from './integrations/root-provider'
+import * as TanstackQuery from './integrations/query-provider'
 import { routeTree } from './routeTree.gen'
 
 // Create a new router instance

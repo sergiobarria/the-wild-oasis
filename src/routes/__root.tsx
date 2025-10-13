@@ -8,15 +8,25 @@ import { Toaster } from 'sonner'
 
 import { APP_DESCRIPTION, APP_KEYWORDS, APP_NAME } from '@/config/constants'
 import { ThemeProvider } from '@/context/theme-provider'
+import { authQueries } from '@/features/auth/queries'
 import { seo } from '@/lib/seo'
 
 import appCss from '../styles.css?url'
 
-interface MyRouterContext {
+interface RouterContext {
     queryClient: QueryClient
 }
 
-export const Route = createRootRouteWithContext<MyRouterContext>()({
+export const Route = createRootRouteWithContext<RouterContext>()({
+    beforeLoad: async ({ context }) => {
+        // Inject the user session and user into the context for all routes
+        const session = await context.queryClient.fetchQuery(authQueries.session())
+
+        return {
+            session: session?.session ?? null,
+            user: session?.user ?? null,
+        }
+    },
     head: () => ({
         meta: [
             { charSet: 'utf-8' },
@@ -42,13 +52,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
             { rel: 'icon', href: '/favicon.ico' },
         ],
     }),
-
     shellComponent: RootDocument,
+    notFoundComponent: () => <div>404 Not Found</div>,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <HeadContent />
             </head>
