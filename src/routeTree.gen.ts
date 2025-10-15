@@ -29,6 +29,9 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as webCabinsIndexRouteImport } from './routes/(web)/cabins.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as webCheckoutSummaryRouteImport } from './routes/(web)/checkout.summary'
+import { Route as webCheckoutSuccessRouteImport } from './routes/(web)/checkout.success'
+import { Route as webCheckoutCancelRouteImport } from './routes/(web)/checkout.cancel'
 import { Route as webCabinsCabinSlugRouteImport } from './routes/(web)/cabins.$cabinSlug'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -130,6 +133,21 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const webCheckoutSummaryRoute = webCheckoutSummaryRouteImport.update({
+  id: '/checkout/summary',
+  path: '/checkout/summary',
+  getParentRoute: () => webRouteRoute,
+} as any)
+const webCheckoutSuccessRoute = webCheckoutSuccessRouteImport.update({
+  id: '/checkout/success',
+  path: '/checkout/success',
+  getParentRoute: () => webRouteRoute,
+} as any)
+const webCheckoutCancelRoute = webCheckoutCancelRouteImport.update({
+  id: '/checkout/cancel',
+  path: '/checkout/cancel',
+  getParentRoute: () => webRouteRoute,
+} as any)
 const webCabinsCabinSlugRoute = webCabinsCabinSlugRouteImport.update({
   id: '/cabins/$cabinSlug',
   path: '/cabins/$cabinSlug',
@@ -155,6 +173,9 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/cabins/$cabinSlug': typeof webCabinsCabinSlugRoute
+  '/checkout/cancel': typeof webCheckoutCancelRoute
+  '/checkout/success': typeof webCheckoutSuccessRoute
+  '/checkout/summary': typeof webCheckoutSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/cabins': typeof webCabinsIndexRoute
 }
@@ -176,6 +197,9 @@ export interface FileRoutesByTo {
   '/': typeof webIndexRoute
   '/admin': typeof AdminIndexRoute
   '/cabins/$cabinSlug': typeof webCabinsCabinSlugRoute
+  '/checkout/cancel': typeof webCheckoutCancelRoute
+  '/checkout/success': typeof webCheckoutSuccessRoute
+  '/checkout/summary': typeof webCheckoutSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/cabins': typeof webCabinsIndexRoute
 }
@@ -200,6 +224,9 @@ export interface FileRoutesById {
   '/(web)/': typeof webIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/(web)/cabins/$cabinSlug': typeof webCabinsCabinSlugRoute
+  '/(web)/checkout/cancel': typeof webCheckoutCancelRoute
+  '/(web)/checkout/success': typeof webCheckoutSuccessRoute
+  '/(web)/checkout/summary': typeof webCheckoutSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/(web)/cabins/': typeof webCabinsIndexRoute
 }
@@ -224,6 +251,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/'
     | '/cabins/$cabinSlug'
+    | '/checkout/cancel'
+    | '/checkout/success'
+    | '/checkout/summary'
     | '/api/auth/$'
     | '/cabins'
   fileRoutesByTo: FileRoutesByTo
@@ -245,6 +275,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/cabins/$cabinSlug'
+    | '/checkout/cancel'
+    | '/checkout/success'
+    | '/checkout/summary'
     | '/api/auth/$'
     | '/cabins'
   id:
@@ -268,6 +301,9 @@ export interface FileRouteTypes {
     | '/(web)/'
     | '/admin/'
     | '/(web)/cabins/$cabinSlug'
+    | '/(web)/checkout/cancel'
+    | '/(web)/checkout/success'
+    | '/(web)/checkout/summary'
     | '/api/auth/$'
     | '/(web)/cabins/'
   fileRoutesById: FileRoutesById
@@ -423,6 +459,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(web)/checkout/summary': {
+      id: '/(web)/checkout/summary'
+      path: '/checkout/summary'
+      fullPath: '/checkout/summary'
+      preLoaderRoute: typeof webCheckoutSummaryRouteImport
+      parentRoute: typeof webRouteRoute
+    }
+    '/(web)/checkout/success': {
+      id: '/(web)/checkout/success'
+      path: '/checkout/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof webCheckoutSuccessRouteImport
+      parentRoute: typeof webRouteRoute
+    }
+    '/(web)/checkout/cancel': {
+      id: '/(web)/checkout/cancel'
+      path: '/checkout/cancel'
+      fullPath: '/checkout/cancel'
+      preLoaderRoute: typeof webCheckoutCancelRouteImport
+      parentRoute: typeof webRouteRoute
+    }
     '/(web)/cabins/$cabinSlug': {
       id: '/(web)/cabins/$cabinSlug'
       path: '/cabins/$cabinSlug'
@@ -441,6 +498,9 @@ interface webRouteRouteChildren {
   webTermsRoute: typeof webTermsRoute
   webIndexRoute: typeof webIndexRoute
   webCabinsCabinSlugRoute: typeof webCabinsCabinSlugRoute
+  webCheckoutCancelRoute: typeof webCheckoutCancelRoute
+  webCheckoutSuccessRoute: typeof webCheckoutSuccessRoute
+  webCheckoutSummaryRoute: typeof webCheckoutSummaryRoute
   webCabinsIndexRoute: typeof webCabinsIndexRoute
 }
 
@@ -452,6 +512,9 @@ const webRouteRouteChildren: webRouteRouteChildren = {
   webTermsRoute: webTermsRoute,
   webIndexRoute: webIndexRoute,
   webCabinsCabinSlugRoute: webCabinsCabinSlugRoute,
+  webCheckoutCancelRoute: webCheckoutCancelRoute,
+  webCheckoutSuccessRoute: webCheckoutSuccessRoute,
+  webCheckoutSummaryRoute: webCheckoutSummaryRoute,
   webCabinsIndexRoute: webCabinsIndexRoute,
 }
 

@@ -9,6 +9,7 @@ import { Typography } from '@/components/shared/typography'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { APP_NAME } from '@/config/constants'
+import { BookingCard } from '@/features/booking/components/booking-card'
 import { CabinCard } from '@/features/cabins/components/cabin-card'
 import { cabinQueries } from '@/features/cabins/queries'
 
@@ -238,6 +239,12 @@ function RouteComponent() {
                         </ul>
 
                         <Separator />
+
+                        <BookingCard
+                            cabinId={cabin.id}
+                            pricePerNight={cabin.pricePerNight}
+                            discountPercentage={cabin.discountPercentage || undefined}
+                        />
                     </div>
                 </div>
             </section>

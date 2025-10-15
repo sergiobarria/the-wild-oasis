@@ -24,6 +24,18 @@ export const getCabinsFn = createServerFn({ method: 'GET' })
         return result
     })
 
+export const getCabinById = createServerFn({ method: 'GET' })
+    .inputValidator(z.object({ id: z.string() }))
+    .handler(async ({ data }) => {
+        const cabin = await db.query.cabins.findFirst({
+            where: eq(cabins.id, data.id),
+            with: { reviews: true },
+        })
+        if (!cabin) throw notFound()
+
+        return cabin
+    })
+
 export const getCabinBySlugFn = createServerFn({ method: 'GET' })
     .inputValidator(z.object({ slug: z.string() }))
     .handler(async ({ data }) => {

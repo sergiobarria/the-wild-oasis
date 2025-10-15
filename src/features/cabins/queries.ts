@@ -2,7 +2,7 @@ import { queryOptions } from '@tanstack/react-query'
 
 import { DEFAULT_STALE_TIME } from '@/config/constants'
 
-import { getCabinBySlugFn, getCabinsFn } from './api'
+import { getCabinById, getCabinBySlugFn, getCabinsFn } from './api'
 
 export const cabinQueries = {
     all: ['cabins'] as const,
@@ -11,6 +11,13 @@ export const cabinQueries = {
         queryOptions({
             queryKey: [...cabinQueries.all, 'list', searchQuery],
             queryFn: () => getCabinsFn({ data: { searchQuery } }),
+            staleTime: DEFAULT_STALE_TIME,
+        }),
+
+    getById: (id: string) =>
+        queryOptions({
+            queryKey: [...cabinQueries.all, 'getById', id],
+            queryFn: () => getCabinById({ data: { id } }),
             staleTime: DEFAULT_STALE_TIME,
         }),
 
