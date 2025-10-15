@@ -14,7 +14,7 @@ import { cabinQueries } from '@/features/cabins/queries'
 
 export const Route = createFileRoute('/(web)/cabins/$cabinSlug')({
     head: () => ({
-        meta: [{ title: 'Cabin' + APP_NAME }],
+        meta: [{ title: 'Cabin Details | ' + APP_NAME }],
     }),
     component: RouteComponent,
     loader: async ({ context, params }) => {
