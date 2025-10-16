@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { ArrowLeftIcon, CalendarIcon, MoonIcon, UsersIcon } from 'lucide-react'
+import { ArrowLeftIcon, CalendarDaysIcon, InfoIcon, MoonIcon, UsersIcon } from 'lucide-react'
 import z from 'zod'
 
 import { Typography } from '@/components/shared/typography'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { calculateNights } from '@/features/booking/calculations'
 import { useBooking } from '@/features/booking/hooks/use-booking'
@@ -44,195 +46,219 @@ function RouteComponent() {
     }
 
     return (
-        <div className="min-h-screen">
-            <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-                {/* Navigation */}
-                <button
-                    onClick={() => window.history.back()}
-                    className="text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-2 text-sm transition-colors"
-                >
-                    <ArrowLeftIcon className="size-4" />
+        <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+                <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-8">
+                    <ArrowLeftIcon className="mr-2 h-4 w-4" />
                     Back to cabin
-                </button>
+                </Button>
 
-                {/* Main Grid */}
-                <div className="grid gap-8 lg:grid-cols-[1.2fr,1fr]">
-                    {/* Left Column */}
-                    <div className="space-y-8">
-                        {/* Header */}
-                        <div>
-                            <Typography variant="h1" className="mb-3 text-3xl font-bold lg:text-4xl">
-                                Confirm your stay
-                            </Typography>
-                            <Typography className="text-muted-foreground text-lg">
-                                Review the details below before completing your booking
-                            </Typography>
-                        </div>
+                <div className="mb-10">
+                    <Typography variant="h2" className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                        Review your reservation
+                    </Typography>
+                    <Typography variant="body" className="text-muted-foreground text-lg">
+                        One last look before you book
+                    </Typography>
+                </div>
 
-                        {/* Cabin Card */}
-                        <div className="bg-card group overflow-hidden rounded-xl border">
-                            <div className="relative aspect-[16/10] overflow-hidden">
-                                <img
-                                    src="/placeholder.jpg"
-                                    alt={cabin.name}
-                                    className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                />
+                {/* Grid Layout */}
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    {/* Main Content - Takes 2 columns on large screens */}
+                    <div className="space-y-6 lg:col-span-2">
+                        {/* Cabin Preview */}
+                        <Card className="overflow-hidden pt-0">
+                            <div className="relative overflow-hidden">
+                                <div className="aspect-video">
+                                    <img
+                                        src="/placeholder.jpg"
+                                        alt={cabin.name}
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
                                 {cabin.discountPercentage && cabin.discountPercentage > 0 && (
-                                    <div className="absolute top-3 right-3 rounded-lg bg-green-600 px-3 py-1 text-sm font-semibold text-white">
+                                    <Badge
+                                        variant="secondary"
+                                        className="absolute top-4 right-4 bg-green-600 text-white hover:bg-green-700"
+                                    >
                                         Save {cabin.discountPercentage}%
-                                    </div>
+                                    </Badge>
                                 )}
                             </div>
-                            <div className="p-6">
-                                <Typography variant="h2" className="mb-2 text-xl font-semibold">
-                                    {cabin.name}
+                            <CardHeader className="space-y-1">
+                                <CardTitle>
+                                    <Typography variant="h3" size="2xl">
+                                        {cabin.name}
+                                    </Typography>
+                                </CardTitle>
+                                <Typography
+                                    variant="body"
+                                    size="lg"
+                                    className="text-muted-foreground mb-1 leading-relaxed"
+                                >
+                                    {cabin.summary}
                                 </Typography>
-                                <Typography className="text-muted-foreground text-sm">{cabin.summary}</Typography>
-                            </div>
-                        </div>
+                                <Typography
+                                    variant="body"
+                                    size="lg"
+                                    className="text-muted-foreground mb-1 leading-relaxed"
+                                >
+                                    {cabin.description}
+                                </Typography>
+                            </CardHeader>
+                        </Card>
 
-                        {/* Trip Details */}
-                        <div>
-                            <Typography variant="h3" className="mb-4 text-lg font-semibold">
-                                Trip details
-                            </Typography>
-
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-4">
-                                    <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-lg">
-                                        <CalendarIcon className="text-primary size-5" />
-                                    </div>
-                                    <div className="flex-1 pt-2">
-                                        <div className="mb-1 flex items-baseline gap-3">
-                                            <Typography className="font-medium">Check-in</Typography>
-                                            <Typography className="text-muted-foreground text-sm">
-                                                {formattedCheckinDate}
-                                            </Typography>
+                        {/* Booking Details */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Booking details</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 font-medium">
+                                            <CalendarDaysIcon className="text-primary size-5" />
+                                            <span>Check-in</span>
                                         </div>
-                                        <div className="flex items-baseline gap-3">
-                                            <Typography className="font-medium">Check-out</Typography>
-                                            <Typography className="text-muted-foreground text-sm">
-                                                {formattedCheckoutDate}
-                                            </Typography>
+                                        <Typography variant="body" className="text-muted-foreground pl-7">
+                                            {formattedCheckinDate}
+                                        </Typography>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 font-medium">
+                                            <CalendarDaysIcon className="text-primary size-5" />
+                                            <span>Check-out</span>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-lg">
-                                        <MoonIcon className="text-primary size-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <Typography className="font-medium">{nights} nights</Typography>
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-lg">
-                                        <UsersIcon className="text-primary size-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <Typography className="font-medium">
-                                            {guests} {guests === 1 ? 'guest' : 'guests'}
+                                        <Typography variant="body" className="text-muted-foreground pl-7">
+                                            {formattedCheckoutDate}
                                         </Typography>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+
+                                <Separator />
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <MoonIcon className="text-primary size-5" />
+                                        <span>Duration</span>
+                                    </div>
+                                    <Typography variant="body" className="text-muted-foreground">
+                                        {nights} {nights === 1 ? 'night' : 'nights'}
+                                    </Typography>
+                                </div>
+
+                                <Separator />
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <UsersIcon className="text-primary size-5" />
+                                        <span>Guests</span>
+                                    </div>
+                                    <Typography variant="body" className="text-muted-foreground">
+                                        {guests} {guests === 1 ? 'guest' : 'guests'}
+                                    </Typography>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
-                    {/* Right Column - Price Card (Sticky) */}
-                    <div>
-                        <div className="bg-card sticky top-8 rounded-xl border shadow-sm">
-                            <div className="p-6">
-                                <Typography variant="h3" className="mb-6 text-lg font-semibold">
-                                    Price summary
-                                </Typography>
-
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex justify-between">
+                    {/* Price Summary - Takes 1 column, sticky on large screens */}
+                    <div className="lg:col-span-1">
+                        <div className="lg:sticky lg:top-8">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Price summary</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">
                                             {formatPrice(cabin.pricePerNight)} × {nights}{' '}
                                             {nights === 1 ? 'night' : 'nights'}
                                         </span>
-                                        <span>{formatPrice(priceBreakdown.basePrice)}</span>
+                                        <span className="font-medium">{formatPrice(priceBreakdown.basePrice)}</span>
                                     </div>
 
                                     {priceBreakdown.discount > 0 && (
-                                        <div className="flex justify-between text-green-600">
-                                            <span>Discount</span>
-                                            <span>-{formatPrice(priceBreakdown.discount)}</span>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-green-600 dark:text-green-400">Discount</span>
+                                            <span className="font-medium text-green-600 dark:text-green-400">
+                                                -{formatPrice(priceBreakdown.discount)}
+                                            </span>
                                         </div>
                                     )}
 
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Cleaning fee</span>
-                                        <span>{formatPrice(priceBreakdown.cleaningFee)}</span>
+                                        <span className="font-medium">{formatPrice(priceBreakdown.cleaningFee)}</span>
                                     </div>
 
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Service fee</span>
-                                        <span>{formatPrice(priceBreakdown.serviceFee)}</span>
+                                        <span className="font-medium">{formatPrice(priceBreakdown.serviceFee)}</span>
                                     </div>
 
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Booking fee</span>
-                                        <span>{formatPrice(priceBreakdown.bookingFee)}</span>
+                                        <span className="font-medium">{formatPrice(priceBreakdown.bookingFee)}</span>
                                     </div>
 
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Taxes</span>
-                                        <span>{formatPrice(priceBreakdown.tax)}</span>
+                                        <span className="font-medium">{formatPrice(priceBreakdown.tax)}</span>
                                     </div>
-                                </div>
 
-                                <Separator className="my-6" />
+                                    <Separator className="my-4" />
 
-                                <div className="mb-6 flex items-baseline justify-between">
-                                    <Typography className="text-lg font-semibold">Total</Typography>
-                                    <div className="text-right">
-                                        <Typography className="text-2xl font-bold">
-                                            {formatPrice(priceBreakdown.totalPrice)}
-                                        </Typography>
-                                        <Typography className="text-muted-foreground text-xs">USD</Typography>
+                                    <div className="flex items-baseline justify-between pt-2">
+                                        <span className="text-lg font-semibold">Total</span>
+                                        <div className="text-right">
+                                            <div className="text-3xl font-bold">
+                                                {formatPrice(priceBreakdown.totalPrice)}
+                                            </div>
+                                            <div className="text-muted-foreground text-xs">USD</div>
+                                        </div>
                                     </div>
-                                </div>
-
-                                {isAuthenticated ? (
-                                    <Button
-                                        type="button"
-                                        className="w-full"
-                                        size="lg"
-                                        onClick={() => console.log('Process payment')}
-                                    >
-                                        Confirm booking
-                                    </Button>
-                                ) : (
-                                    <>
+                                </CardContent>
+                                <CardFooter className="flex-col gap-3 pt-6">
+                                    {isAuthenticated ? (
                                         <Button
-                                            type="button"
                                             className="w-full"
                                             size="lg"
-                                            onClick={() => console.log('Navigate to login')}
+                                            onClick={() => console.log('Process payment')}
                                         >
-                                            Log in to book
+                                            Confirm booking
                                         </Button>
-                                        <Typography className="text-muted-foreground mt-3 text-center text-xs">
-                                            You won't be charged yet
-                                        </Typography>
-                                    </>
-                                )}
-                            </div>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                className="w-full"
+                                                size="lg"
+                                                onClick={() => console.log('Navigate to login')}
+                                            >
+                                                Log in to book
+                                            </Button>
+                                            <Typography
+                                                variant="body"
+                                                size="xs"
+                                                className="text-muted-foreground text-center"
+                                            >
+                                                You won't be charged yet
+                                            </Typography>
+                                        </>
+                                    )}
 
-                            <div className="bg-muted/30 border-t px-6 py-4">
-                                <Typography className="text-muted-foreground text-center text-xs">
-                                    Free cancellation before check-in
-                                </Typography>
-                            </div>
+                                    <div className="flex w-full items-start gap-2 rounded-lg border p-3">
+                                        <InfoIcon className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                                        <Typography
+                                            variant="body"
+                                            size="xs"
+                                            className="text-muted-foreground leading-relaxed"
+                                        >
+                                            Free cancellation available before check-in
+                                        </Typography>
+                                    </div>
+                                </CardFooter>
+                            </Card>
                         </div>
                     </div>
                 </div>
