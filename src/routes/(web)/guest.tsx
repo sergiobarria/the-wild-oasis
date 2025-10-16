@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { APP_NAME } from '@/config/constants'
+import { bookingQueries } from '@/features/booking/queries'
 
 export const Route = createFileRoute('/(web)/guest')({
     beforeLoad: async ({ context, location }) => {
@@ -17,7 +19,17 @@ export const Route = createFileRoute('/(web)/guest')({
             throw redirect({ to: '/sign-in', search: { redirect: location.href } })
         }
     },
+    head: () => ({
+        meta: [{ title: 'Guest Area | ' + APP_NAME }],
+    }),
     component: RouteComponent,
+    loader: async ({ context }) => {
+        const userBookings = await context.queryClient.ensureQueryData(
+            bookingQueries.userBookings(context.session!.userId),
+        )
+
+        return { userBookings }
+    },
 })
 
 // Mock data
@@ -93,6 +105,7 @@ const MOCK_NOTIFICATIONS = [
 ]
 
 function RouteComponent() {
+    const { userBookings } = Route.useLoaderData()
     const unreadCount = MOCK_NOTIFICATIONS.filter((n) => n.unread).length
 
     return (
