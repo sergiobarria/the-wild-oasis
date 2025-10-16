@@ -26,6 +26,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         return {
             session: session?.session ?? null,
             user: session?.user ?? null,
+            isAuthenticated: Boolean(session?.session),
         }
     },
     head: () => ({

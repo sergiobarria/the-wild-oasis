@@ -19,15 +19,16 @@ const checkoutSearchSchema = z.object({
 
 export const Route = createFileRoute('/(web)/checkout/summary')({
     validateSearch: checkoutSearchSchema,
-    component: RouteComponent,
     beforeLoad: async ({ context, search }) => {
         const cabin = await context.queryClient.ensureQueryData(cabinQueries.getById(search.cabinId))
         return { cabin }
     },
+    component: RouteComponent,
     errorComponent: (e) => <div>{e.error.message}</div>,
 })
 
 function RouteComponent() {
+    const { isAuthenticated } = Route.useRouteContext()
     const { checkIn, checkOut, guests } = Route.useSearch()
     const { cabin } = Route.useRouteContext()
 
@@ -41,8 +42,6 @@ function RouteComponent() {
     if (!priceBreakdown || nights === 0) {
         return <div>Invalid booking</div>
     }
-
-    const isAuthenticated = false
 
     return (
         <div className="min-h-screen">
