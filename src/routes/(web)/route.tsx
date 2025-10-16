@@ -2,7 +2,6 @@ import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-rout
 
 import { MailIcon, MapPinIcon, PhoneIcon } from 'lucide-react'
 
-import { SignOutButton } from '@/components/shared/sign-out-button'
 import { Typography } from '@/components/shared/typography'
 import { Button } from '@/components/ui/button'
 import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '@/config/constants'
@@ -54,7 +53,6 @@ function RouteComponent() {
                                 <Button size="sm" variant="outline" asChild>
                                     <Link to="/admin">Dashboard</Link>
                                 </Button>
-                                <SignOutButton withLabel variant="outline" />
                             </div>
                         )}
 
