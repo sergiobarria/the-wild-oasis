@@ -1,0 +1,38 @@
+name: CI
+
+on:
+    # Trigger on PRs to dev and main
+    pull_request:
+        branches:
+            - dev
+            - main
+
+    # Allow manual trigger
+    workflow_dispatch:
+
+jobs:
+    build-and-check:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '24.7'
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Install dependencies
+              run: bun install
+
+            - name: Run type check
+              run: bun run types-check
+
+            - name: Build project
+              run: bun run build
