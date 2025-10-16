@@ -13,9 +13,10 @@ import { cn } from '@/lib/utils'
 type SignOutButtonProps = React.ComponentProps<'button'> & {
     withLabel?: boolean
     variant?: 'ghost' | 'outline'
+    size?: 'sm' | 'lg'
 }
 
-export function SignOutButton({ withLabel = false, variant = 'ghost', className }: SignOutButtonProps) {
+export function SignOutButton({ withLabel = false, variant = 'ghost', size = 'sm', className }: SignOutButtonProps) {
     const navigate = useNavigate()
     const router = useRouter()
     const queryClient = useQueryClient()
@@ -42,7 +43,7 @@ export function SignOutButton({ withLabel = false, variant = 'ghost', className 
     return (
         <Button
             variant={variant}
-            size="sm"
+            size={size}
             onClick={handleSignOut}
             disabled={signOutMutation.isPending}
             className={cn('cursor-pointer', className)}
