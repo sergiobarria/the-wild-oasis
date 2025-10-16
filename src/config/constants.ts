@@ -9,3 +9,16 @@ export const DEFAULT_REDIRECT_AFTER_LOGIN = '/'
 
 export const DEFAULT_STALE_TIME = 5000 // 5 seconds in milliseconds
 export const DEFAULT_DEBOUNCE_DELAY = 500
+
+export const BOOKING_STATUS = {
+    CONFIRMED: 'confirmed',
+    CANCELLED: 'cancelled',
+    PENDING: 'pending',
+} as const
+
+export const BOOKING_PAYMENT_STATUS = {
+    PENDING: 'pending',
+    SUCCEEDED: 'succeeded',
+    FAILED: 'failed',
+    CANCELED: 'canceled',
+} as const

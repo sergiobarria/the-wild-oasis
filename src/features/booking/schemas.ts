@@ -47,4 +47,24 @@ export const BookingFormSchema = z
         },
     )
 
+/**
+ * Schema for creating a checkout session
+ */
+export const CreateCheckoutSessionSchema = z.object({
+    userId: z.string(),
+    cabinId: z.string(),
+    cabinName: z.string(),
+    checkIn: z.string(),
+    checkOut: z.string(),
+    guests: z.number(),
+    nights: z.number(),
+    subtotal: z.number(),
+    discount: z.number().default(0),
+    cleaningFee: z.number(),
+    serviceFee: z.number(),
+    bookingFee: z.number(),
+    tax: z.number(),
+    totalPrice: z.number(),
+})
+
 export type BookingFormValues = z.infer<typeof BookingFormSchema>

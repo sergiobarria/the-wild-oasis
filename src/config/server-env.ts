@@ -14,6 +14,9 @@ export const env = createEnv({
         R2_ENDPOINT: z.string().min(1),
         R2_URL: z.string().min(1),
         R2_REGION: z.string().min(1),
+        STRIPE_SECRET_KEY: z.string().min(1),
+        STRIPE_PUBLISHABLE_KEY: z.string().min(1),
+        STRIPE_WEBHOOK_SECRET: z.string().min(1),
         // OAuth2 providers, optional, update as needed
         // ...
     },

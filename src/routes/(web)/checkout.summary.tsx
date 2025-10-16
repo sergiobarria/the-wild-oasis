@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { ArrowLeftIcon, CalendarDaysIcon, InfoIcon, MoonIcon, UsersIcon } from 'lucide-react'
 import z from 'zod'
@@ -8,8 +8,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { APP_NAME } from '@/config/constants'
 import { calculateNights } from '@/features/booking/calculations'
 import { useBooking } from '@/features/booking/hooks/use-booking'
+import { useCreateCheckoutSession } from '@/features/booking/mutations'
 import { cabinQueries } from '@/features/cabins/queries'
 
 const checkoutSearchSchema = z.object({
@@ -20,6 +22,9 @@ const checkoutSearchSchema = z.object({
 })
 
 export const Route = createFileRoute('/(web)/checkout/summary')({
+    head: () => ({
+        meta: [{ title: 'Checkout | ' + APP_NAME }],
+    }),
     validateSearch: checkoutSearchSchema,
     beforeLoad: async ({ context, search }) => {
         const cabin = await context.queryClient.ensureQueryData(cabinQueries.getById(search.cabinId))
@@ -30,19 +35,47 @@ export const Route = createFileRoute('/(web)/checkout/summary')({
 })
 
 function RouteComponent() {
-    const { isAuthenticated } = Route.useRouteContext()
+    const { isAuthenticated, user, cabin } = Route.useRouteContext()
     const { checkIn, checkOut, guests } = Route.useSearch()
-    const { cabin } = Route.useRouteContext()
+    const createCheckoutSessionMutation = useCreateCheckoutSession()
+    const navigate = useNavigate()
 
     const { priceBreakdown, formatPrice, formattedCheckinDate, formattedCheckoutDate } = useBooking({
         range: { start: new Date(checkIn), end: new Date(checkOut) },
         guests,
         pricePerNight: cabin.pricePerNight,
     })
+    console.log('🚀 ~ RouteComponent ~ priceBreakdown:', priceBreakdown)
     const nights = calculateNights({ start: new Date(checkIn), end: new Date(checkOut) })
 
     if (!priceBreakdown || nights === 0) {
         return <div>Invalid booking</div>
+    }
+
+    const handleConfirmBooking = () => {
+        if (!user?.id) {
+            navigate({ to: '/sign-in', search: { redirect: Route.path } })
+            return
+        }
+
+        createCheckoutSessionMutation.mutate({
+            data: {
+                cabinId: cabin.id,
+                userId: user.id,
+                cabinName: cabin.name,
+                checkIn,
+                checkOut,
+                guests,
+                nights,
+                subtotal: priceBreakdown.subtotal,
+                discount: priceBreakdown.discount,
+                cleaningFee: priceBreakdown.cleaningFee,
+                serviceFee: priceBreakdown.serviceFee,
+                bookingFee: priceBreakdown.bookingFee,
+                tax: priceBreakdown.tax,
+                totalPrice: priceBreakdown.totalPrice,
+            },
+        })
     }
 
     return (
@@ -224,9 +257,12 @@ function RouteComponent() {
                                         <Button
                                             className="w-full"
                                             size="lg"
-                                            onClick={() => console.log('Process payment')}
+                                            onClick={handleConfirmBooking}
+                                            disabled={createCheckoutSessionMutation.isPending}
                                         >
-                                            Confirm booking
+                                            {createCheckoutSessionMutation.isPending
+                                                ? 'Processing...'
+                                                : 'Confirm booking'}
                                         </Button>
                                     ) : (
                                         <>

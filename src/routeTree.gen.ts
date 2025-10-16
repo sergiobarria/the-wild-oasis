@@ -28,6 +28,7 @@ import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as webCabinsIndexRouteImport } from './routes/(web)/cabins.index'
+import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as webCheckoutSummaryRouteImport } from './routes/(web)/checkout.summary'
 import { Route as webCheckoutSuccessRouteImport } from './routes/(web)/checkout.success'
@@ -128,6 +129,11 @@ const webCabinsIndexRoute = webCabinsIndexRouteImport.update({
   path: '/cabins/',
   getParentRoute: () => webRouteRoute,
 } as any)
+const ApiWebhooksStripeRoute = ApiWebhooksStripeRouteImport.update({
+  id: '/api/webhooks/stripe',
+  path: '/api/webhooks/stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/checkout/success': typeof webCheckoutSuccessRoute
   '/checkout/summary': typeof webCheckoutSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/cabins': typeof webCabinsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/checkout/success': typeof webCheckoutSuccessRoute
   '/checkout/summary': typeof webCheckoutSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/cabins': typeof webCabinsIndexRoute
 }
 export interface FileRoutesById {
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/(web)/checkout/success': typeof webCheckoutSuccessRoute
   '/(web)/checkout/summary': typeof webCheckoutSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/(web)/cabins/': typeof webCabinsIndexRoute
 }
 export interface FileRouteTypes {
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/checkout/summary'
     | '/api/auth/$'
+    | '/api/webhooks/stripe'
     | '/cabins'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/checkout/summary'
     | '/api/auth/$'
+    | '/api/webhooks/stripe'
     | '/cabins'
   id:
     | '__root__'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/(web)/checkout/success'
     | '/(web)/checkout/summary'
     | '/api/auth/$'
+    | '/api/webhooks/stripe'
     | '/(web)/cabins/'
   fileRoutesById: FileRoutesById
 }
@@ -315,6 +327,7 @@ export interface RootRouteChildren {
   authSignInRoute: typeof authSignInRoute
   authSignUpRoute: typeof authSignUpRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiWebhooksStripeRoute: typeof ApiWebhooksStripeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof webCabinsIndexRouteImport
       parentRoute: typeof webRouteRoute
     }
+    '/api/webhooks/stripe': {
+      id: '/api/webhooks/stripe'
+      path: '/api/webhooks/stripe'
+      fullPath: '/api/webhooks/stripe'
+      preLoaderRoute: typeof ApiWebhooksStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -553,6 +573,7 @@ const rootRouteChildren: RootRouteChildren = {
   authSignInRoute: authSignInRoute,
   authSignUpRoute: authSignUpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiWebhooksStripeRoute: ApiWebhooksStripeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
