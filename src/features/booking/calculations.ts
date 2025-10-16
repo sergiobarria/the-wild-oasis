@@ -1,10 +1,33 @@
 import { bookingConfig } from '@/config/booking'
-import { BookingInput, BookingPriceBreakdown, BookingValidation, DateRange } from '@/features/booking/types'
+
+export interface DateRange {
+    start: Date | undefined
+    end: Date | undefined
+}
+
+export interface BookingPriceBreakdown {
+    nights: number
+    basePrice: number
+    discount: number
+    discountedBasePrice: number
+    cleaningFee: number
+    serviceFee: number
+    bookingFee: number
+    processingFee: number
+    subtotal: number
+    tax: number
+    totalPrice: number
+}
+
+export interface BookingInput {
+    dateRange: DateRange
+    guests: number | undefined
+    pricePerNight: number
+    discountPercentage?: number
+}
 
 /**
  * Calculate the number of nights between two dates
- * @param range - The date range
- * @returns The number of nights
  */
 export function calculateNights(range: DateRange): number {
     if (!range.start || !range.end) return 0
@@ -16,52 +39,16 @@ export function calculateNights(range: DateRange): number {
 }
 
 /**
- * Validate the booking input
- * @param input - The booking input
- * @returns The validation result
- */
-export function validateBooking(input: BookingInput): BookingValidation {
-    const errors: string[] = []
-    const { dateRange, guests } = input
-
-    const nights = calculateNights(dateRange)
-
-    // Validate dates
-    if (!dateRange.start || !dateRange.end) {
-        errors.push('Please select check-in and check-out dates')
-    } else if (dateRange.end <= dateRange.start) {
-        errors.push('Check-out date must be after check-in date')
-    } else if (nights < bookingConfig.minNights) {
-        errors.push(`Minimum ${bookingConfig.minNights} nights allowed`)
-    }
-
-    // Validate guests
-    if (!guests || guests < 1) {
-        errors.push('Please select number of guests (minimum 1)')
-    } else if (guests > bookingConfig.maxGuests) {
-        errors.push(`Maximum ${bookingConfig.maxGuests} guests allowed`)
-    } else if (nights > bookingConfig.maxNights) {
-        errors.push(`Maximum ${bookingConfig.maxNights} nights allowed`)
-    }
-
-    // TODO: Add more validations...
-
-    return {
-        isValid: errors.length === 0,
-        errors,
-    }
-}
-
-/**
  * Calculate the booking price breakdown
- * @param input - The booking input
- * @returns The booking price breakdown or null if invalid
+ * @param input - The booking input (assumed to be valid)
+ * @returns The booking price breakdown or null if data is incomplete
  */
 export function calculateBookingPrice(input: BookingInput): BookingPriceBreakdown | null {
-    const validated = validateBooking(input)
-    if (!validated.isValid) return null
+    const { dateRange, pricePerNight, discountPercentage = 0, guests } = input
 
-    const { dateRange, pricePerNight, discountPercentage = 0 } = input
+    // Return null if any required data is missing
+    if (!dateRange.start || !dateRange.end || !guests) return null
+
     const nights = calculateNights(dateRange)
     if (nights === 0) return null
 
@@ -97,9 +84,7 @@ export function calculateBookingPrice(input: BookingInput): BookingPriceBreakdow
 }
 
 /**
- * Format a price to a string with two decimal places
- * @param price - The price to format
- * @returns The formatted price
+ * Formatea un precio a string con dos decimales
  */
 export function formatPrice(price: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -109,9 +94,7 @@ export function formatPrice(price: number): string {
 }
 
 /**
- * Format a booking date to a string
- * @param date - The date to format
- * @returns The formatted date
+ * Formatea una fecha a string legible
  */
 export function formatBookingDate(date: Date | undefined): string {
     if (!date) return 'Not selected'

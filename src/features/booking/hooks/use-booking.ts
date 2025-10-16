@@ -1,9 +1,14 @@
-import React from 'react'
+import { useMemo } from 'react'
 
-import { calculateBookingPrice, formatBookingDate, formatPrice, validateBooking } from '../calculations'
-import { BookingInput, DateRange } from '../types'
+import {
+    type BookingInput,
+    type DateRange,
+    calculateBookingPrice,
+    formatBookingDate,
+    formatPrice,
+} from '../calculations'
 
-interface UseBookingProps {
+export interface UseBookingProps {
     range: DateRange
     guests: number | undefined
     pricePerNight: number
@@ -12,13 +17,15 @@ interface UseBookingProps {
 
 export interface UseBookingReturn {
     priceBreakdown: ReturnType<typeof calculateBookingPrice>
-    validation: ReturnType<typeof validateBooking>
     formattedCheckinDate: string
     formattedCheckoutDate: string
     formatPrice: typeof formatPrice
-    isReadyToBook: boolean
 }
 
+/**
+ * Hook simplificado para cálculos de booking
+ * La validación ahora la maneja TanStack Form + Zod
+ */
 export function useBooking({ range, guests, pricePerNight, discountPercentage }: UseBookingProps): UseBookingReturn {
     const input: BookingInput = {
         dateRange: range,
@@ -27,26 +34,20 @@ export function useBooking({ range, guests, pricePerNight, discountPercentage }:
         discountPercentage,
     }
 
-    // Reactive validation
-    const validation = React.useMemo(() => validateBooking(input), [range, guests])
-
-    // Reactive price breakdown
-    const priceBreakdown = React.useMemo(
+    // Solo cálculo de precio, sin validación
+    const priceBreakdown = useMemo(
         () => calculateBookingPrice(input),
-        [range, guests, pricePerNight, discountPercentage],
+        [range.start, range.end, guests, pricePerNight, discountPercentage],
     )
 
-    const formattedCheckinDate = React.useMemo(() => formatBookingDate(range.start), [range.start])
-    const formattedCheckoutDate = React.useMemo(() => formatBookingDate(range.end), [range.end])
+    const formattedCheckinDate = useMemo(() => formatBookingDate(range.start), [range.start])
 
-    const isReadyToBook = validation.isValid && priceBreakdown !== null
+    const formattedCheckoutDate = useMemo(() => formatBookingDate(range.end), [range.end])
 
     return {
         priceBreakdown,
-        validation,
         formattedCheckinDate,
         formattedCheckoutDate,
         formatPrice,
-        isReadyToBook,
     }
 }
