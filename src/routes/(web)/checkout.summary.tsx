@@ -9,8 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { APP_NAME } from '@/config/constants'
-import { calculateNights } from '@/features/booking/calculations'
-import { useBooking } from '@/features/booking/hooks/use-booking'
+import { calculateBookingPrice, calculateNights, formatBookingDate, formatPrice } from '@/features/booking/calculations'
 import { useCreateCheckoutSession } from '@/features/booking/mutations'
 import { cabinQueries } from '@/features/cabins/queries'
 
@@ -28,33 +27,38 @@ export const Route = createFileRoute('/(web)/checkout/summary')({
     validateSearch: checkoutSearchSchema,
     beforeLoad: async ({ context, search }) => {
         const cabin = await context.queryClient.ensureQueryData(cabinQueries.getById(search.cabinId))
-        return { cabin }
+
+        const checkInDate = new Date(search.checkIn)
+        const checkOutDate = new Date(search.checkOut)
+        const nights = calculateNights({ start: checkInDate, end: checkOutDate })
+
+        const priceBreakdown = calculateBookingPrice({
+            dateRange: { start: checkInDate, end: checkOutDate },
+            guests: search.guests,
+            pricePerNight: cabin.pricePerNight,
+            discountPercentage: cabin.discountPercentage ?? undefined,
+        })
+
+        // This should never happen if validation is correct
+        if (!priceBreakdown || nights === 0) {
+            throw new Error('Invalid booking data')
+        }
+
+        return { cabin, priceBreakdown, nights }
     },
     component: RouteComponent,
     errorComponent: (e) => <div>{e.error.message}</div>,
 })
 
 function RouteComponent() {
-    const { isAuthenticated, user, cabin } = Route.useRouteContext()
+    const { isAuthenticated, user, cabin, priceBreakdown, nights } = Route.useRouteContext()
     const { checkIn, checkOut, guests } = Route.useSearch()
     const createCheckoutSessionMutation = useCreateCheckoutSession()
     const navigate = useNavigate()
 
-    const { priceBreakdown, formatPrice, formattedCheckinDate, formattedCheckoutDate } = useBooking({
-        range: { start: new Date(checkIn), end: new Date(checkOut) },
-        guests,
-        pricePerNight: cabin.pricePerNight,
-    })
-    console.log('🚀 ~ RouteComponent ~ priceBreakdown:', priceBreakdown)
-    const nights = calculateNights({ start: new Date(checkIn), end: new Date(checkOut) })
-
-    if (!priceBreakdown || nights === 0) {
-        return <div>Invalid booking</div>
-    }
-
     const handleConfirmBooking = () => {
         if (!user?.id) {
-            navigate({ to: '/sign-in', search: { redirect: Route.path } })
+            navigate({ to: '/sign-in', search: { redirect: Route.fullPath } })
             return
         }
 
@@ -154,7 +158,7 @@ function RouteComponent() {
                                             <span>Check-in</span>
                                         </div>
                                         <Typography variant="body" className="text-muted-foreground pl-7">
-                                            {formattedCheckinDate}
+                                            {formatBookingDate(new Date(checkIn))}
                                         </Typography>
                                     </div>
                                     <div className="space-y-2">
@@ -163,7 +167,7 @@ function RouteComponent() {
                                             <span>Check-out</span>
                                         </div>
                                         <Typography variant="body" className="text-muted-foreground pl-7">
-                                            {formattedCheckoutDate}
+                                            {formatBookingDate(new Date(checkOut))}
                                         </Typography>
                                     </div>
                                 </div>
@@ -269,7 +273,9 @@ function RouteComponent() {
                                             <Button
                                                 className="w-full"
                                                 size="lg"
-                                                onClick={() => console.log('Navigate to login')}
+                                                onClick={() =>
+                                                    navigate({ to: '/sign-in', search: { redirect: Route.fullPath } })
+                                                }
                                             >
                                                 Log in to book
                                             </Button>
