@@ -1,5 +1,0 @@
-export * from './amenities'
-export * from './bookings'
-export * from './cabins'
-export * from './reviews'
-export * from './users'
