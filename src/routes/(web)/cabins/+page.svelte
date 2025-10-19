@@ -18,7 +18,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Spinner } from '$lib/components/ui/spinner';
 	import { APP_NAME } from '$lib/config/app';
-	import { CabinsSearchParamsSchema } from '$lib/schemas/cabins-search-params';
+	import { CabinsSearchParamsSchema } from '$lib/schemas/cabins-search-params.schemas';
 
 	const params = useSearchParams(CabinsSearchParamsSchema, {
 		debounce: 300,
