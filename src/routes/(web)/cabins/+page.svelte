@@ -47,7 +47,9 @@
 			<div>
 				{#each query.current as cabin (cabin.id)}
 					<div>
-						<h2>{cabin.name}</h2>
+						<a href={`/cabins/${cabin.slug}`}>
+							<h2>{cabin.name}</h2>
+						</a>
 						<p>{cabin.summary}</p>
 					</div>
 				{/each}

@@ -1,5 +1,13 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
+	import { page } from '$app/state';
+	import { getCabinBySlug } from '$lib/api/cabins.remote';
+	import { APP_NAME } from '$lib/config/constants';
 
-	let { data }: PageProps = $props();
+	const cabin = $derived(await getCabinBySlug(page.params.slug));
 </script>
+
+<svelte:head>
+	<title>{cabin.name} - {APP_NAME}</title>
+</svelte:head>
+
+{cabin.name}
