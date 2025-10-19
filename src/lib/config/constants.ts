@@ -8,6 +8,7 @@ export const CONTACT_EMAIL = 'hello@thewildoasis.com';
 export const CONTACT_PHONE = '+39 347 666 6666';
 
 export const DEFAULT_REDIRECT_AFTER_LOGIN = '/';
+export const LOGIN_PAGE_URL = '/sign-in';
 
 export const DEFAULT_STALE_TIME = 5000; // 5 seconds in milliseconds
 export const DEFAULT_DEBOUNCE_DELAY = 500;

@@ -3,6 +3,7 @@
 
 	import { page } from '$app/state';
 	import logo from '$lib/assets/logo-2.webp';
+	import SignOutButton from '$lib/components/auth/sign-out-button.svelte';
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '$lib/config/constants';
@@ -17,8 +18,6 @@
 		{ href: '/about', label: 'About' },
 		{ href: '/contact', label: 'Contact' }
 	];
-
-	const session = null; // TODO: Placeholder for future session handling
 </script>
 
 <div class="flex min-h-screen flex-col">
@@ -43,11 +42,12 @@
 				{/each}
 			</nav>
 
-			{#if session}
+			{#if data.session}
 				<div class="flex items-center gap-3">
 					<Button href="/guest" size="sm">Guest Area</Button>
 					<!-- TODO: Only admins can see the dashboard button -->
 					<Button href="/admin" size="sm" variant="outline">Dashboard</Button>
+					<SignOutButton withLabel />
 				</div>
 			{:else}
 				<div class="flex items-center gap-3">
