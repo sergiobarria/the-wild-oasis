@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 
-import { and, desc, eq, like, sql } from 'drizzle-orm';
+import { and, desc, eq, like, ne, sql } from 'drizzle-orm';
 import z from 'zod';
 
 import { query } from '$app/server';
@@ -26,10 +26,21 @@ export const getCabinBySlug = query(z.string().optional(), async (slug) => {
 	if (!slug) error(400, 'Slug is required');
 
 	const cabin = await db.query.cabins.findFirst({
-		where: eq(cabins.slug, slug)
+		where: eq(cabins.slug, slug),
+		with: { reviews: true }
 	});
 
 	if (!cabin) error(404, 'Cabin not found');
 
-	return cabin;
+	const amenities = await db.query.amenities.findMany({
+		limit: 10
+	});
+
+	const recommended = await db.query.cabins.findMany({
+		where: ne(cabins.slug, slug),
+		limit: 3,
+		orderBy: [desc(cabins.createdAt)]
+	});
+
+	return { cabin, amenities, recommended };
 });
