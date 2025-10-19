@@ -12,6 +12,7 @@
 	import { page } from '$app/state';
 	import { getCabinBySlug } from '$lib/api/cabins.remote';
 	import placeholder from '$lib/assets/placeholder.jpg';
+	import BookingCard from '$lib/components/bookings/booking-card.svelte';
 	import CabinCard from '$lib/components/cabins/cabin-card.svelte';
 	import ImageGallery from '$lib/components/cabins/image-gallery.svelte';
 	import Typography from '$lib/components/shared/typography.svelte';
@@ -176,7 +177,12 @@
 
 			<Separator />
 
-			<!-- Booking Card -->
+			<BookingCard
+				cabinId={cabin.id}
+				pricePerNight={cabin.pricePerNight}
+				maxGuests={cabin.maxGuests}
+				discountPercentage={cabin.discountPercentage}
+			/>
 		</div>
 	</div>
 </section>
