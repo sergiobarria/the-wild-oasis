@@ -2,7 +2,7 @@
 	import DashboardHeader from '$lib/components/dashboard/header.svelte';
 	import DashboardSidebar from '$lib/components/dashboard/sidebar.svelte';
 	import { SidebarProvider } from '$lib/components/ui/sidebar';
-	import { APP_NAME } from '$lib/config/constants';
+	import { APP_NAME } from '$lib/config/app';
 
 	import type { LayoutProps } from './$types';
 

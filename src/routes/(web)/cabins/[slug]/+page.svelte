@@ -18,7 +18,7 @@
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
-	import { APP_NAME } from '$lib/config/constants';
+	import { APP_NAME } from '$lib/config/app';
 	import type { Review } from '$lib/server/db/schemas/reviews';
 
 	const { cabin, amenities, recommended } = $derived(await getCabinBySlug(page.params.slug));

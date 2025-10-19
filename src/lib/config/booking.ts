@@ -19,3 +19,9 @@ export const bookingConfig = {
 	maxNights: Number(PUBLIC_BOOKING_MAX_NIGHTS),
 	minNights: Number(PUBLIC_BOOKING_MIN_NIGHTS)
 } as const;
+
+export const BOOKING_STATUS = {
+	CONFIRMED: 'confirmed',
+	CANCELLED: 'cancelled',
+	PENDING: 'pending'
+} as const;

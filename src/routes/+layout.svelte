@@ -6,7 +6,7 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Toaster } from '$lib/components/ui/sonner';
-	import { APP_CREATOR, APP_DESCRIPTION, APP_KEYWORDS, APP_NAME } from '$lib/config/constants';
+	import { APP_CREATOR, APP_DESCRIPTION, APP_KEYWORDS, APP_NAME } from '$lib/config/app';
 
 	import '../app.css';
 

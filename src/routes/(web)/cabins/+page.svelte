@@ -17,7 +17,7 @@
 	} from '$lib/components/ui/empty';
 	import { Input } from '$lib/components/ui/input';
 	import { Spinner } from '$lib/components/ui/spinner';
-	import { APP_NAME } from '$lib/config/constants';
+	import { APP_NAME } from '$lib/config/app';
 	import { CabinsSearchParamsSchema } from '$lib/schemas/cabins-search-params';
 
 	const params = useSearchParams(CabinsSearchParamsSchema, {

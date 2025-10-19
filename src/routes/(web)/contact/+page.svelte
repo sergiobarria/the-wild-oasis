@@ -2,7 +2,7 @@
 	import { MailIcon, MapPinIcon, PhoneIcon } from '@lucide/svelte';
 
 	import Typography from '$lib/components/shared/typography.svelte';
-	import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '$lib/config/constants';
+	import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '$lib/config/app';
 </script>
 
 <svelte:head>

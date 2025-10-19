@@ -3,7 +3,7 @@
 	import aboutTwo from '$lib/assets/about-2.webp';
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { APP_NAME } from '$lib/config/constants';
+	import { APP_NAME } from '$lib/config/app';
 </script>
 
 <svelte:head>

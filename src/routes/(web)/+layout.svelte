@@ -6,7 +6,7 @@
 	import SignOutButton from '$lib/components/auth/sign-out-button.svelte';
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '$lib/config/constants';
+	import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '$lib/config/app';
 	import { cn } from '$lib/utils';
 
 	import type { LayoutProps } from './$types';

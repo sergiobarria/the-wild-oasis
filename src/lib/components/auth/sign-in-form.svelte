@@ -16,7 +16,7 @@
 		InputGroupInput
 	} from '$lib/components/ui/input-group';
 	import { Spinner } from '$lib/components/ui/spinner';
-	import { DEFAULT_REDIRECT_AFTER_LOGIN } from '$lib/config/constants';
+	import { DEFAULT_REDIRECT_AFTER_LOGIN } from '$lib/config/app';
 	import { SignInSchema } from '$lib/schemas/auth.schemas';
 
 	import { Alert, AlertDescription, AlertTitle } from '../ui/alert';

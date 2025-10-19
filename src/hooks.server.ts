@@ -4,7 +4,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 import { building } from '$app/environment';
-import { LOGIN_PAGE_URL } from '$lib/config/constants';
+import { LOGIN_PAGE_URL } from '$lib/config/app';
 import { auth } from '$lib/server/auth';
 
 const PROTECTED_ROUTES = ['/admin', '/guest'] as const;
