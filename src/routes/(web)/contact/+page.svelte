@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { MailIcon, MapPinIcon, PhoneIcon } from '@lucide/svelte';
 
+	import ContactForm from '$lib/components/contact/contact-form.svelte';
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { APP_NAME, CONTACT_EMAIL, CONTACT_PHONE } from '$lib/config/app';
 </script>
@@ -20,7 +21,7 @@
 		</Typography>
 	</div>
 
-	<!-- Contact Form -->
+	<ContactForm />
 
 	<div class="mx-auto mt-24 grid grid-cols-1 gap-6 sm:grid-cols-3">
 		<div
