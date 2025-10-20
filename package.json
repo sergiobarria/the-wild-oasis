@@ -67,5 +67,8 @@
 		"vite": "^7.1.7",
 		"vite-plugin-devtools-json": "^1.0.0",
 		"zod": "^4.1.12"
+	},
+	"dependencies": {
+		"stripe": "^19.1.0"
 	}
 }

@@ -44,3 +44,15 @@ export const getCabinBySlug = query(z.string().optional(), async (slug) => {
 
 	return { cabin, amenities, recommended };
 });
+
+export const getCabinById = query(z.string(), async (id) => {
+	const cabin = await db.query.cabins.findFirst({
+		where: eq(cabins.id, id)
+	});
+
+	if (!cabin) {
+		error(404, 'Cabin not found');
+	}
+
+	return cabin;
+});

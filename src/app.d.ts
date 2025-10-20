@@ -4,7 +4,11 @@ import type { Session, User } from 'better-auth';
 // for information about these interfaces
 declare global {
 	namespace App {
-		// interface Error {}
+		interface Error {
+			message: string;
+			details?: string;
+			code?: string;
+		}
 		interface Locals {
 			session: Session | null;
 			user: User | null;
