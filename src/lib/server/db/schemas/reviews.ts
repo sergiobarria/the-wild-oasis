@@ -7,10 +7,10 @@ import { users } from './users';
 
 export const reviews = sqliteTable('reviews', {
 	...defaultColumns,
-	cabin_id: text('cabin_id')
+	cabinId: text('cabin_id')
 		.notNull()
 		.references(() => cabins.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
-	user_id: text('user_id')
+	userId: text('user_id')
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 	rating: integer('rating').notNull(),
@@ -20,11 +20,11 @@ export const reviews = sqliteTable('reviews', {
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({
 	cabin: one(cabins, {
-		fields: [reviews.cabin_id],
+		fields: [reviews.cabinId],
 		references: [cabins.id]
 	}),
 	user: one(users, {
-		fields: [reviews.user_id],
+		fields: [reviews.userId],
 		references: [users.id]
 	})
 }));
