@@ -5,14 +5,21 @@
 
 	import { signout } from '$lib/api/auth.remote';
 	import { Button } from '$lib/components/ui/button';
+	import { cn } from '$lib/utils';
 
 	interface SignOutButtonProps {
 		withLabel?: boolean;
-		variant?: 'ghost' | 'outline';
+		variant?: 'ghost' | 'outline' | 'destructive';
 		size?: 'sm' | 'lg';
+		class?: string;
 	}
 
-	let { withLabel = false, variant = 'ghost', size = 'sm' }: SignOutButtonProps = $props();
+	let {
+		withLabel = false,
+		variant = 'ghost',
+		size = 'sm',
+		class: className
+	}: SignOutButtonProps = $props();
 </script>
 
 <form
@@ -27,7 +34,13 @@
 		}
 	})}
 >
-	<Button {variant} {size} type="submit" disabled={!!signout.pending} class="cursor-pointer">
+	<Button
+		{variant}
+		{size}
+		type="submit"
+		disabled={!!signout.pending}
+		class={cn('cursor-pointer', className)}
+	>
 		<LogOutIcon />
 		{#if withLabel}
 			<span>Sign Out</span>

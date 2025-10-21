@@ -4,6 +4,7 @@
 	import Typography from '$lib/components/shared/typography.svelte';
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import { APP_NAME } from '$lib/config/app';
 
 	const { user } = await ensureAuthenticated();
 
@@ -89,6 +90,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Guest Area - {APP_NAME}</title>
+</svelte:head>
+
 <div class="container mx-auto max-w-6xl px-5 py-12 md:px-0">
 	<!-- Welcome Header -->
 	<div class="mb-8 flex items-start justify-between">
@@ -104,7 +109,7 @@
 			</div>
 		</div>
 
-		<SignOutButton variant="outline" withLabel size="lg" />
+		<SignOutButton variant="destructive" withLabel />
 	</div>
 
 	<!-- Tabs Navigation -->
