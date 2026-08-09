@@ -74,3 +74,10 @@ export function checkoutSuccessHref(reservationId: string): string {
     const query = new URLSearchParams({ reservationId });
     return `${APP_ROUTES.CHECKOUT_SUCCESS}?${query.toString()}`;
 }
+
+/** `/guest-area/bookings` with a reservation pre-selected -- opens straight into that
+ *  reservation's detail dialog (`BookingsScreen` reads the same `reservationId` param). */
+export function guestBookingHref(reservationId: string): string {
+    const query = new URLSearchParams({ reservationId });
+    return `${APP_ROUTES.GUEST_AREA_BOOKINGS}?${query.toString()}`;
+}

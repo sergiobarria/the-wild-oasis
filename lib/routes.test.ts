@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { cabinsSearchHref, checkoutSuccessHref, checkoutSummaryHref, signInHref } from './routes';
+import {
+    cabinsSearchHref,
+    checkoutSuccessHref,
+    checkoutSummaryHref,
+    guestBookingHref,
+    signInHref,
+} from './routes';
 
 describe('cabinsSearchHref', () => {
     it('builds a query string from all three params', () => {
@@ -43,6 +49,14 @@ describe('checkoutSuccessHref', () => {
     it('builds a query string with the reservation id', () => {
         expect(checkoutSuccessHref('reservation-1')).toBe(
             '/checkout/success?reservationId=reservation-1',
+        );
+    });
+});
+
+describe('guestBookingHref', () => {
+    it('builds a query string with the reservation id', () => {
+        expect(guestBookingHref('reservation-1')).toBe(
+            '/guest-area/bookings?reservationId=reservation-1',
         );
     });
 });
