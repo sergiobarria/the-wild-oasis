@@ -16,7 +16,8 @@
         "typecheck": "tsc --noEmit",
         "check": "prettier --check . && eslint",
         "test:e2e": "playwright test",
-        "auth:generate": "auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts"
+        "auth:generate": "auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts",
+        "email:dev": "email dev --dir emails --port 3001"
     },
     "dependencies": {
         "@base-ui/react": "^1.7.0",
@@ -32,6 +33,7 @@
         "nextjs-toploader": "^3.9.17",
         "react": "19.2.8",
         "react-dom": "19.2.8",
+        "react-email": "^6.9.2",
         "shadcn": "^4.16.2",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.6.0",
@@ -41,6 +43,7 @@
     "devDependencies": {
         "@edge-runtime/vm": "^5.0.0",
         "@playwright/test": "^1.62.1",
+        "@react-email/ui": "^6.9.2",
         "@tailwindcss/postcss": "^4",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^7.0.0",

@@ -18,21 +18,22 @@ regardless of framework. Where the two disagree, §13 below records which one wi
 
 ## 1. Stack
 
-| Layer          | Choice                                                     |
-| -------------- | ---------------------------------------------------------- |
-| Runtime / PM   | Bun `1.3.14` (pinned via `packageManager`)                 |
-| Framework      | Next.js `16.3.0`, App Router, Turbopack, React `19.2.8`    |
-| Compiler       | React Compiler (`reactCompiler: true`)                     |
-| Backend        | Convex `^1.43.0`                                           |
-| Auth           | Better Auth `1.6.15` + `@convex-dev/better-auth` `^0.12.5` |
-| Styling        | Tailwind CSS v4 (PostCSS plugin, no `tailwind.config`)     |
-| Components     | shadcn CLI (`base-nova` style) over `@base-ui/react`       |
-| Icons          | `lucide-react`                                             |
-| Route progress | `nextjs-toploader` `^3.9.17`                               |
-| Env validation | `@t3-oss/env-nextjs` + Zod v4                              |
-| Unit tests     | Vitest `^4` (two projects: `convex` + `frontend`)          |
-| E2E            | Playwright (Chromium only)                                 |
-| Format / Lint  | Prettier (4-space, single quotes) + ESLint flat config     |
+| Layer           | Choice                                                     |
+| --------------- | ---------------------------------------------------------- |
+| Runtime / PM    | Bun `1.3.14` (pinned via `packageManager`)                 |
+| Framework       | Next.js `16.3.0`, App Router, Turbopack, React `19.2.8`    |
+| Compiler        | React Compiler (`reactCompiler: true`)                     |
+| Backend         | Convex `^1.43.0`                                           |
+| Auth            | Better Auth `1.6.15` + `@convex-dev/better-auth` `^0.12.5` |
+| Styling         | Tailwind CSS v4 (PostCSS plugin, no `tailwind.config`)     |
+| Components      | shadcn CLI (`base-nova` style) over `@base-ui/react`       |
+| Icons           | `lucide-react`                                             |
+| Route progress  | `nextjs-toploader` `^3.9.17`                               |
+| Email templates | React Email `^6.9.2` (own Tailwind engine, see §14)        |
+| Env validation  | `@t3-oss/env-nextjs` + Zod v4                              |
+| Unit tests      | Vitest `^4` (two projects: `convex` + `frontend`)          |
+| E2E             | Playwright (Chromium only)                                 |
+| Format / Lint   | Prettier (4-space, single quotes) + ESLint flat config     |
 
 ### Version pins that matter
 
@@ -62,6 +63,10 @@ bun add better-auth@1.6.15 @convex-dev/better-auth
 bun add @t3-oss/env-nextjs zod @base-ui/react class-variance-authority clsx \
         tailwind-merge tw-animate-css lucide-react nextjs-toploader
 bunx shadcn@latest init          # style: base-nova, baseColor: neutral, rsc: true
+
+# Email templates — see §14
+bun add react-email
+bun add -d @react-email/ui
 
 # Tooling
 bun add -d prettier eslint-config-prettier @trivago/prettier-plugin-sort-imports \
@@ -669,15 +674,16 @@ projects: [
 ```
 
 `@` is aliased to the repo root in `resolve.alias` — Vitest does not read `tsconfig.paths`.
-Coverage is v8, reporting `text` + `lcov` over `app|components|lib|convex`, excluding
-`_generated`, test files, and configs.
+Coverage is v8, reporting `text` + `lcov` over `app|components|emails|features|hooks|lib|convex`,
+excluding `_generated`, test files, and configs.
 
 `vitest.setup.ts` (frontend project only) loads `@testing-library/jest-dom/vitest` and
 runs `cleanup()` after each test.
 
-The frontend `include` glob is `{app,components,features,lib}` and coverage `include`
-lists the same four. **A new top-level source directory must be added to both** — a slice
-outside the glob has tests that silently never run, which looks identical to passing.
+The frontend `include` glob is `{app,components,emails,features,hooks,lib}` and coverage
+`include` lists the same directories. **A new top-level source directory must be added to
+both** — a slice outside the glob has tests that silently never run, which looks identical
+to passing.
 
 ### Coverage thresholds
 
@@ -835,6 +841,7 @@ convex/         backend; betterAuth/ is a local component
 data/           static seed / fixture data
 docs/           NN_TITLE.md, numbered in reading order
 e2e/            Playwright specs
+emails/         React Email templates + preview tooling (see §14)
 lib/            env, utils, auth client/server
 public/         static assets
 .github/        CI
@@ -977,10 +984,122 @@ is a decision):
   domain rule worth testing without a database.
 - **Work-tracking identifiers** (§21) — `BUG-###`/`FEAT-###`, branch naming, and
   conventional commits are not yet in use in this repo's history.
+- **Actually sending an email** — §14 below sets up the template/preview tooling only.
+  Rendering a template and sending it is a Convex `"use node"` action, likely through the
+  Resend component; `convex/convex.config.ts` already carries a commented `RESEND_API_KEY`
+  breadcrumb for whenever the first email-sending feature (e.g. WO-012's password reset)
+  lands.
 
 ---
 
-## 14. New-project checklist
+## 14. Email templates (React Email)
+
+Templates are authored with [React Email](https://react.email) — JSX components rendered
+to email-safe HTML, styled with Tailwind through React Email's own `<Tailwind>` component
+(its own limited, inline-style engine — not the app's Tailwind v4 PostCSS pipeline, and not
+configured the same way).
+
+```bash
+bun add react-email
+bun add -d @react-email/ui   # the local preview server's UI; installed on first `email dev`
+                              # run otherwise, but that prompt is interactive and hangs in CI
+```
+
+As of `react-email@6`, one package (`react-email`) bundles what used to be
+`@react-email/components`, `@react-email/render`, and `@react-email/tailwind` — components,
+`render()`, `Tailwind`, and `pixelBasedPreset` all import from `react-email` directly. It is
+a runtime `dependency`, not a `devDependency`: templates and `render()` are called from
+server code (a Convex action) to actually send mail, not just from the CLI.
+
+### File map
+
+```
+emails/
+  tailwind-config.ts          shared <Tailwind> config — see below
+  components/
+    email-layout.tsx          Html/Head/Body/Container wrapper, every template uses it
+    email-button.tsx          CTA button styled per the house contrast rule
+  <name>-email.tsx            one template per file, default export + named export
+  <name>-email.test.tsx       colocated, asserts on render() output — see Testing below
+```
+
+Templates live in `emails/` at the repo root, not under `features/` — they are cross-cutting
+(auth, booking, admin notifications all send mail) and the `react-email` CLI's default
+`--dir` is `./emails`, so fighting that convention buys nothing.
+
+### `emails/tailwind-config.ts` — static hex, not the app's oklch tokens
+
+```ts
+import { pixelBasedPreset } from 'react-email';
+
+export const emailTailwindConfig = {
+    presets: [pixelBasedPreset], // email clients don't support rem — always include this
+    theme: {
+        extend: {
+            colors: {
+                background: '#F5F5F5',
+                card: '#FFFFFF',
+                foreground: '#0A0A0A',
+                'muted-foreground': '#737373',
+                border: '#E5E5E5',
+                primary: '#CDA451',
+                'primary-foreground': '#0A0A0A',
+            },
+        },
+    },
+};
+```
+
+Email clients can't reliably read CSS custom properties or `oklch()`, so the app's
+`app/globals.css` tokens (§6) can't be imported directly — this config hardcodes their sRGB
+hex equivalents by hand. There is no build step that derives one palette from the other; if
+a brand color in `app/globals.css` changes, update this file too.
+
+The color names deliberately match the app's token names (`background`, `foreground`,
+`border`, `primary`, …). `prettier-plugin-tailwindcss` already knows these class names from
+`app/globals.css` (`tailwindStylesheet` in `.prettierrc.json`), so `className` lists inside
+`emails/` sort correctly with no extra Prettier config.
+
+Buttons follow the same contrast rule the app's `button.tsx` and `/brand` document (§6): the
+gold primary pairs with near-black label text, never white — white-on-gold measures ~2.2:1,
+near-black measures ~8.5:1. `emails/components/email-button.tsx` bakes this in so no template
+can regress it by hand-rolling a `<Button>`.
+
+### Preview server
+
+```json
+{ "scripts": { "email:dev": "email dev --dir emails --port 3001" } }
+```
+
+Port `3001`, not the CLI's default `3000` — `next dev` already owns `3000`. `bun run
+email:dev` opens a local preview app with hot reload; each template's `<ComponentName>.PreviewProps`
+supplies the sample data it renders with (see any `emails/*.tsx` for the pattern).
+
+### Testing
+
+Colocated `*.test.tsx`, in the `frontend` Vitest project (§7) — `emails` was added to both
+that project's `include` glob and the coverage `include` list, the same way `features/` was
+pre-wired ahead of its first slice. **Do not** mount templates with `@testing-library/react`
+— React Email components render real `<html>`/`<head>`/`<body>` tags, which a DOM-mounting
+`render()` call rejects (jsdom already has a document to mount into). Use `react-email`'s own
+`render()` instead, and assert on the returned HTML/plain-text string:
+
+```ts
+import { render } from 'react-email';
+
+const html = await render(<ResetPasswordEmail name='Jordan' resetUrl='...' />);
+const text = await render(<ResetPasswordEmail name='Jordan' resetUrl='...' />, { plainText: true });
+```
+
+### What this does not include
+
+This section covers authoring and previewing templates only. Actually sending one — from a
+Convex action, most likely through the Resend component — is deliberately not wired up yet;
+see §13's "Not yet applied" for why and what the next step looks like.
+
+---
+
+## 15. New-project checklist
 
 **Setup**
 
@@ -990,12 +1109,14 @@ is a decision):
 - [ ] `bun run auth:generate` then `bunx convex dev --once` (component installs)
 - [ ] `bunx convex ai-files install` (Convex guidelines + skills)
 - [ ] `bunx playwright install --with-deps chromium`
+- [ ] `bun add react-email && bun add -d @react-email/ui` (§14)
 
 **Verify**
 
 - [ ] `curl $NEXT_PUBLIC_CONVEX_SITE_URL/api/auth/ok` → `{"ok":true}`
 - [ ] `curl localhost:3000/api/auth/ok` → `{"ok":true}` (Next proxy)
 - [ ] A real `sign-up/email` POST returns a token; probe user deleted afterwards
+- [ ] `bun run email:dev` serves a template's preview at `localhost:3001` with sample data
 - [ ] `bun run check && bun run typecheck && bun run test && bun run build`
 - [ ] `bun run test:e2e` passes against the production build
 
