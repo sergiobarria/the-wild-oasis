@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 import { amenityCategoryValidator } from './lib/amenities';
+import { messageStatusValidator } from './lib/messages';
 import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
 
 export default defineSchema({
@@ -99,4 +100,18 @@ export default defineSchema({
          *  seed-created row that's never been touched by an admin. */
         updatedBy: v.optional(v.string()),
     }).index('by_key', ['key']),
+
+    messages: defineTable({
+        name: v.string(),
+        email: v.string(),
+        phone: v.optional(v.string()),
+        subject: v.string(),
+        message: v.string(),
+        status: messageStatusValidator,
+        createdAt: v.number(),
+    })
+        // Future admin inbox (Phase 8) -- not read yet.
+        .index('by_status', ['status'])
+        // Rate-limit lookup: most recent submission from this email.
+        .index('by_email', ['email']),
 });
