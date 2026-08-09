@@ -21,7 +21,9 @@ import type * as model_amenities from "../model/amenities.js";
 import type * as model_auth from "../model/auth.js";
 import type * as model_cabins from "../model/cabins.js";
 import type * as model_featureFlags from "../model/featureFlags.js";
+import type * as model_reservations from "../model/reservations.js";
 import type * as model_reviews from "../model/reviews.js";
+import type * as reservations from "../reservations.js";
 import type * as reviews from "../reviews.js";
 import type * as testHelpers from "../testHelpers.js";
 
@@ -45,7 +47,9 @@ declare const fullApi: ApiFromModules<{
   "model/auth": typeof model_auth;
   "model/cabins": typeof model_cabins;
   "model/featureFlags": typeof model_featureFlags;
+  "model/reservations": typeof model_reservations;
   "model/reviews": typeof model_reviews;
+  reservations: typeof reservations;
   reviews: typeof reviews;
   testHelpers: typeof testHelpers;
 }>;
