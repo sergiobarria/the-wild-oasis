@@ -42,6 +42,13 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
                     defaultValue: 'guest',
                     input: false,
                 },
+                // Spec §46's profile fields. `input: true` (unlike `role`) since the guest
+                // edits this themselves via the profile screen.
+                phone: {
+                    type: 'string',
+                    required: false,
+                    input: true,
+                },
             },
         },
         plugins: [convex({ authConfig })],

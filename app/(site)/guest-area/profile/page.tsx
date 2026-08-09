@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { ProfileForm } from '@/features/guest-area/components/profile-form';
 import { pageTitle } from '@/lib/site-config';
 
 export const metadata: Metadata = {
@@ -8,9 +9,9 @@ export const metadata: Metadata = {
 
 export default function GuestAreaProfilePage() {
     return (
-        <div className='flex flex-col gap-2'>
-            <h1 className='text-2xl font-semibold'>Profile</h1>
-            <p className='text-muted-foreground'>Coming soon.</p>
+        <div className='space-y-6'>
+            <h1 className='font-heading text-2xl font-medium'>Profile</h1>
+            <ProfileForm />
         </div>
     );
 }

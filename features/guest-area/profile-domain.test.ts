@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { joinName, splitName } from './profile-domain';
+import { joinName, profileFormSchema, splitName } from './profile-domain';
 
 describe('splitName', () => {
     it('splits a two-word name into first and last', () => {
@@ -43,5 +43,25 @@ describe('joinName', () => {
     it('round-trips through splitName for a simple two-word name', () => {
         const { firstName, lastName } = splitName('Jamie Alder');
         expect(joinName(firstName, lastName)).toBe('Jamie Alder');
+    });
+});
+
+describe('profileFormSchema', () => {
+    const VALID = { firstName: 'Jamie', lastName: 'Alder', phone: '555-0100' };
+
+    it('accepts a valid submission', () => {
+        expect(profileFormSchema.safeParse(VALID).success).toBe(true);
+    });
+
+    it('accepts an empty phone -- that is what "no phone" looks like in this form', () => {
+        expect(profileFormSchema.safeParse({ ...VALID, phone: '' }).success).toBe(true);
+    });
+
+    it('rejects a blank first name', () => {
+        expect(profileFormSchema.safeParse({ ...VALID, firstName: '  ' }).success).toBe(false);
+    });
+
+    it('rejects a blank last name', () => {
+        expect(profileFormSchema.safeParse({ ...VALID, lastName: '  ' }).success).toBe(false);
     });
 });

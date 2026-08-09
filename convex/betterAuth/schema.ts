@@ -21,6 +21,7 @@ export const tables = {
         updatedAt: v.number(),
         userId: v.optional(v.union(v.null(), v.string())),
         role: v.optional(v.union(v.null(), v.string())),
+        phone: v.optional(v.union(v.null(), v.string())),
     })
         .index('email_name', ['email', 'name'])
         .index('name', ['name'])
