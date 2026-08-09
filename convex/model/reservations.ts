@@ -146,3 +146,33 @@ export async function createDemoReservation(
 
     return { reservationId };
 }
+
+/**
+ * A guest's own reservation, for the checkout success page (spec §38) and later the guest
+ * dashboard (Phase 6). Authorization is ownership, not just "signed in": `null` for a
+ * reservation that exists but belongs to someone else, same as "doesn't exist" -- the caller
+ * can't distinguish the two, so this never leaks another guest's booking.
+ */
+export async function getOwnReservation(
+    ctx: QueryCtx,
+    args: { reservationId: Id<'reservations'> },
+) {
+    const user = await requireUser(ctx);
+    const reservation = await ctx.db.get(args.reservationId);
+
+    if (!reservation || reservation.guestId !== user._id) return null;
+
+    const cabin = await ctx.db.get(reservation.cabinId);
+
+    return {
+        _id: reservation._id,
+        cabinName: cabin?.name ?? 'Unknown cabin',
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        guests: reservation.guests,
+        status: reservation.status,
+        paymentStatus: reservation.paymentStatus,
+        pricing: reservation.pricing,
+        createdAt: reservation.createdAt,
+    };
+}

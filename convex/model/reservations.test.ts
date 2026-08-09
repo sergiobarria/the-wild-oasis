@@ -6,7 +6,7 @@ import type { Id } from '../_generated/dataModel';
 import authComponentSchema from '../betterAuth/schema';
 import { RESERVATION_STATUS } from '../lib/reservations';
 import schema from '../schema';
-import { checkAvailability, createDemoReservation } from './reservations';
+import { checkAvailability, createDemoReservation, getOwnReservation } from './reservations';
 
 const modules = import.meta.glob('../**/*.ts');
 const authComponentModules = import.meta.glob('../betterAuth/**/*.ts');
@@ -364,5 +364,96 @@ describe('createDemoReservation', () => {
             pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
         });
         expect(reservation!.guestId).toBe(identity.subject);
+    });
+});
+
+describe('getOwnReservation', () => {
+    async function seedGuest(t: ReturnType<typeof setupTest>, email = 'guest@example.com') {
+        return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+            email,
+            password: 'password123',
+            name: 'Guest User',
+        });
+    }
+
+    test('throws for an unauthenticated caller', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
+
+        await expect(
+            t.run((ctx) => getOwnReservation(ctx, { reservationId: 'not-real' as never })),
+        ).rejects.toThrow();
+    });
+
+    test('returns null for an unknown reservation id', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+        await t.run((ctx) => ctx.db.delete(reservationId));
+
+        const result = await t
+            .withIdentity(identity)
+            .run((ctx) => getOwnReservation(ctx, { reservationId }));
+
+        expect(result).toBeNull();
+    });
+
+    test("returns null for another guest's reservation", async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const owner = await seedGuest(t, 'owner@example.com');
+        const other = await seedGuest(t, 'other@example.com');
+        const { reservationId } = await t.withIdentity(owner).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const result = await t
+            .withIdentity(other)
+            .run((ctx) => getOwnReservation(ctx, { reservationId }));
+
+        expect(result).toBeNull();
+    });
+
+    test('returns the reservation with the cabin name for its owner', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const result = await t
+            .withIdentity(identity)
+            .run((ctx) => getOwnReservation(ctx, { reservationId }));
+
+        expect(result).toMatchObject({
+            _id: reservationId,
+            cabinName: 'Pine Ridge Cabin',
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            guests: 2,
+            status: 'confirmed',
+            paymentStatus: 'not_required',
+            pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
+        });
     });
 });

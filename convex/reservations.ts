@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import { AVAILABILITY_VIOLATION_CODES } from '../features/availability/availability-domain';
 import { mutation, query } from './_generated/server';
+import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
 import * as Reservations from './model/reservations';
 
 const availabilityViolationValidator = v.object({
@@ -34,4 +35,27 @@ export const createDemoReservation = mutation({
     },
     returns: v.object({ reservationId: v.id('reservations') }),
     handler: async (ctx, args) => await Reservations.createDemoReservation(ctx, args),
+});
+
+const ownReservationValidator = v.object({
+    _id: v.id('reservations'),
+    cabinName: v.string(),
+    checkIn: v.string(),
+    checkOut: v.string(),
+    guests: v.number(),
+    status: reservationStatusValidator,
+    paymentStatus: paymentStatusValidator,
+    pricing: v.object({
+        nightlySubtotal: v.number(),
+        cleaningFee: v.number(),
+        taxes: v.number(),
+        total: v.number(),
+    }),
+    createdAt: v.number(),
+});
+
+export const getOwnReservation = query({
+    args: { reservationId: v.id('reservations') },
+    returns: v.union(ownReservationValidator, v.null()),
+    handler: async (ctx, args) => await Reservations.getOwnReservation(ctx, args),
 });
