@@ -1,4 +1,4 @@
-import { AMENITY_ICON_MAP } from '@/features/brand/amenity-icon-map';
+import { AMENITY_ICON_MAP } from '@/lib/amenity-icons';
 
 export function IconsSection() {
     const entries = Object.entries(AMENITY_ICON_MAP);
@@ -11,7 +11,7 @@ export function IconsSection() {
                     Lucide throughout (spec §6). Amenities map by name to a specific icon --{' '}
                     {entries.length} of 31 configured amenities have a strong match; the rest fall
                     back to plain text rather than force a weak icon (see{' '}
-                    <code className='font-mono text-xs'>features/brand/amenity-icon-map.ts</code>).
+                    <code className='font-mono text-xs'>lib/amenity-icons.ts</code>).
                 </p>
             </div>
             <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>

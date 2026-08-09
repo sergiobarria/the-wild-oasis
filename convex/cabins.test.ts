@@ -19,11 +19,13 @@ function cabinInput(overrides: {
     galleryImages?: Id<'_storage'>[];
     amenityNames?: string[];
     published?: boolean;
+    featured?: boolean;
+    name?: string;
 }) {
     const now = 1700000000000;
 
     return {
-        name: 'Pine Ridge Cabin',
+        name: overrides.name ?? 'Pine Ridge Cabin',
         slug: overrides.slug ?? 'pine-ridge-cabin',
         shortDescription: 'A quiet cabin in the woods.',
         description: 'A longer description of a quiet cabin in the woods.',
@@ -38,6 +40,7 @@ function cabinInput(overrides: {
         galleryImages: overrides.galleryImages ?? [overrides.coverImage],
         amenityNames: overrides.amenityNames ?? ['WiFi'],
         published: overrides.published ?? true,
+        featured: overrides.featured ?? false,
         createdAt: now,
         updatedAt: now,
     };
@@ -71,6 +74,7 @@ describe('getBySlug', () => {
                 galleryImages: [coverImage],
                 amenities: [],
                 published: false,
+                featured: false,
                 createdAt: 1700000000000,
                 updatedAt: 1700000000000,
             }),
@@ -126,6 +130,50 @@ describe('listPublished', () => {
 
         expect(result.page.map((c) => c.slug)).toEqual(['published-cabin']);
     });
+
+    test('narrows to featured cabins when featuredOnly is set', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({ slug: 'featured-cabin', coverImage, featured: true }),
+                cabinInput({ slug: 'regular-cabin', coverImage, featured: false }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listPublished, {
+            paginationOpts: { numItems: 10, cursor: null },
+            featuredOnly: true,
+        });
+
+        expect(result.page.map((c) => c.slug)).toEqual(['featured-cabin']);
+    });
+});
+
+describe('getStorageIdsBySlug', () => {
+    test('returns null for an unknown slug', async () => {
+        const t = convexTest(schema, modules);
+
+        expect(
+            await t.query(internal.cabins.getStorageIdsBySlug, { slug: 'does-not-exist' }),
+        ).toBeNull();
+    });
+
+    test('returns the stored image ids for a known slug', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [cabinInput({ slug: 'imaged-cabin', coverImage })],
+        });
+
+        expect(
+            await t.query(internal.cabins.getStorageIdsBySlug, { slug: 'imaged-cabin' }),
+        ).toEqual({ coverImage, galleryImages: [coverImage] });
+    });
 });
 
 describe('generateUploadUrl', () => {
@@ -155,6 +203,45 @@ describe('seedCabins', () => {
             paginationOpts: { numItems: 10, cursor: null },
         });
         expect(result.page.filter((c) => c.slug === 'repeat-cabin')).toHaveLength(1);
+    });
+
+    test('upserts by slug -- a re-run updates fields but keeps the original images', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const originalImage = await seedImage(t);
+        const unusedImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({
+                    slug: 'synced-cabin',
+                    coverImage: originalImage,
+                    featured: false,
+                }),
+            ],
+        });
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({
+                    slug: 'synced-cabin',
+                    coverImage: unusedImage,
+                    featured: true,
+                    name: 'Renamed Cabin',
+                }),
+            ],
+        });
+
+        const cabin = await t.run((ctx) =>
+            ctx.db
+                .query('cabins')
+                .withIndex('by_slug', (q) => q.eq('slug', 'synced-cabin'))
+                .unique(),
+        );
+        expect(cabin).toMatchObject({
+            name: 'Renamed Cabin',
+            featured: true,
+            coverImage: originalImage,
+        });
     });
 
     test('throws when an amenity name has not been seeded yet', async () => {

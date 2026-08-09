@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from '@tanstack/react-form';
 
 import { Button } from '@/components/ui/button';
+import { focusFirstInvalidField } from '@/lib/focus-first-invalid-field';
 import { APP_ROUTES } from '@/lib/routes';
 import { SITE_CONFIG } from '@/lib/site-config';
 import { isAdmin } from '@/lib/user-roles';
@@ -16,7 +17,6 @@ import { isAdmin } from '@/lib/user-roles';
 import { signInWithEmail } from './auth-api';
 import { sanitizeRedirectPath, signInDefaultValues, signInSchema } from './auth-domain';
 import { AuthFormField } from './components/auth-form-field';
-import { focusFirstInvalidField } from './focus-first-invalid-field';
 
 const FIELD_ORDER = ['email', 'password'] as const;
 

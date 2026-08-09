@@ -176,13 +176,13 @@ against real display requirements, rather than guessing the shape back in Phase 
       field names forward.
       _Depends on: nothing (parallel to Phases 1–3)._
 
-- [ ] **WO-019 (4.2) — Home page hero + marketing sections** — hero copy/CTA, "Escape the
+- [x] **WO-019 (4.2) — Home page hero + marketing sections** — hero copy/CTA, "Escape the
       noise", "Built for slowing down", featured amenities, final CTA. Spec §22, §25.
 
-- [ ] **WO-020 (4.3) — Home availability search widget** — check-in/check-out/guests →
+- [x] **WO-020 (4.3) — Home availability search widget** — check-in/check-out/guests →
       redirects to `/cabins?checkIn=...&checkOut=...&guests=...`. Spec §23.
 
-- [ ] **WO-021 (4.4) — Featured cabins section** on home. Spec §24.
+- [x] **WO-021 (4.4) — Featured cabins section** on home. Spec §24.
 
 - [ ] **WO-022 (4.5) — `/cabins` listing** — cards (cover image, name, location,
       capacity, beds/bedrooms, nightly price, description, amenities, view details),

@@ -1,8 +1,10 @@
+import type { Metadata } from 'next';
+
+import { HomeScreen } from '@/features/home/home-screen';
+import { pageTitle } from '@/lib/site-config';
+
+export const metadata: Metadata = { title: pageTitle() };
+
 export default function Home() {
-    return (
-        <div className='flex flex-1 flex-col items-center justify-center gap-2 p-8'>
-            <h1 className='text-2xl font-semibold'>The Wild Oasis</h1>
-            <p className='text-muted-foreground'>Scaffold is up and running.</p>
-        </div>
-    );
+    return <HomeScreen />;
 }

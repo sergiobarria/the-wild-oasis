@@ -32,9 +32,11 @@ export default defineSchema({
         galleryImages: v.array(v.id('_storage')),
         amenities: v.array(v.id('amenities')),
         published: v.boolean(),
+        /** Admin-curated pick for the home page's Featured Cabins section (spec §24). */
+        featured: v.boolean(),
         createdAt: v.number(),
         updatedAt: v.number(),
     })
         .index('by_slug', ['slug'])
-        .index('by_published', ['published']),
+        .index('by_published_and_featured', ['published', 'featured']),
 });

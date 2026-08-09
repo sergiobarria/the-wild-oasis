@@ -1,7 +1,7 @@
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
 
-import { internalMutation, query } from './_generated/server';
+import { internalMutation, internalQuery, query } from './_generated/server';
 import { amenityCategoryValidator } from './lib/amenities';
 import { assertIntegerCents } from './lib/money';
 
@@ -26,15 +26,24 @@ const cabinCardValidator = v.object({
 
 /**
  * Cover-image cards for spec §26/§27's listing page. Signed URLs only -- the
- * raw `_storage` id never leaves this query.
+ * raw `_storage` id never leaves this query. `featuredOnly` narrows to the
+ * admin-curated set for the home page's Featured Cabins section (spec §24) --
+ * omit it for the full `/cabins` listing.
  */
 export const listPublished = query({
-    args: { paginationOpts: paginationOptsValidator },
+    args: { paginationOpts: paginationOptsValidator, featuredOnly: v.optional(v.boolean()) },
     returns: paginationResultValidator(cabinCardValidator),
     handler: async (ctx, args) => {
+        // A post-index `.filter()` doesn't reduce rows read, so it can't scale --
+        // `by_published_and_featured` lets `featuredOnly` narrow via the index
+        // itself instead (a query may supply any prefix of a compound index).
         const result = await ctx.db
             .query('cabins')
-            .withIndex('by_published', (q) => q.eq('published', true))
+            .withIndex('by_published_and_featured', (q) =>
+                args.featuredOnly
+                    ? q.eq('published', true).eq('featured', true)
+                    : q.eq('published', true),
+            )
             .paginate(args.paginationOpts);
 
         const page = await Promise.all(
@@ -158,6 +167,30 @@ export const generateUploadUrl = internalMutation({
     },
 });
 
+/**
+ * Dev/seed-only, same reasoning as `generateUploadUrl` above. Lets
+ * `scripts/seed-cabins.ts` re-run against an already-seeded cabin (e.g. to
+ * update `featured`) without re-uploading its images or exposing the raw
+ * `_storage` id through any public query.
+ */
+export const getStorageIdsBySlug = internalQuery({
+    args: { slug: v.string() },
+    returns: v.union(
+        v.object({ coverImage: v.id('_storage'), galleryImages: v.array(v.id('_storage')) }),
+        v.null(),
+    ),
+    handler: async (ctx, args) => {
+        const cabin = await ctx.db
+            .query('cabins')
+            .withIndex('by_slug', (q) => q.eq('slug', args.slug))
+            .unique();
+
+        if (!cabin) return null;
+
+        return { coverImage: cabin.coverImage, galleryImages: cabin.galleryImages };
+    },
+});
+
 const seedCabinValidator = v.object({
     name: v.string(),
     slug: v.string(),
@@ -175,11 +208,18 @@ const seedCabinValidator = v.object({
     /** Names, not ids -- resolved against the amenities table below. */
     amenityNames: v.array(v.string()),
     published: v.boolean(),
+    featured: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
 });
 
-/** Idempotent by slug. Requires `seedAmenities` to have already run. */
+/**
+ * Upsert by slug (convex-seed skill: "make seeding idempotent" via
+ * clear-then-insert or upsert). An existing cabin's `coverImage` and
+ * `galleryImages` are always kept as-is -- the input's image fields matter
+ * only for a brand-new cabin -- so every other field, including `featured`,
+ * stays in sync on a re-run.
+ */
 export const seedCabins = internalMutation({
     args: { cabins: v.array(seedCabinValidator) },
     returns: v.array(v.id('cabins')),
@@ -194,11 +234,6 @@ export const seedCabins = internalMutation({
                 .query('cabins')
                 .withIndex('by_slug', (q) => q.eq('slug', input.slug))
                 .unique();
-
-            if (existing) {
-                ids.push(existing._id);
-                continue;
-            }
 
             const amenityIds = await Promise.all(
                 input.amenityNames.map(async (name) => {
@@ -217,25 +252,36 @@ export const seedCabins = internalMutation({
                 }),
             );
 
+            const fields = {
+                name: input.name,
+                slug: input.slug,
+                shortDescription: input.shortDescription,
+                description: input.description,
+                location: input.location,
+                nightlyRate: input.nightlyRate,
+                cleaningFee: input.cleaningFee,
+                maxGuests: input.maxGuests,
+                bedrooms: input.bedrooms,
+                beds: input.beds,
+                bathrooms: input.bathrooms,
+                published: input.published,
+                featured: input.featured,
+                createdAt: input.createdAt,
+                updatedAt: input.updatedAt,
+                amenities: amenityIds,
+            };
+
+            if (existing) {
+                await ctx.db.patch(existing._id, fields);
+                ids.push(existing._id);
+                continue;
+            }
+
             ids.push(
                 await ctx.db.insert('cabins', {
-                    name: input.name,
-                    slug: input.slug,
-                    shortDescription: input.shortDescription,
-                    description: input.description,
-                    location: input.location,
-                    nightlyRate: input.nightlyRate,
-                    cleaningFee: input.cleaningFee,
-                    maxGuests: input.maxGuests,
-                    bedrooms: input.bedrooms,
-                    beds: input.beds,
-                    bathrooms: input.bathrooms,
+                    ...fields,
                     coverImage: input.coverImage,
                     galleryImages: input.galleryImages,
-                    published: input.published,
-                    createdAt: input.createdAt,
-                    updatedAt: input.updatedAt,
-                    amenities: amenityIds,
                 }),
             );
         }

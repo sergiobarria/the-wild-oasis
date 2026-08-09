@@ -32,3 +32,19 @@ export const APP_ROUTES = {
     /** Internal design-system reference -- never linked from public nav. */
     BRAND: '/brand',
 } as const;
+
+/** `/cabins` with the home page's availability search redirected in as query params. */
+export function cabinsSearchHref(params: {
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+}): string {
+    const query = new URLSearchParams();
+
+    if (params.checkIn) query.set('checkIn', params.checkIn);
+    if (params.checkOut) query.set('checkOut', params.checkOut);
+    if (params.guests) query.set('guests', params.guests);
+
+    const qs = query.toString();
+    return qs ? `${APP_ROUTES.CABINS}?${qs}` : APP_ROUTES.CABINS;
+}

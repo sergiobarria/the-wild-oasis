@@ -26,7 +26,7 @@ export const list = query({
 });
 
 /**
- * The 26-item curated amenity set from `features/brand/amenity-icon-map.ts`
+ * The 26-item curated amenity set from `lib/amenity-icons.ts`
  * (only amenities with a clean Lucide icon match), mapped onto spec §72's six
  * categories. Can't import that file directly -- it pulls in `lucide-react`,
  * a frontend dependency `convex/` shouldn't bundle -- so keep the two lists

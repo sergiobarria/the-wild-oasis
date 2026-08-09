@@ -63,6 +63,8 @@ type CabinSeed = {
     updatedAt: string;
     image: string;
     amenityNames: string[];
+    /** Curated pick for the home page's Featured Cabins section. */
+    featured: boolean;
 };
 
 const CABINS: CabinSeed[] = [
@@ -81,6 +83,7 @@ const CABINS: CabinSeed[] = [
         updatedAt: '2024-10-01T14:20:00Z',
         image: 'cabin-001.jpg',
         amenityNames: ['WiFi', 'Kitchen', 'Fireplace', 'Workspace', 'Parking', 'Garden'],
+        featured: true,
     },
     {
         name: 'Cozy Forest Cabin',
@@ -97,6 +100,7 @@ const CABINS: CabinSeed[] = [
         updatedAt: '2024-09-28T16:45:00Z',
         image: 'cabin-002.jpg',
         amenityNames: ['WiFi', 'Fireplace', 'Hot Tub', 'Coffee Maker', 'Garden'],
+        featured: true,
     },
     {
         name: 'Lakeside Family Lodge',
@@ -122,6 +126,7 @@ const CABINS: CabinSeed[] = [
             'Crib',
             'Pet Friendly',
         ],
+        featured: true,
     },
     {
         name: 'Alpine Luxury Suite',
@@ -146,6 +151,7 @@ const CABINS: CabinSeed[] = [
             'Workspace',
             'Coffee Maker',
         ],
+        featured: true,
     },
     {
         name: 'Rustic Mountain Hideaway',
@@ -162,6 +168,7 @@ const CABINS: CabinSeed[] = [
         updatedAt: '2024-09-15T17:00:00Z',
         image: 'cabin-005.jpg',
         amenityNames: ['WiFi', 'Kitchen', 'Fireplace', 'Parking'],
+        featured: true,
     },
     {
         name: 'Sunset Valley Cottage',
@@ -178,6 +185,7 @@ const CABINS: CabinSeed[] = [
         updatedAt: '2024-10-09T11:40:00Z',
         image: 'cabin-006.jpg',
         amenityNames: ['WiFi', 'Kitchen', 'Garden', 'Grill / BBQ', 'Coffee Maker'],
+        featured: true,
     },
     {
         name: 'Hidden Creek Cabin',
@@ -194,6 +202,7 @@ const CABINS: CabinSeed[] = [
         updatedAt: '2024-10-12T09:00:00Z',
         image: 'cabin-007.jpg',
         amenityNames: ['WiFi', 'Kitchen', 'Outdoor Shower', 'Garden', 'Fireplace', 'Pet Friendly'],
+        featured: false,
     },
     {
         name: 'Blackwood Lodge',
@@ -221,41 +230,49 @@ const CABINS: CabinSeed[] = [
             'Smoke Detector',
             'First Aid Kit',
         ],
+        featured: false,
     },
 ];
 
+type StoredImages = { coverImage: string; galleryImages: string[] };
+
 async function main() {
-    const existingSlugs = new Set(
-        CABINS.filter((cabin) => runConvex('cabins:getBySlug', { slug: cabin.slug }) !== null).map(
-            (cabin) => cabin.slug,
-        ),
+    console.log('Checking for already-seeded cabins...');
+    const existingBySlug = new Map<string, StoredImages | null>(
+        CABINS.map((cabin) => [
+            cabin.slug,
+            runConvex('cabins:getStorageIdsBySlug', { slug: cabin.slug }) as StoredImages | null,
+        ]),
     );
-    const cabinsToSeed = CABINS.filter((cabin) => !existingSlugs.has(cabin.slug));
 
-    if (cabinsToSeed.length === 0) {
-        console.log('All cabins already seeded -- nothing to do.');
-        return;
-    }
+    const newCabins = CABINS.filter((cabin) => !existingBySlug.get(cabin.slug));
 
-    console.log(`Uploading ${cabinsToSeed.length} cabin image(s)...`);
-    const storageIds = new Map<string, string>();
+    if (newCabins.length > 0) console.log(`Uploading ${newCabins.length} new cabin image(s)...`);
+    const uploadedStorageIds = new Map<string, string>();
 
-    for (const cabin of cabinsToSeed) {
-        if (storageIds.has(cabin.image)) continue;
+    for (const cabin of newCabins) {
+        if (uploadedStorageIds.has(cabin.image)) continue;
 
-        storageIds.set(cabin.image, await uploadImage(cabin.image));
+        uploadedStorageIds.set(cabin.image, await uploadImage(cabin.image));
         console.log(`  uploaded ${cabin.image}`);
     }
 
     console.log('Seeding amenities...');
     runConvex('amenities:seedAmenities');
 
+    // Upsert every cabin: an existing one keeps its already-uploaded images
+    // (only its metadata -- e.g. `featured` -- may have changed); a new one
+    // gets the image just uploaded for it above.
     console.log('Seeding cabins...');
-    const cabinsPayload = cabinsToSeed.map((cabin) => {
+    const cabinsPayload = CABINS.map((cabin) => {
         const nightlyRate = Math.round(cabin.nightlyRateDollars * CENTS_PER_DOLLAR);
-        const coverImage = storageIds.get(cabin.image);
+        const stored = existingBySlug.get(cabin.slug);
+        const coverImage = stored?.coverImage ?? uploadedStorageIds.get(cabin.image);
+        const galleryImages = stored?.galleryImages ?? (coverImage ? [coverImage] : undefined);
 
-        if (!coverImage) throw new Error(`Missing uploaded image for ${cabin.image}`);
+        if (!coverImage || !galleryImages) {
+            throw new Error(`Missing image for ${cabin.image}`);
+        }
 
         return {
             name: cabin.name,
@@ -270,16 +287,17 @@ async function main() {
             beds: cabin.beds,
             bathrooms: cabin.bathrooms,
             coverImage,
-            galleryImages: [coverImage],
+            galleryImages,
             amenityNames: cabin.amenityNames,
             published: true,
+            featured: cabin.featured,
             createdAt: Date.parse(cabin.createdAt),
             updatedAt: Date.parse(cabin.updatedAt),
         };
     });
 
     const ids = runConvex('cabins:seedCabins', { cabins: cabinsPayload }) as string[];
-    console.log(`Done -- ${ids.length} new cabin(s) seeded.`);
+    console.log(`Done -- ${ids.length} cabin(s) synced.`);
 }
 
 main().catch((error) => {

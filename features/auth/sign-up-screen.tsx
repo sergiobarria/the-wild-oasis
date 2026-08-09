@@ -10,12 +10,12 @@ import { useForm } from '@tanstack/react-form';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { focusFirstInvalidField } from '@/lib/focus-first-invalid-field';
 import { APP_ROUTES } from '@/lib/routes';
 
 import { signUpWithEmail } from './auth-api';
 import { AUTH_PASSWORD_MIN_LENGTH, signUpDefaultValues, signUpSchema } from './auth-domain';
 import { AuthFormField } from './components/auth-form-field';
-import { focusFirstInvalidField } from './focus-first-invalid-field';
 
 const FIELD_ORDER = [
     'firstName',
