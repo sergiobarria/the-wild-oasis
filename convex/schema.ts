@@ -87,4 +87,16 @@ export default defineSchema({
     })
         .index('by_guestId', ['guestId'])
         .index('by_cabinId_and_status', ['cabinId', 'status']),
+
+    featureFlags: defineTable({
+        /** e.g. 'stripePaymentsEnabled'. The lookup key `isFeatureEnabled` reads by. */
+        key: v.string(),
+        name: v.string(),
+        description: v.string(),
+        enabled: v.boolean(),
+        updatedAt: v.number(),
+        /** Better Auth identity.subject of the admin who last toggled this flag. Absent on a
+         *  seed-created row that's never been touched by an admin. */
+        updatedBy: v.optional(v.string()),
+    }).index('by_key', ['key']),
 });
