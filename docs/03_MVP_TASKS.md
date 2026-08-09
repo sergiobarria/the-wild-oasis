@@ -255,21 +255,21 @@ define them here.
 Deliberately small — spec §43 is explicit that this should not become a second admin
 dashboard. No new schema; reads/writes the `reservations` table from Phase 5.
 
-- [ ] **WO-034 (6.1) — `/guest-area` layout** — lightweight sidebar (Overview/Bookings/
+- [x] **WO-034 (6.1) — `/guest-area` layout** — lightweight sidebar (Overview/Bookings/
       Profile/Logout), collapses to mobile nav. Spec §43.
 
-- [ ] **WO-035 (6.2) — Overview** — welcome message, upcoming stay card, recent bookings,
+- [x] **WO-035 (6.2) — Overview** — welcome message, upcoming stay card, recent bookings,
       useful empty state for zero-reservation guests. No filler metrics. Spec §44.
 
-- [ ] **WO-036 (6.3) — Bookings list** — reference, cabin, dates, guests, total,
+- [x] **WO-036 (6.3) — Bookings list** — reference, cabin, dates, guests, total,
       statuses; grouped Upcoming/Past/Cancelled. Detail view as page/drawer/dialog.
       Spec §45.
 
-- [ ] **WO-037 (6.4) — Profile** — view/edit first/last name, phone (optional); email
+- [x] **WO-037 (6.4) — Profile** — view/edit first/last name, phone (optional); email
       read-only for MVP unless Better Auth's verified-change flow is trivial to wire.
       Spec §46.
 
-- [ ] **WO-038 (6.5) — Reservation cancellation** — self-cancel only outside a
+- [x] **WO-038 (6.5) — Reservation cancellation** — self-cancel only outside a
       `cancellationWindowHours` window; start with this as a hardcoded constant (48h per
       spec §47) rather than a DB setting — WO-057 promotes it to admin-configurable only
       if/when that's actually needed. Paid reservations require admin intervention if
