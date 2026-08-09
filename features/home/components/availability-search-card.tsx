@@ -16,13 +16,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { GUEST_OPTIONS } from '@/lib/guest-options';
 import { cabinsSearchHref } from '@/lib/routes';
 
-import {
-    availabilitySearchDefaultValues,
-    availabilitySearchSchema,
-    GUEST_OPTIONS,
-} from '../home-domain';
+import { availabilitySearchDefaultValues, availabilitySearchSchema } from '../home-domain';
 
 export function AvailabilitySearchCard() {
     const router = useRouter();

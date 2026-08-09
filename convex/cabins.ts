@@ -1,7 +1,8 @@
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
 
-import { internalMutation, internalQuery, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+import { internalMutation, internalQuery, query, type QueryCtx } from './_generated/server';
 import { amenityCategoryValidator } from './lib/amenities';
 import { assertIntegerCents } from './lib/money';
 
@@ -23,6 +24,20 @@ const cabinCardValidator = v.object({
     createdAt: v.number(),
     updatedAt: v.number(),
 });
+
+/** Shared by `getBySlug` and `listFiltered` -- resolves amenity ids to their display shape. */
+async function resolveAmenities(ctx: QueryCtx, amenityIds: Id<'amenities'>[]) {
+    const amenityDocs = await Promise.all(amenityIds.map((id) => ctx.db.get(id)));
+
+    return amenityDocs
+        .filter((amenity) => amenity !== null)
+        .map((amenity) => ({
+            _id: amenity._id,
+            name: amenity.name,
+            icon: amenity.icon,
+            category: amenity.category,
+        }));
+}
 
 /**
  * Cover-image cards for spec §26/§27's listing page. Signed URLs only -- the
@@ -71,6 +86,104 @@ export const listPublished = query({
     },
 });
 
+const cabinListingCardValidator = cabinCardValidator.extend({
+    amenities: v.array(
+        v.object({
+            _id: v.id('amenities'),
+            name: v.string(),
+            icon: v.string(),
+            category: amenityCategoryValidator,
+        }),
+    ),
+});
+
+// Generous bound; the catalog is 8 cabins today -- never `.collect()` unbounded, `.take()`
+// instead. Real pagination is a follow-up if the catalog ever outgrows this, not needed for
+// spec §26's "avoid a complex marketplace filtering system."
+const LISTING_RESULT_CAP = 100;
+
+/**
+ * Filtered by name/capacity/price/amenities for spec §26's `/cabins` search controls +
+ * optional filters. Not paginated (unlike `listPublished`) -- name and amenity matching
+ * can't be expressed by an index or a `.paginate()`-safe `.filter()`, so this narrows in JS
+ * on an already `.take()`-bounded page. Correct and complete as long as the number of
+ * published cabins matching `guests`/`maxPriceCents` stays under `LISTING_RESULT_CAP`; true
+ * for the current catalog size, and spec §26 explicitly rules out marketplace-grade
+ * filtering that would need real pagination here.
+ */
+export const listFiltered = query({
+    args: {
+        name: v.optional(v.string()),
+        guests: v.optional(v.number()),
+        maxPriceCents: v.optional(v.number()),
+        amenityIds: v.optional(v.array(v.id('amenities'))),
+    },
+    returns: v.array(cabinListingCardValidator),
+    handler: async (ctx, args) => {
+        let cabinsQuery = ctx.db
+            .query('cabins')
+            .withIndex('by_published_and_featured', (q) => q.eq('published', true));
+
+        if (args.guests !== undefined || args.maxPriceCents !== undefined) {
+            cabinsQuery = cabinsQuery.filter((q) => {
+                const clauses = [
+                    args.guests !== undefined ? q.gte(q.field('maxGuests'), args.guests) : null,
+                    args.maxPriceCents !== undefined
+                        ? q.lte(q.field('nightlyRate'), args.maxPriceCents)
+                        : null,
+                ].filter((clause) => clause !== null);
+
+                return clauses.length > 1 ? q.and(...clauses) : clauses[0];
+            });
+        }
+
+        const cabins = await cabinsQuery.take(LISTING_RESULT_CAP);
+
+        // Name substring and amenity containment (cabin must have ALL selected amenities --
+        // AND, not OR) can't be pushed into an index or `.filter()`, so narrow in JS on the
+        // already-bounded page.
+        const normalizedName = args.name?.trim().toLowerCase();
+        const matching = cabins.filter((cabin) => {
+            const matchesName =
+                !normalizedName || cabin.name.toLowerCase().includes(normalizedName);
+            const matchesAmenities =
+                !args.amenityIds?.length ||
+                args.amenityIds.every((id) => cabin.amenities.includes(id));
+
+            return matchesName && matchesAmenities;
+        });
+
+        return await Promise.all(
+            matching.map(async (cabin) => {
+                const [coverImageUrl, amenities] = await Promise.all([
+                    ctx.storage.getUrl(cabin.coverImage),
+                    resolveAmenities(ctx, cabin.amenities),
+                ]);
+
+                return {
+                    _id: cabin._id,
+                    _creationTime: cabin._creationTime,
+                    name: cabin.name,
+                    slug: cabin.slug,
+                    shortDescription: cabin.shortDescription,
+                    location: cabin.location,
+                    nightlyRate: cabin.nightlyRate,
+                    cleaningFee: cabin.cleaningFee,
+                    maxGuests: cabin.maxGuests,
+                    bedrooms: cabin.bedrooms,
+                    beds: cabin.beds,
+                    bathrooms: cabin.bathrooms,
+                    coverImageUrl,
+                    published: cabin.published,
+                    createdAt: cabin.createdAt,
+                    updatedAt: cabin.updatedAt,
+                    amenities,
+                };
+            }),
+        );
+    },
+});
+
 const cabinDetailValidator = v.object({
     _id: v.id('cabins'),
     _creationTime: v.number(),
@@ -116,10 +229,10 @@ export const getBySlug = query({
 
         if (!cabin || !cabin.published) return null;
 
-        const [coverImageUrl, galleryImageUrls, amenityDocs] = await Promise.all([
+        const [coverImageUrl, galleryImageUrls, amenities] = await Promise.all([
             ctx.storage.getUrl(cabin.coverImage),
             Promise.all(cabin.galleryImages.map((id) => ctx.storage.getUrl(id))),
-            Promise.all(cabin.amenities.map((id) => ctx.db.get(id))),
+            resolveAmenities(ctx, cabin.amenities),
         ]);
 
         return {
@@ -138,14 +251,7 @@ export const getBySlug = query({
             bathrooms: cabin.bathrooms,
             coverImageUrl,
             galleryImageUrls: galleryImageUrls.filter((url) => url !== null),
-            amenities: amenityDocs
-                .filter((amenity) => amenity !== null)
-                .map((amenity) => ({
-                    _id: amenity._id,
-                    name: amenity.name,
-                    icon: amenity.icon,
-                    category: amenity.category,
-                })),
+            amenities,
             published: cabin.published,
             createdAt: cabin.createdAt,
             updatedAt: cabin.updatedAt,

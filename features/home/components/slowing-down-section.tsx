@@ -1,6 +1,6 @@
 import { Coffee, DoorOpen, Flame, Leaf } from 'lucide-react';
 
-import { AMENITY_ICON_MAP } from '@/lib/amenity-icons';
+import { AMENITY_ICON_MAP, CURATED_AMENITY_NAMES } from '@/lib/amenity-icons';
 
 const CONCEPTS = [
     {
@@ -25,8 +25,6 @@ const CONCEPTS = [
     },
 ] as const;
 
-const FEATURED_AMENITIES = ['WiFi', 'Kitchen', 'Fireplace', 'Hot Tub', 'Garden', 'Grill / BBQ'];
-
 export function SlowingDownSection() {
     return (
         <section className='mx-auto max-w-6xl px-6 py-16 lg:px-8'>
@@ -47,7 +45,7 @@ export function SlowingDownSection() {
             </div>
 
             <div className='mt-16 flex flex-wrap justify-center gap-3'>
-                {FEATURED_AMENITIES.map((name) => {
+                {CURATED_AMENITY_NAMES.map((name) => {
                     const Icon = AMENITY_ICON_MAP[name];
 
                     return (

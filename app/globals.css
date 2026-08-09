@@ -216,5 +216,9 @@
     }
     html {
         @apply font-sans;
+        /* A shorter page (e.g. a filtered results grid) can drop below the viewport
+           height and lose the vertical scrollbar -- reserving its gutter unconditionally
+           keeps content width constant instead of visibly widening/narrowing per page. */
+        scrollbar-gutter: stable;
     }
 }

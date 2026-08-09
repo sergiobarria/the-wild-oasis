@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist_Mono, Josefin_Sans } from 'next/font/google';
 
 import NextTopLoader from 'nextjs-toploader';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { Toaster } from '@/components/ui/sonner';
 import { getToken } from '@/lib/auth-server';
@@ -63,7 +64,11 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
                     showSpinner={false}
                     zIndex={9999}
                 />
-                <ConvexClientProvider initialToken={initialToken}>{children}</ConvexClientProvider>
+                <NuqsAdapter>
+                    <ConvexClientProvider initialToken={initialToken}>
+                        {children}
+                    </ConvexClientProvider>
+                </NuqsAdapter>
                 {/* No theme switcher yet (see the `dark` class above), so pin the
                     toaster to dark rather than letting it fall back to system. */}
                 <Toaster theme='dark' />

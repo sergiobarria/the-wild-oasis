@@ -4,12 +4,11 @@ import Link from 'next/link';
 
 import { useQuery } from 'convex/react';
 
+import { CabinCard } from '@/components/cabin-card';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { APP_ROUTES } from '@/lib/routes';
-
-import { FeaturedCabinCard } from './featured-cabin-card';
 
 const FEATURED_CABIN_COUNT = 6;
 
@@ -58,7 +57,7 @@ export function FeaturedCabinsSection() {
             {result !== undefined && result.page.length > 0 && (
                 <div className='mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3'>
                     {result.page.map((cabin) => (
-                        <FeaturedCabinCard key={cabin._id} cabin={cabin} />
+                        <CabinCard key={cabin._id} cabin={cabin} featured />
                     ))}
                 </div>
             )}

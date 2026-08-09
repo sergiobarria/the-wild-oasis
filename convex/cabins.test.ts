@@ -21,6 +21,8 @@ function cabinInput(overrides: {
     published?: boolean;
     featured?: boolean;
     name?: string;
+    maxGuests?: number;
+    nightlyRate?: number;
 }) {
     const now = 1700000000000;
 
@@ -30,9 +32,9 @@ function cabinInput(overrides: {
         shortDescription: 'A quiet cabin in the woods.',
         description: 'A longer description of a quiet cabin in the woods.',
         location: 'Pine Ridge',
-        nightlyRate: 25000,
+        nightlyRate: overrides.nightlyRate ?? 25000,
         cleaningFee: 3500,
-        maxGuests: 4,
+        maxGuests: overrides.maxGuests ?? 4,
         bedrooms: 2,
         beds: 3,
         bathrooms: 1,
@@ -149,6 +151,158 @@ describe('listPublished', () => {
         });
 
         expect(result.page.map((c) => c.slug)).toEqual(['featured-cabin']);
+    });
+});
+
+describe('listFiltered', () => {
+    test('returns every published cabin when no filters are given', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({ slug: 'published-cabin', coverImage, published: true }),
+                cabinInput({ slug: 'unpublished-cabin', coverImage, published: false }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listFiltered, {});
+
+        expect(result.map((c) => c.slug)).toEqual(['published-cabin']);
+    });
+
+    test('narrows by name -- case-insensitive substring match', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({ slug: 'lakeside-lodge', coverImage, name: 'Lakeside Lodge' }),
+                cabinInput({ slug: 'mountain-cabin', coverImage, name: 'Mountain Cabin' }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listFiltered, { name: 'lake' });
+
+        expect(result.map((c) => c.slug)).toEqual(['lakeside-lodge']);
+    });
+
+    test('narrows by guests -- cabin capacity must be at least the requested guests', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({ slug: 'small-cabin', coverImage, maxGuests: 2 }),
+                cabinInput({ slug: 'large-cabin', coverImage, maxGuests: 8 }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listFiltered, { guests: 4 });
+
+        expect(result.map((c) => c.slug)).toEqual(['large-cabin']);
+    });
+
+    test('narrows by max price -- nightly rate must be at most the ceiling', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({ slug: 'cheap-cabin', coverImage, nightlyRate: 10000 }),
+                cabinInput({ slug: 'pricey-cabin', coverImage, nightlyRate: 50000 }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listFiltered, { maxPriceCents: 20000 });
+
+        expect(result.map((c) => c.slug)).toEqual(['cheap-cabin']);
+    });
+
+    test('narrows by amenities -- cabin must have ALL selected amenities, not just one', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+        const wifi = await t.run((ctx) =>
+            ctx.db
+                .query('amenities')
+                .withIndex('by_name', (q) => q.eq('name', 'WiFi'))
+                .unique(),
+        );
+        const hotTub = await t.run((ctx) =>
+            ctx.db
+                .query('amenities')
+                .withIndex('by_name', (q) => q.eq('name', 'Hot Tub'))
+                .unique(),
+        );
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({
+                    slug: 'has-both',
+                    coverImage,
+                    amenityNames: ['WiFi', 'Hot Tub'],
+                }),
+                cabinInput({ slug: 'has-only-wifi', coverImage, amenityNames: ['WiFi'] }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listFiltered, {
+            amenityIds: [wifi!._id, hotTub!._id],
+        });
+
+        expect(result.map((c) => c.slug)).toEqual(['has-both']);
+        expect(result[0]?.amenities.map((a) => a.name).sort()).toEqual(['Hot Tub', 'WiFi']);
+    });
+
+    test('combines guests, max price, and amenities filters', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+        const wifi = await t.run((ctx) =>
+            ctx.db
+                .query('amenities')
+                .withIndex('by_name', (q) => q.eq('name', 'WiFi'))
+                .unique(),
+        );
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [
+                cabinInput({
+                    slug: 'matches-all',
+                    coverImage,
+                    maxGuests: 6,
+                    nightlyRate: 15000,
+                    amenityNames: ['WiFi'],
+                }),
+                cabinInput({
+                    slug: 'too-expensive',
+                    coverImage,
+                    maxGuests: 6,
+                    nightlyRate: 40000,
+                    amenityNames: ['WiFi'],
+                }),
+                cabinInput({
+                    slug: 'too-small',
+                    coverImage,
+                    maxGuests: 2,
+                    nightlyRate: 15000,
+                    amenityNames: ['WiFi'],
+                }),
+            ],
+        });
+
+        const result = await t.query(api.cabins.listFiltered, {
+            guests: 4,
+            maxPriceCents: 20000,
+            amenityIds: [wifi!._id],
+        });
+
+        expect(result.map((c) => c.slug)).toEqual(['matches-all']);
     });
 });
 

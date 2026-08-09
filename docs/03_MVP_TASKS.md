@@ -184,7 +184,7 @@ against real display requirements, rather than guessing the shape back in Phase 
 
 - [x] **WO-021 (4.4) — Featured cabins section** on home. Spec §24.
 
-- [ ] **WO-022 (4.5) — `/cabins` listing** — cards (cover image, name, location,
+- [x] **WO-022 (4.5) — `/cabins` listing** — cards (cover image, name, location,
       capacity, beds/bedrooms, nightly price, description, amenities, view details),
       search controls (check-in/out/guests) plus optional max-price/amenity filters. No
       marketplace-grade filtering. Spec §26–27.

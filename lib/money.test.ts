@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatNightlyRate } from './money';
+import { dollarsToCents, formatNightlyRate } from './money';
 
 describe('formatNightlyRate', () => {
     it('formats a round-dollar amount', () => {
@@ -17,5 +17,19 @@ describe('formatNightlyRate', () => {
 
     it('formats zero', () => {
         expect(formatNightlyRate(0)).toBe('$0/night');
+    });
+});
+
+describe('dollarsToCents', () => {
+    it('converts a whole-dollar amount', () => {
+        expect(dollarsToCents(250)).toBe(25000);
+    });
+
+    it('converts zero', () => {
+        expect(dollarsToCents(0)).toBe(0);
+    });
+
+    it('rounds to the nearest cent', () => {
+        expect(dollarsToCents(19.999)).toBe(2000);
     });
 });

@@ -2,25 +2,45 @@ import type { Route } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import type { FunctionReturnType } from 'convex/server';
 import { Bed, BedDouble, MapPin, Users } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import type { api } from '@/convex/_generated/api';
+import { AMENITY_ICON_MAP } from '@/lib/amenity-icons';
 import { formatNightlyRate } from '@/lib/money';
 import { APP_ROUTES } from '@/lib/routes';
 
-type Cabin = FunctionReturnType<typeof api.cabins.listPublished>['page'][number];
+const MAX_VISIBLE_AMENITIES = 4;
 
-/**
- * Set apart from a future plain `/cabins` listing card (WO-022) -- a gold
- * ring plus a "Featured" badge, so this section still reads as curated once
- * a generic card exists to compare it against.
- */
-export function FeaturedCabinCard({ cabin }: { cabin: Cabin }) {
+type CabinCardCabin = {
+    _id: string;
+    name: string;
+    slug: string;
+    location: string;
+    nightlyRate: number;
+    maxGuests: number;
+    bedrooms: number;
+    beds: number;
+    coverImageUrl: string | null;
+    shortDescription: string;
+};
+
+type AmenityBadge = { _id: string; name: string };
+
+type CabinCardProps = {
+    cabin: CabinCardCabin;
+    /** Spec §27's "important amenities" -- omit on a card whose query didn't resolve them. */
+    amenities?: AmenityBadge[];
+    /** Gold ring + "Featured" badge, for the home page's curated selection. */
+    featured?: boolean;
+};
+
+export function CabinCard({ cabin, amenities, featured }: CabinCardProps) {
+    const visibleAmenities = amenities?.slice(0, MAX_VISIBLE_AMENITIES);
+    const hiddenAmenityCount = amenities ? amenities.length - MAX_VISIBLE_AMENITIES : 0;
+
     return (
-        <Card className='overflow-hidden ring-primary/30'>
+        <Card className={featured ? 'overflow-hidden ring-primary/30' : 'overflow-hidden'}>
             <div className='relative -mt-(--card-spacing) aspect-4/3 overflow-hidden rounded-t-xl'>
                 <Image
                     src={cabin.coverImageUrl ?? '/assets/placeholder.jpg'}
@@ -29,7 +49,7 @@ export function FeaturedCabinCard({ cabin }: { cabin: Cabin }) {
                     sizes='(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw'
                     className='object-cover'
                 />
-                <Badge className='absolute top-3 left-3'>Featured</Badge>
+                {featured && <Badge className='absolute top-3 left-3'>Featured</Badge>}
             </div>
             <CardContent className='flex-1 space-y-3'>
                 <div className='flex items-start justify-between gap-2'>
@@ -68,6 +88,29 @@ export function FeaturedCabinCard({ cabin }: { cabin: Cabin }) {
                 <p className='line-clamp-2 border-t border-border pt-3 text-sm text-muted-foreground/80'>
                     {cabin.shortDescription}
                 </p>
+
+                {visibleAmenities && visibleAmenities.length > 0 && (
+                    <div className='flex flex-wrap gap-1.5'>
+                        {visibleAmenities.map((amenity) => {
+                            const Icon = AMENITY_ICON_MAP[amenity.name];
+
+                            return (
+                                <span
+                                    key={amenity._id}
+                                    className='flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground'
+                                >
+                                    {Icon && <Icon className='size-3' aria-hidden='true' />}
+                                    {amenity.name}
+                                </span>
+                            );
+                        })}
+                        {hiddenAmenityCount > 0 && (
+                            <span className='flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground'>
+                                +{hiddenAmenityCount} more
+                            </span>
+                        )}
+                    </div>
+                )}
             </CardContent>
             <CardFooter>
                 <Link

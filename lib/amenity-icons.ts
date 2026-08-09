@@ -62,3 +62,18 @@ export const AMENITY_ICON_MAP: Record<string, LucideIcon> = {
     'Bicycle Rental': Bike,
     'Electric Vehicle Charger': PlugZap,
 };
+
+/**
+ * The 6 amenities worth surfacing as quick picks -- the home page's "Built for slowing down"
+ * chips and the `/cabins` amenity filter both use this same curated set (spec §26 warns
+ * against a full marketplace-style filter, so this stays a short, opinionated list rather
+ * than exposing all ~26 amenities).
+ */
+export const CURATED_AMENITY_NAMES = [
+    'WiFi',
+    'Kitchen',
+    'Fireplace',
+    'Hot Tub',
+    'Garden',
+    'Grill / BBQ',
+] as const;
