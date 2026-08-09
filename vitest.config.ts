@@ -13,7 +13,7 @@ export default defineConfig({
             provider: 'v8',
             reporter: ['text', 'lcov'],
             reportsDirectory: './coverage',
-            include: ['app/**', 'components/**', 'features/**', 'lib/**', 'convex/**'],
+            include: ['app/**', 'components/**', 'features/**', 'hooks/**', 'lib/**', 'convex/**'],
             exclude: [
                 '**/_generated/**',
                 '**/*.test.{ts,tsx}',
@@ -69,7 +69,7 @@ export default defineConfig({
                 plugins: [react()],
                 test: {
                     name: 'frontend',
-                    include: ['{app,components,features,lib}/**/*.test.{ts,tsx}'],
+                    include: ['{app,components,features,hooks,lib}/**/*.test.{ts,tsx}'],
                     environment: 'jsdom',
                     setupFiles: ['./vitest.setup.ts'],
                     globals: true,
