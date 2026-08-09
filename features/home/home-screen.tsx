@@ -9,7 +9,7 @@ export function HomeScreen() {
     return (
         <>
             <HeroSection />
-            <div className='relative z-10 mx-auto -mt-20 max-w-4xl px-6 lg:px-8'>
+            <div className='relative z-10 mx-auto -mt-20 w-full max-w-4xl px-6 lg:px-8'>
                 <AvailabilitySearchCard />
             </div>
             <EscapeTheNoiseSection />

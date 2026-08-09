@@ -11,7 +11,7 @@ import { SITE_CONFIG } from '@/lib/site-config';
 
 export function BrandScreen() {
     return (
-        <div className='mx-auto max-w-5xl px-6 py-12 lg:px-8'>
+        <div className='mx-auto w-full max-w-5xl px-6 py-12 lg:px-8'>
             {/* Faint survey-line texture -- a restrained nod to the brand's nature/
                 craftsmanship words (spec §12), kept to a single low-opacity band
                 rather than a page-wide decoration (spec §15 rules out excess). */}

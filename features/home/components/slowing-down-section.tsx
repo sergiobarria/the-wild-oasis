@@ -27,7 +27,7 @@ const CONCEPTS = [
 
 export function SlowingDownSection() {
     return (
-        <section className='mx-auto max-w-6xl px-6 py-16 lg:px-8'>
+        <section className='mx-auto w-full max-w-6xl px-6 py-16 lg:px-8'>
             <div className='mx-auto max-w-2xl space-y-2 text-center'>
                 <h2 className='font-heading text-3xl font-medium text-balance sm:text-4xl'>
                     Built for slowing down
