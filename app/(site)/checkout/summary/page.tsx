@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import { loadCheckoutSummaryData } from '@/features/checkout/checkout-api';
@@ -31,9 +31,7 @@ export default async function CheckoutSummaryPage({
         checkOut,
         guests,
         now: todayIsoDate(),
-    }).catch(() => null);
-
-    if (!data || !data.cabin) notFound();
+    });
 
     return (
         <CheckoutSummaryScreen
