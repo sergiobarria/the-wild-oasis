@@ -3,6 +3,7 @@ import type { FunctionReturnType } from 'convex/server';
 import type { api } from '@/convex/_generated/api';
 import { formatCents } from '@/lib/money';
 
+import { paymentStatusLabel } from './payment-status-label';
 import { ReservationStatusBadge } from './reservation-status-badge';
 
 export type ReservationSummary = FunctionReturnType<
@@ -34,6 +35,9 @@ export function ReservationRow({
                     <ReservationStatusBadge status={reservation.status} />
                     <span className='text-sm font-medium'>
                         {formatCents(reservation.pricing.total)}
+                    </span>
+                    <span className='text-xs text-muted-foreground'>
+                        Payment: {paymentStatusLabel(reservation.paymentStatus)}
                     </span>
                 </div>
             </div>

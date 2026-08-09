@@ -8,12 +8,13 @@ import { usePathname } from 'next/navigation';
 
 import { MenuIcon } from 'lucide-react';
 
-import { MobileMenuDialogContent } from '@/components/mobile-menu-dialog-content';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { APP_ROUTES } from '@/lib/routes';
 import { SITE_CONFIG } from '@/lib/site-config';
 import { cn } from '@/lib/utils';
+
+import { MobileMenuDialogContent } from './mobile-menu-dialog-content';
 
 const NAV_LINKS = [
     { label: 'Home', href: APP_ROUTES.HOME },

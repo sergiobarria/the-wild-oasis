@@ -57,6 +57,12 @@ export function CancelReservationAction({ reservation }: { reservation: Reservat
                     ? thrown.data
                     : 'Something went wrong cancelling your reservation. Please try again.',
             );
+        } finally {
+            // Reset even on success: the reactive `listOwnReservations` query updating and
+            // hiding this action (via `canSelfCancel`'s `already-cancelled` check) is what
+            // normally removes the button, but that re-render isn't guaranteed to happen
+            // before this component's next render -- leaving `cancelling` stuck `true` would
+            // leave the button permanently disabled if it doesn't.
             setCancelling(false);
         }
     }

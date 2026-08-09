@@ -4,16 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { formatCents } from '@/lib/money';
 
 import { CancelReservationAction } from './cancel-reservation-action';
+import { paymentStatusLabel } from './payment-status-label';
 import type { ReservationSummary } from './reservation-row';
 import { ReservationStatusBadge } from './reservation-status-badge';
-
-const PAYMENT_STATUS_LABELS: Record<ReservationSummary['paymentStatus'], string> = {
-    not_required: 'Not required',
-    pending: 'Pending',
-    paid: 'Paid',
-    failed: 'Failed',
-    refunded: 'Refunded',
-};
 
 export function ReservationDetailDialog({
     reservation,
@@ -63,7 +56,7 @@ export function ReservationDetailDialog({
                             <div className='flex justify-between'>
                                 <span className='text-muted-foreground'>Payment status</span>
                                 <span className='font-medium'>
-                                    {PAYMENT_STATUS_LABELS[reservation.paymentStatus]}
+                                    {paymentStatusLabel(reservation.paymentStatus)}
                                 </span>
                             </div>
                         </div>

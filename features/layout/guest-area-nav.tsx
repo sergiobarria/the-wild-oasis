@@ -7,12 +7,12 @@ import { usePathname } from 'next/navigation';
 
 import { MenuIcon } from 'lucide-react';
 
-import { MobileMenuDialogContent } from '@/components/mobile-menu-dialog-content';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { APP_ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
+import { MobileMenuDialogContent } from './mobile-menu-dialog-content';
 import { useLogout } from './use-logout';
 
 const NAV_ITEMS = [
