@@ -284,19 +284,19 @@ Placed before the admin dashboard: the admin messages screen (Phase 8) reads dat
 phase's contact form produces, so the `messages` table is modeled here, against the form
 that actually writes it.
 
-- [ ] **WO-039 (7.1) — `/about`** — story, philosophy, cabin experience, sustainability
+- [x] **WO-039 (7.1) — `/about`** — story, philosophy, cabin experience, sustainability
       angle, photography, CTA. Spec §48. No schema.
 
-- [ ] **WO-040 (7.2) — `/contact`** — defines the `messages` schema table here (name,
+- [x] **WO-040 (7.2) — `/contact`** — defines the `messages` schema table here (name,
       email, subject, message, status, createdAt — spec §74) and the `MESSAGE_STATUS`
       typed constant, since this form is the first and only writer. Mutation, success
       state, server-side validation, honeypot field, basic rate limiting. Spec §49.
 
-- [ ] **WO-041 (7.3) — `/privacy`** — demo-appropriate policy covering the sections in
+- [x] **WO-041 (7.3) — `/privacy`** — demo-appropriate policy covering the sections in
       spec §51, naming Stripe as external processor where relevant. No false compliance
       claims. No schema.
 
-- [ ] **WO-042 (7.4) — `/terms`** — demo-appropriate terms per spec §52 sections. No
+- [x] **WO-042 (7.4) — `/terms`** — demo-appropriate terms per spec §52 sections. No
       schema.
 
 ---
