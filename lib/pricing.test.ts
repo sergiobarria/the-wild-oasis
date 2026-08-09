@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateTotalCents, nightsBetween } from './cabin-detail-domain';
+import { calculateTotalCents, nightsBetween } from './pricing';
 
 describe('nightsBetween', () => {
     it('returns 0 when either date is blank', () => {

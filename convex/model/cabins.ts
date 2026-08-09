@@ -182,6 +182,28 @@ export async function getBySlug(ctx: QueryCtx, args: { slug: string }) {
 }
 
 /**
+ * Single cabin by id, for the checkout summary page (spec §35) -- the booking flow carries a
+ * cabin by `_id` through its query params, not by slug. Same leak-prevention rule as
+ * `getBySlug`: `null` for an unknown OR unpublished cabin.
+ */
+export async function getById(ctx: QueryCtx, args: { cabinId: Id<'cabins'> }) {
+    const cabin = await ctx.db.get(args.cabinId);
+
+    if (!cabin || !cabin.published) return null;
+
+    return {
+        _id: cabin._id,
+        name: cabin.name,
+        slug: cabin.slug,
+        location: cabin.location,
+        nightlyRate: cabin.nightlyRate,
+        cleaningFee: cabin.cleaningFee,
+        maxGuests: cabin.maxGuests,
+        coverImageUrl: await ctx.storage.getUrl(cabin.coverImage),
+    };
+}
+
+/**
  * Dev/seed-only, same reasoning as `cabins.ts`'s `generateUploadUrl`. Lets
  * `scripts/seed-cabins.ts` re-run against an already-seeded cabin (e.g. to
  * update `featured`) without re-uploading its images or exposing the raw

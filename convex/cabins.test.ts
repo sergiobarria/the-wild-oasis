@@ -151,6 +151,59 @@ describe('getBySlug', () => {
     });
 });
 
+describe('getById', () => {
+    test('returns null for an unknown cabin id', async () => {
+        const t = convexTest(schema, modules);
+        const coverImage = await seedImage(t);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        await t.mutation(internal.cabins.seedCabins, { cabins: [cabinInput({ coverImage })] });
+
+        const cabin = await t.query(api.cabins.getBySlug, { slug: 'pine-ridge-cabin' });
+        await t.run((ctx) => ctx.db.delete(cabin!._id));
+
+        expect(await t.query(api.cabins.getById, { cabinId: cabin!._id })).toBeNull();
+    });
+
+    test('returns null for an unpublished cabin', async () => {
+        const t = convexTest(schema, modules);
+        const coverImage = await seedImage(t);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [cabinInput({ coverImage, published: false })],
+        });
+
+        const cabinId = await t.run((ctx) =>
+            ctx.db
+                .query('cabins')
+                .withIndex('by_slug', (q) => q.eq('slug', 'pine-ridge-cabin'))
+                .unique()
+                .then((c) => c!._id),
+        );
+
+        expect(await t.query(api.cabins.getById, { cabinId })).toBeNull();
+    });
+
+    test('returns a summary card for a published cabin', async () => {
+        const t = convexTest(schema, modules);
+        const coverImage = await seedImage(t);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        await t.mutation(internal.cabins.seedCabins, { cabins: [cabinInput({ coverImage })] });
+
+        const bySlug = await t.query(api.cabins.getBySlug, { slug: 'pine-ridge-cabin' });
+        const cabin = await t.query(api.cabins.getById, { cabinId: bySlug!._id });
+
+        expect(cabin).toMatchObject({
+            name: 'Pine Ridge Cabin',
+            slug: 'pine-ridge-cabin',
+            location: 'Pine Ridge',
+            nightlyRate: 25000,
+            cleaningFee: 3500,
+            maxGuests: 4,
+        });
+        expect(cabin?.coverImageUrl).toEqual(expect.any(String));
+    });
+});
+
 describe('listPublished', () => {
     test('excludes unpublished cabins and includes published ones', async () => {
         const t = convexTest(schema, modules);

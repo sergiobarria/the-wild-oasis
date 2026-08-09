@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 
 import { AVAILABILITY_VIOLATION_CODES } from '../features/availability/availability-domain';
-import { query } from './_generated/server';
+import { mutation, query } from './_generated/server';
 import * as Reservations from './model/reservations';
 
 const availabilityViolationValidator = v.object({
@@ -23,4 +23,15 @@ export const checkAvailability = query({
     },
     returns: availabilityResultValidator,
     handler: async (ctx, args) => await Reservations.checkAvailability(ctx, args),
+});
+
+export const createDemoReservation = mutation({
+    args: {
+        cabinId: v.id('cabins'),
+        checkIn: v.string(),
+        checkOut: v.string(),
+        guests: v.number(),
+    },
+    returns: v.object({ reservationId: v.id('reservations') }),
+    handler: async (ctx, args) => await Reservations.createDemoReservation(ctx, args),
 });

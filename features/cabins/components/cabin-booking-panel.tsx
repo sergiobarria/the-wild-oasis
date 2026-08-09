@@ -24,9 +24,8 @@ import { violationMessage } from '@/features/availability/violation-messages';
 import { todayIsoDate } from '@/lib/dates';
 import { guestOptionsFor } from '@/lib/guest-options';
 import { formatCents, formatNightlyRate } from '@/lib/money';
-import { APP_ROUTES, checkoutSummaryHref } from '@/lib/routes';
-
-import { calculateTotalCents, nightsBetween } from '../cabin-detail-domain';
+import { calculateTotalCents, nightsBetween } from '@/lib/pricing';
+import { checkoutSummaryHref, signInHref } from '@/lib/routes';
 
 type CabinBookingPanelProps = {
     cabinId: Id<'cabins'>;
@@ -66,11 +65,7 @@ export function CabinBookingPanel({
     function handleContinue() {
         const summaryHref = checkoutSummaryHref({ cabinId, checkIn, checkOut, guests });
 
-        router.push(
-            (isAuthenticated
-                ? summaryHref
-                : `${APP_ROUTES.SIGN_IN}?redirectTo=${encodeURIComponent(summaryHref)}`) as Route,
-        );
+        router.push((isAuthenticated ? summaryHref : signInHref(summaryHref)) as Route);
     }
 
     return (

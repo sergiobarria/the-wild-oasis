@@ -1,9 +1,10 @@
+import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { api } from '@/convex/_generated/api';
 import { fetchAuthQuery } from '@/lib/auth-server';
-import { APP_ROUTES } from '@/lib/routes';
+import { APP_ROUTES, signInHref } from '@/lib/routes';
 import { isAdmin } from '@/lib/user-roles';
 
 /**
@@ -21,9 +22,7 @@ async function currentPath() {
 }
 
 function signInRedirect(path: string | null): never {
-    redirect(
-        path ? `${APP_ROUTES.SIGN_IN}?redirectTo=${encodeURIComponent(path)}` : APP_ROUTES.SIGN_IN,
-    );
+    redirect(path ? (signInHref(path) as Route) : APP_ROUTES.SIGN_IN);
 }
 
 function roleHome(role: string | null | undefined) {

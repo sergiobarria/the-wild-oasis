@@ -1,12 +1,33 @@
 import { convexTest } from 'convex-test';
 import { describe, expect, test } from 'vitest';
 
+import { internal } from '../_generated/api';
 import type { Id } from '../_generated/dataModel';
+import authComponentSchema from '../betterAuth/schema';
 import { RESERVATION_STATUS } from '../lib/reservations';
 import schema from '../schema';
-import { checkAvailability } from './reservations';
+import { checkAvailability, createDemoReservation } from './reservations';
 
 const modules = import.meta.glob('../**/*.ts');
+const authComponentModules = import.meta.glob('../betterAuth/**/*.ts');
+
+function setupTest() {
+    const t = convexTest(schema, modules);
+    t.registerComponent('betterAuth', authComponentSchema, authComponentModules);
+    return t;
+}
+
+async function seedFlag(t: ReturnType<typeof convexTest>, enabled: boolean) {
+    await t.run((ctx) =>
+        ctx.db.insert('featureFlags', {
+            key: 'stripePaymentsEnabled',
+            name: 'Stripe payments',
+            description: 'Gates the real payment checkout flow.',
+            enabled,
+            updatedAt: 1700000000000,
+        }),
+    );
+}
 
 async function seedCabin(
     t: ReturnType<typeof convexTest>,
@@ -68,7 +89,7 @@ async function seedReservation(
 
 describe('checkAvailability', () => {
     test('throws for an unknown cabin id', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
         await t.run((ctx) => ctx.db.delete(cabinId));
 
@@ -86,7 +107,7 @@ describe('checkAvailability', () => {
     });
 
     test('throws for an unpublished cabin, same as an unknown one', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t, { published: false });
 
         await expect(
@@ -103,7 +124,7 @@ describe('checkAvailability', () => {
     });
 
     test('is available with no conflicting reservations', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
 
         const result = await t.run((ctx) =>
@@ -120,7 +141,7 @@ describe('checkAvailability', () => {
     });
 
     test('rejects a guest count over the cabin capacity', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t, { maxGuests: 2 });
 
         const result = await t.run((ctx) =>
@@ -140,7 +161,7 @@ describe('checkAvailability', () => {
     });
 
     test('blocks a range overlapping a confirmed reservation', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
         await seedReservation(t, cabinId, { checkIn: '2026-08-16', checkOut: '2026-08-20' });
 
@@ -158,7 +179,7 @@ describe('checkAvailability', () => {
     });
 
     test('blocks a range overlapping a pending reservation', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
         await seedReservation(t, cabinId, {
             checkIn: '2026-08-16',
@@ -180,7 +201,7 @@ describe('checkAvailability', () => {
     });
 
     test('does not block on a cancelled reservation covering the same dates', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
         await seedReservation(t, cabinId, {
             checkIn: '2026-08-16',
@@ -202,7 +223,7 @@ describe('checkAvailability', () => {
     });
 
     test('rejects a check-in date in the past', async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
 
         const result = await t.run((ctx) =>
@@ -219,7 +240,7 @@ describe('checkAvailability', () => {
     });
 
     test("does not block on a different cabin's reservation for the same dates", async () => {
-        const t = convexTest(schema, modules);
+        const t = setupTest();
         const cabinId = await seedCabin(t);
         const otherCabinId = await seedCabin(t);
         await seedReservation(t, otherCabinId, { checkIn: '2026-08-16', checkOut: '2026-08-20' });
@@ -235,5 +256,113 @@ describe('checkAvailability', () => {
         );
 
         expect(result).toEqual({ available: true });
+    });
+});
+
+describe('createDemoReservation', () => {
+    async function seedGuest(t: ReturnType<typeof setupTest>) {
+        return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+            email: 'guest@example.com',
+            password: 'password123',
+            name: 'Guest User',
+        });
+    }
+
+    test('throws for an unauthenticated caller', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+
+        await expect(
+            t.run((ctx) =>
+                createDemoReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-15',
+                    checkOut: '2030-01-18',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow();
+    });
+
+    test('throws when Stripe payments are enabled', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedFlag(t, true);
+        const identity = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) =>
+                createDemoReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-15',
+                    checkOut: '2030-01-18',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow('Demo confirmation is unavailable while payments are enabled.');
+    });
+
+    test('throws when the dates are no longer available', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
+        const identity = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) =>
+                createDemoReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-16',
+                    checkOut: '2030-01-17',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow('These dates are no longer available.');
+    });
+
+    test('throws when the guest count exceeds capacity', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t, { maxGuests: 2 });
+        const identity = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) =>
+                createDemoReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-15',
+                    checkOut: '2030-01-18',
+                    guests: 3,
+                }),
+            ),
+        ).rejects.toThrow('These dates are no longer available.');
+    });
+
+    test('creates a confirmed, payment-not-required reservation with a pricing snapshot', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+
+        expect(reservation).toMatchObject({
+            cabinId,
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            guests: 2,
+            status: 'confirmed',
+            paymentStatus: 'not_required',
+            paymentRequired: false,
+            pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
+        });
+        expect(reservation!.guestId).toBe(identity.subject);
     });
 });

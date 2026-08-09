@@ -61,3 +61,10 @@ export function checkoutSummaryHref(params: {
     const query = new URLSearchParams(params);
     return `${APP_ROUTES.CHECKOUT_SUMMARY}?${query.toString()}`;
 }
+
+/** `/sign-in` with a same-origin path to return to after auth -- the one place this exact
+ *  query-string shape is built, used by both `lib/require-auth.ts`'s server-side redirect and
+ *  any client component (e.g. the booking panel) that gates a navigation on being signed in. */
+export function signInHref(redirectTo: string): string {
+    return `${APP_ROUTES.SIGN_IN}?redirectTo=${encodeURIComponent(redirectTo)}`;
+}

@@ -91,6 +91,23 @@ export const getBySlug = query({
     handler: async (ctx, args) => await Cabins.getBySlug(ctx, args),
 });
 
+const cabinSummaryCardValidator = v.object({
+    _id: v.id('cabins'),
+    name: v.string(),
+    slug: v.string(),
+    location: v.string(),
+    nightlyRate: v.number(),
+    cleaningFee: v.number(),
+    maxGuests: v.number(),
+    coverImageUrl: v.union(v.string(), v.null()),
+});
+
+export const getById = query({
+    args: { cabinId: v.id('cabins') },
+    returns: v.union(cabinSummaryCardValidator, v.null()),
+    handler: async (ctx, args) => await Cabins.getById(ctx, args),
+});
+
 /**
  * Dev/seed-only. NOT admin-gated: there is no authenticated caller when
  * seeding a fresh deployment. A future admin image-upload ticket must add a
