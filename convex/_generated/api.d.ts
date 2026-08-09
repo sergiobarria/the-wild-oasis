@@ -8,9 +8,13 @@
  * @module
  */
 
+import type * as amenities from "../amenities.js";
 import type * as auth from "../auth.js";
 import type * as authorization from "../authorization.js";
+import type * as cabins from "../cabins.js";
 import type * as http from "../http.js";
+import type * as lib_amenities from "../lib/amenities.js";
+import type * as lib_money from "../lib/money.js";
 import type * as testHelpers from "../testHelpers.js";
 
 import type {
@@ -20,9 +24,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  amenities: typeof amenities;
   auth: typeof auth;
   authorization: typeof authorization;
+  cabins: typeof cabins;
   http: typeof http;
+  "lib/amenities": typeof lib_amenities;
+  "lib/money": typeof lib_money;
   testHelpers: typeof testHelpers;
 }>;
 

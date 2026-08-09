@@ -163,7 +163,7 @@ This phase is the UI layer per spec §53–56. No new schema.
 No `cabins` or `amenities` tables exist before this phase — WO-018 defines them here,
 against real display requirements, rather than guessing the shape back in Phase 1.
 
-- [ ] **WO-018 (4.1) — Define `cabins` + `amenities` schema, seed data**
+- [x] **WO-018 (4.1) — Define `cabins` + `amenities` schema, seed data**
       Field shapes per spec §69 (cabin: name, slug, descriptions, location, pricing,
       capacity, images, amenities, published, timestamps) and §72 (amenity: name, icon,
       category). Read `convex/_generated/ai/guidelines.md` first — it overrides

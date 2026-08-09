@@ -17,7 +17,8 @@
         "check": "prettier --check . && eslint",
         "test:e2e": "playwright test",
         "auth:generate": "better-auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts",
-        "email:dev": "email dev --dir emails --port 3001"
+        "email:dev": "email dev --dir emails --port 3001",
+        "seed:cabins": "bun run scripts/seed-cabins.ts"
     },
     "dependencies": {
         "@base-ui/react": "^1.7.0",
