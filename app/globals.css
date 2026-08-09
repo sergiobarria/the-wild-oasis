@@ -48,6 +48,26 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Brand palette -- see /brand for the annotated reference (swatches, contrast
+ * ratios, usage rules). Source of truth for the exact values below is
+ * docs/00_SPEC.md §13; every WCAG ratio cited in comments was computed against
+ * these exact OKLCH triples (OKLab -> linear sRGB -> relative luminance), not
+ * eyeballed.
+ *
+ * Dark is the primary brand experience (spec §13) -- see app/layout.tsx,
+ * which applies `.dark` to <html> unconditionally since no theme switcher
+ * exists yet. Light stays fully defined below for when one does.
+ *
+ * House rule: primary and destructive are never used as a solid fill with
+ * light/white text on top -- both read as a *light* accent color against this
+ * near-black-first palette, so solid-fill + white-text fails contrast in dark
+ * mode (measured 2.2-2.8:1). Buttons/badges use the soft-tint treatment
+ * button.tsx already established (bg-{color}/10-20, text-{color},
+ * border-{color}/40) instead of a solid block. Where a solid fill is
+ * unavoidable, foreground pairs with
+ * near-black text (measured 6.8-8.5:1), never white.
+ */
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -55,8 +75,13 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    /* Same hue/chroma as dark-mode primary (spec §13), lightness recalibrated
+       for a white surface: 4.33:1 as text-on-white, 4.57:1 for near-black
+       button-label text on this fill. Neither role clears 4.5:1 on the other
+       axis at any single lightness -- see /brand Color section for the full
+       tradeoff table. */
+    --primary: oklch(0.58 0.112 83.18);
+    --primary-foreground: oklch(0.145 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
@@ -64,44 +89,103 @@
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --ring: oklch(0.58 0.112 83.18);
+    /* Achromatic placeholder ramp, unchanged from the shadcn default -- real
+       chart colors are Phase 8's job (WO-045), once there's real data driving
+       real charts to design against. */
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
+    --sidebar: oklch(0.98 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.58 0.112 83.18);
+    --sidebar-primary-foreground: oklch(0.145 0 0);
     --sidebar-accent: oklch(0.97 0 0);
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar-ring: oklch(0.58 0.112 83.18);
+}
+
+/*
+ * Explicit light-mode override for a subtree nested inside `.dark` (e.g. the
+ * side-by-side preview on /brand). Custom properties inherit through the DOM
+ * regardless of selector match, so merely lacking `.dark` on a descendant of
+ * an already-`.dark` ancestor does NOT revert it to :root -- this class
+ * re-declares the same values `:root` holds, scoped to wherever it's applied.
+ * Keep this in sync with :root above.
+ */
+.light {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.58 0.112 83.18);
+    --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.58 0.112 83.18);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.98 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.58 0.112 83.18);
+    --sidebar-primary-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.58 0.112 83.18);
 }
 
 .dark {
+    /* Near-black background, warm near-white foreground -- spec §13, 18.96:1. */
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    /* Gold/yellow brand accent -- spec §13, exact value. 8.50:1 as text or
+       ring against this background; near-black label text on a solid fill of
+       this color also hits 8.50:1 (see --primary-foreground). */
+    --primary: oklch(0.7394 0.112 83.18);
+    --primary-foreground: oklch(0.145 0 0);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
     --muted-foreground: oklch(0.708 0 0);
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
+    /* Kept at the stock lightness deliberately: 6.86:1 as soft-tint text
+       against this background, which is the only pattern this palette uses
+       for destructive UI (see house rule above). */
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
+    --destructive-foreground: oklch(0.145 0 0);
+    /* Spec §13 exact value -- deliberately subtle (1.33:1 vs background),
+       "borders should remain subtle" per spec. Not relied on alone to convey
+       an interactive boundary: inputs get the translucent overlay below, and
+       every focusable control gets the gold ring at 8.5:1. */
+    --border: oklch(0.275 0 0);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: oklch(0.7394 0.112 83.18);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -109,12 +193,15 @@
     --chart-5: oklch(0.269 0 0);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
+    /* Was oklch(0.488 0.243 264.376) -- a stray blue left over from the
+       stock shadcn theme. Realigned to the brand gold so a Sidebar pulled in
+       a later phase doesn't surface an off-brand color by accident. */
+    --sidebar-primary: oklch(0.7394 0.112 83.18);
+    --sidebar-primary-foreground: oklch(0.145 0 0);
     --sidebar-accent: oklch(0.269 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar-ring: oklch(0.7394 0.112 83.18);
 }
 
 @layer base {

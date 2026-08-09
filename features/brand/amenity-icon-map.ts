@@ -1,0 +1,66 @@
+import {
+    AlarmSmoke,
+    Baby,
+    Bike,
+    Book,
+    BriefcaseBusiness,
+    BriefcaseMedical,
+    Cctv,
+    ChefHat,
+    CircleParking,
+    Coffee,
+    Dices,
+    DoorOpen,
+    Dumbbell,
+    Flame,
+    FlameKindling,
+    Leaf,
+    type LucideIcon,
+    PawPrint,
+    PlugZap,
+    ShowerHead,
+    Snowflake,
+    Sparkles,
+    Tv,
+    WashingMachine,
+    Waves,
+    WavesLadder,
+    Wifi,
+} from 'lucide-react';
+
+/**
+ * Amenity name -> Lucide icon, per spec §30/§72. Curated, not exhaustive: an
+ * amenity only appears here once it has an icon that actually reads at a
+ * glance -- forcing a weak match for the rest (Dryer, Hammock, Balcony, High
+ * Chair, Carbon Monoxide Detector) would do more harm than leaving them out.
+ * Single consumer today (this page); promote to a shared location per
+ * `02_CODING_GUIDELINES.md` §6 once WO-018 wires real cabin amenities.
+ */
+export const AMENITY_ICON_MAP: Record<string, LucideIcon> = {
+    WiFi: Wifi,
+    Kitchen: ChefHat,
+    'Air Conditioner': Snowflake,
+    Fireplace: Flame,
+    'Coffee Maker': Coffee,
+    'TV / Streaming': Tv,
+    'Board Games': Dices,
+    Washer: WashingMachine,
+    Workspace: BriefcaseBusiness,
+    'Books & Magazines': Book,
+    'Swimming Pool': WavesLadder,
+    'Grill / BBQ': FlameKindling,
+    'Outdoor Shower': ShowerHead,
+    'Ocean View': Waves,
+    'Private Entrance': DoorOpen,
+    Garden: Leaf,
+    Crib: Baby,
+    'Pet Friendly': PawPrint,
+    'Hot Tub': Sparkles,
+    Gym: Dumbbell,
+    'Smoke Detector': AlarmSmoke,
+    'Security Cameras': Cctv,
+    'First Aid Kit': BriefcaseMedical,
+    Parking: CircleParking,
+    'Bicycle Rental': Bike,
+    'Electric Vehicle Charger': PlugZap,
+};

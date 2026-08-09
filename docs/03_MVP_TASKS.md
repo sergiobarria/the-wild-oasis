@@ -40,60 +40,48 @@ Everything visual downstream depends on this. No feature UI should be built agai
 default shadcn theme currently in `app/globals.css` — it's the stock neutral palette, not
 the brand. No database schema is touched in this phase.
 
-- [ ] **WO-001 (0.1) — Replace theme tokens with the spec's dark-first palette**
+- [x] **WO-001 (0.1) — Replace theme tokens with the spec's dark-first palette**
       Rewrite `:root` / `.dark` in `app/globals.css` using the OKLCH values in spec §13
       (background, foreground, primary gold/yellow, card, border, destructive). Dark mode
       is the primary brand experience — light mode stays technically supported but is not
       the design target. Keep `--radius: 0.625rem` per §15.
       _Depends on: nothing._
 
-- [ ] **WO-002 (0.2) — Wire Josefin Sans as the primary font**
+- [x] **WO-002 (0.2) — Wire Josefin Sans as the primary font**
       Add via `next/font/google`, expose as `--font-sans` (already aliased in
       `@theme inline`). Fallback stack per spec §14. Verify it loads in both weights used
       by marketing headings (light/medium) and body copy.
 
-- [ ] **WO-003 (0.3) — Pull the shadcn components the MVP actually needs**
+- [x] **WO-003 (0.3) — Pull the shadcn components the MVP actually needs**
       Use the shadcn MCP tools (`list_items_in_registries` / `get_add_command_for_items`)
       against the project's configured registry (`components.json`, style `base-nova`) to
-      add: button, input, label, form, textarea, select, checkbox, calendar/date-picker,
-      dialog, sheet, dropdown-menu, popover, tabs, table, card, badge, avatar, separator,
-      skeleton, sonner (toast), tooltip, sidebar. Don't pull components without a
-      near-term consumer — see `02_CODING_GUIDELINES.md` §6 on speculative sharing.
+      add the components the `/brand` page actually demos: input, label, textarea, select,
+      checkbox, card, badge, separator, tooltip, dialog, dropdown-menu, sonner. Calendar,
+      table, sidebar, avatar, popover, tabs, and skeleton stay deferred to the phases that
+      need them — no near-term consumer yet, same discipline as the schema rule.
 
-- [ ] **WO-004 (0.4) — Build the `/brand` design system page**
+- [x] **WO-004 (0.4) — Build the `/brand` design system page**
       A living style guide, not a marketing page — this is the deliverable the rest of
-      the team (and future-you) checks new UI against. Sections:
-      - Color palette: every semantic token as a swatch with its name and OKLCH value,
-        shown in dark mode (primary) and light mode side by side.
-      - Typography scale: headings h1–h4, body, small/muted text, all in Josefin Sans,
-        with the actual class names used to produce them.
-      - Spacing & radius: the radius scale (`sm`→`4xl`) rendered as boxes; a spacing
-        ruler if the app defines custom spacing steps.
-      - Buttons: every variant × size × state (default, hover, disabled, loading) for
-        primary, secondary, destructive, ghost, outline.
-      - Form controls: input, select, checkbox, textarea in default/focus/error/disabled
-        states — this is where WCAG focus-visibility gets proven, not just claimed.
-      - Cards & elevation: the shadow tokens actually in use, restrained per spec §15
-        (no heavy shadows/glassmorphism).
-      - Icons: a grid of the Lucide icons the app uses (amenities, admin nav) at the
-        sizes they ship at.
-      - Motion: a couple of live examples (dialog open, dropdown, toast) demonstrating
-        the 150–300ms range from spec §16.
-      This page is internal tooling — no auth gate needed for MVP, but don't link it from
-      public nav. Static/server-rendered where possible; the only client bits are the
-      interactive component demos.
+      the team (and future-you) checks new UI against. Covers: color palette (every
+      semantic token as a swatch, dark and light side by side), type scale (h1–h4, body,
+      small/muted, with the class names used to produce them), spacing/radius boxes,
+      buttons (every variant × size × state), form controls (input/select/checkbox/
+      textarea in default/focus/error/disabled states), cards & elevation, an icon grid
+      mapped from `data/data-amenities.ts`, and a live motion demo (dialog, dropdown,
+      tooltip, toast). Internal tooling — no auth gate, not linked from public nav.
+      Server-rendered except the small client leaf components the motion demo needs.
       _Depends on: WO-001, WO-002, WO-003._
 
-- [ ] **WO-005 (0.5) — Contrast and accessibility pass on the tokens**
-      Verify gold-on-near-black (primary button text), warm-white-on-near-black (body
-      text), and destructive-on-card all meet WCAG AA contrast. Fix the token values if
-      not — do this before any feature UI consumes them, since a token fix later means
-      revisiting every screen. Ties into spec §18.
+- [x] **WO-005 (0.5) — Contrast and accessibility pass on the tokens**
+      Every token pair's WCAG ratio computed programmatically (OKLab → linear sRGB →
+      relative luminance), not eyeballed — see `app/globals.css` comments and the
+      "A note on contrast" section on `/brand` for the numbers and the two decisions
+      they drove: near-black (not white) text on gold, and a soft-tint-only convention
+      for primary/destructive rather than solid fills, in dark mode.
 
-- [ ] **WO-006 (0.6) — Route path constants**
-      Create `lib/routes.ts` (or similar) with the full public + admin route table from
-      spec §19 as a typed `APP_ROUTES` object per `02_CODING_GUIDELINES.md` §7. Every
-      route added in later phases is appended here, not inlined as a string.
+- [x] **WO-006 (0.6) — Route path constants**
+      Created `lib/routes.ts` with the full public + admin route table from spec §19 as
+      a typed `APP_ROUTES` object per `02_CODING_GUIDELINES.md` §7.
 
 ---
 
@@ -447,7 +435,7 @@ done. Priority areas straight from spec §11.
       booking → dashboard; admin login → cabins CRUD → booking visibility.
 
 - [ ] **WO-072 (10.12) — Full quality gate** — `bun run check && bun run typecheck &&
-      bun run test && bun run build`, plus `bun run test:e2e` since routing/layout/
+bun run test && bun run build`, plus `bun run test:e2e` since routing/layout/
       rendered output are all touched by this point.
 
 ---

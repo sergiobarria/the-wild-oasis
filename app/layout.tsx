@@ -1,20 +1,18 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Geist_Mono, Josefin_Sans } from 'next/font/google';
 
 import NextTopLoader from 'nextjs-toploader';
 
 import { ConvexClientProvider } from '@/components/convex-client-provider';
+import { Toaster } from '@/components/ui/sonner';
 import { getToken } from '@/lib/auth-server';
 import { cn } from '@/lib/utils';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-
-const geistSans = Geist({
-    variable: '--font-geist-sans',
-    subsets: ['latin'],
-});
+// Brand typeface per docs/00_SPEC.md §14. Fallback stack (ui-sans-serif,
+// sans-serif, system-ui) is handled by Tailwind's font-sans utility already.
+const josefinSans = Josefin_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistMono = Geist_Mono({
     variable: '--font-geist-mono',
@@ -24,6 +22,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: 'The Wild Oasis',
     description: 'Cabin booking for The Wild Oasis.',
+    icons: {
+        icon: [
+            { url: '/favicon/favicon.ico', sizes: 'any' },
+            { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+            { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        ],
+        apple: '/favicon/apple-touch-icon.png',
+    },
+    manifest: '/favicon/site.webmanifest',
 };
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {
@@ -32,13 +39,16 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
     return (
         <html
             lang='en'
+            // Dark is the primary brand experience (spec §13). Hardcoded until a
+            // theme switcher exists -- light mode tokens stay fully defined in
+            // globals.css for when one does.
             className={cn(
+                'dark',
                 'h-full',
                 'antialiased',
-                geistSans.variable,
                 geistMono.variable,
                 'font-sans',
-                inter.variable,
+                josefinSans.variable,
             )}
         >
             <body className='flex min-h-full flex-col'>
@@ -52,6 +62,9 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
                     zIndex={9999}
                 />
                 <ConvexClientProvider initialToken={initialToken}>{children}</ConvexClientProvider>
+                {/* No theme switcher yet (see the `dark` class above), so pin the
+                    toaster to dark rather than letting it fall back to system. */}
+                <Toaster theme='dark' />
             </body>
         </html>
     );
