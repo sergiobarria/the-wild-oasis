@@ -119,7 +119,7 @@ one: giving a custom `additionalFields` field a literal-string-enum `type` (e.g.
 error). Stick to primitive `type` values (`'string'`, `'number'`, `'boolean'`, ...) for
 `additionalFields` until a matching CLI release exists; narrow literal unions in TypeScript
 instead (see `lib/user-roles.ts`'s `isAdmin`, mirrored server-side in
-`convex/authorization.ts`).
+`convex/model/auth.ts`).
 
 Also set at the root of `package.json`:
 

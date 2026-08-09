@@ -1,12 +1,12 @@
 import { convexTest } from 'convex-test';
 import { describe, expect, test } from 'vitest';
 
-import { internal } from './_generated/api';
-import { requireAdmin, requireUser } from './authorization';
-import authComponentSchema from './betterAuth/schema';
+import { internal } from '../_generated/api';
+import authComponentSchema from '../betterAuth/schema';
+import { requireAdmin, requireUser } from './auth';
 
-const modules = import.meta.glob('./**/*.ts');
-const authComponentModules = import.meta.glob('./betterAuth/**/*.ts');
+const modules = import.meta.glob('../**/*.ts');
+const authComponentModules = import.meta.glob('../betterAuth/**/*.ts');
 
 function setupTest() {
     const t = convexTest(undefined, modules);

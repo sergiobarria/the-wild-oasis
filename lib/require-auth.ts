@@ -11,7 +11,7 @@ import { isAdmin } from '@/lib/user-roles';
  * for "must be an admin", used by every protected layout (`/guest-area`,
  * `/admin`) instead of each hand-rolling its own check. Keeps the `'admin'`
  * role comparison in one place on this side of the app (the equivalent
- * backend-side check lives in `convex/authorization.ts`'s `requireAdmin` --
+ * backend-side check lives in `convex/model/auth.ts`'s `requireAdmin` --
  * they can't share code directly, different runtimes, but at least neither
  * duplicates itself within its own side).
  */
