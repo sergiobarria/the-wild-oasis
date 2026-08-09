@@ -39,4 +39,21 @@ export default defineSchema({
     })
         .index('by_slug', ['slug'])
         .index('by_published_and_featured', ['published', 'featured']),
+
+    reviews: defineTable({
+        cabinId: v.id('cabins'),
+        /** Shaped like a real Better Auth identity (`identity.subject`, see
+         *  convex/authorization.ts's `requireUser`) for when a real review-writing flow
+         *  lands -- Better Auth's `user` table is owned by an isolated Convex component, so
+         *  this can never be a native `v.id()` reference, only a string in its shape. Seeded
+         *  rows use a synthetic, non-account-backed value paired with a denormalized
+         *  `authorName`/`authorImage` snapshot -- not a real, sign-in-able reviewer. */
+        userId: v.string(),
+        authorName: v.string(),
+        authorImage: v.optional(v.string()),
+        /** Integer 1-5. See convex/reviews.ts's `assertValidRating`. */
+        rating: v.number(),
+        comment: v.string(),
+        createdAt: v.number(),
+    }).index('by_cabinId', ['cabinId']),
 });

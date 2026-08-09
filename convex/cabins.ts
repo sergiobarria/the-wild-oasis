@@ -5,6 +5,7 @@ import type { Id } from './_generated/dataModel';
 import { internalMutation, internalQuery, query, type QueryCtx } from './_generated/server';
 import { amenityCategoryValidator } from './lib/amenities';
 import { assertIntegerCents } from './lib/money';
+import { resolveReviewsForCabin, reviewValidator } from './reviews';
 
 const cabinCardValidator = v.object({
     _id: v.id('cabins'),
@@ -211,6 +212,9 @@ const cabinDetailValidator = v.object({
     published: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
+    reviews: v.array(reviewValidator),
+    averageRating: v.union(v.number(), v.null()),
+    reviewCount: v.number(),
 });
 
 /**
@@ -229,10 +233,11 @@ export const getBySlug = query({
 
         if (!cabin || !cabin.published) return null;
 
-        const [coverImageUrl, galleryImageUrls, amenities] = await Promise.all([
+        const [coverImageUrl, galleryImageUrls, amenities, reviewData] = await Promise.all([
             ctx.storage.getUrl(cabin.coverImage),
             Promise.all(cabin.galleryImages.map((id) => ctx.storage.getUrl(id))),
             resolveAmenities(ctx, cabin.amenities),
+            resolveReviewsForCabin(ctx, cabin._id),
         ]);
 
         return {
@@ -255,6 +260,7 @@ export const getBySlug = query({
             published: cabin.published,
             createdAt: cabin.createdAt,
             updatedAt: cabin.updatedAt,
+            ...reviewData,
         };
     },
 });

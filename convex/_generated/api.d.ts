@@ -15,6 +15,7 @@ import type * as cabins from "../cabins.js";
 import type * as http from "../http.js";
 import type * as lib_amenities from "../lib/amenities.js";
 import type * as lib_money from "../lib/money.js";
+import type * as reviews from "../reviews.js";
 import type * as testHelpers from "../testHelpers.js";
 
 import type {
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/amenities": typeof lib_amenities;
   "lib/money": typeof lib_money;
+  reviews: typeof reviews;
   testHelpers: typeof testHelpers;
 }>;
 

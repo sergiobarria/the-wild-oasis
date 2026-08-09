@@ -110,6 +110,44 @@ describe('getBySlug', () => {
         expect(cabin?.coverImageUrl).toEqual(expect.any(String));
         expect(cabin?.galleryImageUrls).toHaveLength(1);
         expect(cabin?.amenities.map((a) => a.name).sort()).toEqual(['Hot Tub', 'WiFi']);
+        expect(cabin).toMatchObject({ reviews: [], averageRating: null, reviewCount: 0 });
+    });
+
+    test('includes seeded reviews with a computed average rating', async () => {
+        const t = convexTest(schema, modules);
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const coverImage = await seedImage(t);
+
+        await t.mutation(internal.cabins.seedCabins, {
+            cabins: [cabinInput({ slug: 'reviewed-cabin', coverImage })],
+        });
+        const seededCabin = await t.query(api.cabins.getBySlug, { slug: 'reviewed-cabin' });
+
+        await t.mutation(internal.reviews.seedReviews, {
+            cabinId: seededCabin!._id,
+            reviews: [
+                {
+                    userId: 'seed-guest-1',
+                    authorName: 'Sarah Mitchell',
+                    rating: 5,
+                    comment: 'Wonderful stay.',
+                    createdAt: 1700000000000,
+                },
+                {
+                    userId: 'seed-guest-2',
+                    authorName: 'Marco Rossi',
+                    rating: 3,
+                    comment: 'It was fine.',
+                    createdAt: 1700000001000,
+                },
+            ],
+        });
+
+        const cabin = await t.query(api.cabins.getBySlug, { slug: 'reviewed-cabin' });
+
+        expect(cabin?.reviewCount).toBe(2);
+        expect(cabin?.averageRating).toBe(4);
+        expect(cabin?.reviews.map((r) => r.authorName)).toEqual(['Marco Rossi', 'Sarah Mitchell']);
     });
 });
 
