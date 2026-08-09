@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { dollarsToCents, formatNightlyRate } from './money';
+import { dollarsToCents, formatCents, formatNightlyRate } from './money';
+
+describe('formatCents', () => {
+    it('formats a round-dollar amount', () => {
+        expect(formatCents(25000)).toBe('$250');
+    });
+
+    it('adds a thousands separator', () => {
+        expect(formatCents(150000)).toBe('$1,500');
+    });
+
+    it('formats zero', () => {
+        expect(formatCents(0)).toBe('$0');
+    });
+});
 
 describe('formatNightlyRate', () => {
     it('formats a round-dollar amount', () => {

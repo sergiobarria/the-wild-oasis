@@ -189,11 +189,11 @@ against real display requirements, rather than guessing the shape back in Phase 
       search controls (check-in/out/guests) plus optional max-price/amenity filters. No
       marketplace-grade filtering. Spec §26–27.
 
-- [ ] **WO-023 (4.6) — `/cabins/[slug]` detail page** — gallery, description, capacity,
+- [x] **WO-023 (4.6) — `/cabins/[slug]` detail page** — gallery, description, capacity,
       bed/bath counts, amenities (Lucide icons), pricing, availability, booking panel.
       Spec §28, §30.
 
-- [ ] **WO-024 (4.7) — Image gallery + lightbox** — large primary + secondary images on
+- [x] **WO-024 (4.7) — Image gallery + lightbox** — large primary + secondary images on
       desktop, swipeable on mobile. Spec §29. Uses Next.js `Image` against Convex file
       storage.
 
