@@ -7,14 +7,9 @@ import { usePathname } from 'next/navigation';
 
 import { MenuIcon } from 'lucide-react';
 
+import { MobileMenuDialogContent } from '@/components/mobile-menu-dialog-content';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { APP_ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -91,15 +86,12 @@ export function GuestAreaNav() {
                         <MenuIcon className='size-4' />
                         Account menu
                     </DialogTrigger>
-                    <DialogContent className='top-0 left-0 max-w-full translate-x-0 translate-y-0 rounded-none sm:max-w-full'>
-                        <DialogHeader>
-                            <DialogTitle>Account</DialogTitle>
-                        </DialogHeader>
+                    <MobileMenuDialogContent title='Account'>
                         <nav aria-label='Account' className='flex flex-col gap-1'>
                             {navLinks(() => setMobileOpen(false))}
                             {logoutButton(() => setMobileOpen(false))}
                         </nav>
-                    </DialogContent>
+                    </MobileMenuDialogContent>
                 </Dialog>
             </div>
         </>

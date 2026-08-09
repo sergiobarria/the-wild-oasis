@@ -8,14 +8,9 @@ import { usePathname } from 'next/navigation';
 
 import { MenuIcon } from 'lucide-react';
 
+import { MobileMenuDialogContent } from '@/components/mobile-menu-dialog-content';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { APP_ROUTES } from '@/lib/routes';
 import { SITE_CONFIG } from '@/lib/site-config';
 import { cn } from '@/lib/utils';
@@ -107,10 +102,7 @@ export function Header({ role }: HeaderProps) {
                     >
                         <MenuIcon />
                     </DialogTrigger>
-                    <DialogContent className='top-0 left-0 max-w-full translate-x-0 translate-y-0 rounded-none sm:max-w-full'>
-                        <DialogHeader>
-                            <DialogTitle>Menu</DialogTitle>
-                        </DialogHeader>
+                    <MobileMenuDialogContent title='Menu'>
                         <nav aria-label='Primary' className='flex flex-col gap-1'>
                             {NAV_LINKS.map((link) => {
                                 const active = pathname === link.href;
@@ -172,7 +164,7 @@ export function Header({ role }: HeaderProps) {
                                 </>
                             )}
                         </div>
-                    </DialogContent>
+                    </MobileMenuDialogContent>
                 </Dialog>
             </div>
         </header>
