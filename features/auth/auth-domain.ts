@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
+import { firstNameSchema, lastNameSchema } from '@/lib/names';
+
 /** Mirrored server-side by `emailAndPassword.minPasswordLength` in convex/betterAuth/auth.ts. */
 export const AUTH_PASSWORD_MIN_LENGTH = 8;
 
 export const signUpSchema = z
     .object({
-        firstName: z.string().trim().min(1, 'Enter your first name.'),
-        lastName: z.string().trim().min(1, 'Enter your last name.'),
+        firstName: firstNameSchema,
+        lastName: lastNameSchema,
         email: z.email('Enter a valid email address.'),
         password: z
             .string()

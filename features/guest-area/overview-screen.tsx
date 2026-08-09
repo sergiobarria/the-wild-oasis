@@ -5,11 +5,11 @@ import { useQuery } from 'convex/react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { todayIsoDate } from '@/lib/dates';
+import { splitName } from '@/lib/names';
 
 import { GuestAreaEmptyState } from './components/guest-area-empty-state';
 import { RecentBookingsList } from './components/recent-bookings-list';
 import { UpcomingStayCard } from './components/upcoming-stay-card';
-import { splitName } from './profile-domain';
 import { pickUpcomingReservation } from './reservations-grouping';
 
 export function OverviewScreen() {
@@ -45,7 +45,13 @@ export function OverviewScreen() {
                         </div>
                     )}
 
-                    <RecentBookingsList reservations={reservations} />
+                    <RecentBookingsList
+                        reservations={
+                            upcoming
+                                ? reservations.filter((r) => r._id !== upcoming._id)
+                                : reservations
+                        }
+                    />
                 </>
             )}
         </div>

@@ -6,14 +6,16 @@ import { useForm } from '@tanstack/react-form';
 import { useQuery } from 'convex/react';
 import { toast } from 'sonner';
 
+import { FormFieldShell } from '@/components/form-field-shell';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { AuthFormField } from '@/features/auth/components/auth-form-field';
 import { focusFirstInvalidField } from '@/lib/focus-first-invalid-field';
+import { splitName } from '@/lib/names';
 
 import { updateProfile } from '../profile-api';
-import { profileFormSchema, splitName } from '../profile-domain';
+import { profileFormSchema } from '../profile-domain';
 
 const FIELD_ORDER = ['firstName', 'lastName', 'phone'] as const;
 
@@ -23,7 +25,7 @@ export function ProfileForm() {
     const user = useQuery(api.auth.getCurrentUser, {});
 
     if (user === undefined) {
-        return <div className='h-64 animate-pulse rounded-lg bg-muted' />;
+        return <Skeleton className='h-64 w-full max-w-md rounded-lg' />;
     }
 
     // The guest-area layout already calls requireUser() server-side -- this is only ever
@@ -87,13 +89,17 @@ function ProfileFormFields({ user }: { user: CurrentUser }) {
                 )}
             </form.Field>
 
-            <div className='space-y-1.5'>
-                <Label htmlFor='profile-email'>Email</Label>
+            <FormFieldShell
+                id='profile-email'
+                label='Email'
+                hasError={false}
+                errors={[]}
+                helperText="Email can't be changed yet."
+            >
                 <p id='profile-email' className='text-sm text-muted-foreground'>
                     {user.email}
                 </p>
-                <p className='text-xs text-muted-foreground'>Email can&apos;t be changed yet.</p>
-            </div>
+            </FormFieldShell>
 
             {formError && (
                 <p role='alert' className='text-sm text-destructive'>
