@@ -6,7 +6,7 @@ import { APP_ROUTES } from '@/lib/routes';
 import { pageTitle } from '@/lib/site-config';
 
 export const metadata: Metadata = {
-    title: pageTitle('Terms'),
+    title: pageTitle('Terms of Service'),
     description: 'The terms that govern booking and staying with The Wild Oasis.',
 };
 
