@@ -1,7 +1,17 @@
 'use client';
 
+import { useState } from 'react';
+
+import type { Route } from 'next';
+import { useRouter } from 'next/navigation';
+
+import { useMutation } from 'convex/react';
+import { ConvexError } from 'convex/values';
+
 import { Button } from '@/components/ui/button';
+import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
+import { APP_ROUTES } from '@/lib/routes';
 
 type CheckoutConfirmActionProps = {
     cabinId: Id<'cabins'>;
@@ -14,16 +24,44 @@ type CheckoutConfirmActionProps = {
     stripePaymentsEnabled: boolean;
 };
 
-/**
- * The actual reservation-creating click (WO-030) is wired up once the mutation exists
- * (Layer 7) -- kept as its own client leaf so this checkout summary page's read-only
- * rendering (cabin, dates, pricing) can stay a server component, same split as
- * `cabin-detail-screen.tsx` / `CabinBookingPanel`.
- */
+/** Kept as its own client leaf so the checkout summary page's read-only rendering (cabin,
+ *  dates, pricing) can stay a server component, same split as `cabin-detail-screen.tsx` /
+ *  `CabinBookingPanel`. */
 export function CheckoutConfirmAction({
+    cabinId,
+    checkIn,
+    checkOut,
+    guests,
     canConfirm,
     stripePaymentsEnabled,
 }: CheckoutConfirmActionProps) {
+    const router = useRouter();
+    const createDemoReservation = useMutation(api.reservations.createDemoReservation);
+    const [error, setError] = useState<string | null>(null);
+    const [confirming, setConfirming] = useState(false);
+
+    async function handleConfirm() {
+        setError(null);
+        setConfirming(true);
+
+        try {
+            const { reservationId } = await createDemoReservation({
+                cabinId,
+                checkIn,
+                checkOut,
+                guests,
+            });
+            router.push(`${APP_ROUTES.CHECKOUT_SUCCESS}?reservationId=${reservationId}` as Route);
+        } catch (thrown) {
+            setError(
+                thrown instanceof ConvexError && typeof thrown.data === 'string'
+                    ? thrown.data
+                    : 'Something went wrong confirming your reservation. Please try again.',
+            );
+            setConfirming(false);
+        }
+    }
+
     if (stripePaymentsEnabled) {
         return (
             <div className='space-y-1.5'>
@@ -39,8 +77,14 @@ export function CheckoutConfirmAction({
 
     return (
         <div className='space-y-1.5'>
-            <Button type='button' className='w-full' disabled={!canConfirm}>
-                Confirm Reservation
+            {error && <p className='text-sm text-destructive'>{error}</p>}
+            <Button
+                type='button'
+                className='w-full'
+                disabled={!canConfirm || confirming}
+                onClick={handleConfirm}
+            >
+                {confirming ? 'Confirming…' : 'Confirm Reservation'}
             </Button>
             <p className='text-center text-xs text-muted-foreground'>
                 Payments are disabled in this demo -- confirming won&apos;t charge you anything.
