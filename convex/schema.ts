@@ -101,6 +101,9 @@ export default defineSchema({
         updatedBy: v.optional(v.string()),
     }).index('by_key', ['key']),
 
+    // No index yet -- nothing queries this table besides the insert in
+    // convex/model/messages.ts. Phase 8's admin inbox adds whatever index it actually needs
+    // when it's built, per this schema's incremental-modeling convention.
     messages: defineTable({
         name: v.string(),
         email: v.string(),
@@ -109,9 +112,5 @@ export default defineSchema({
         message: v.string(),
         status: messageStatusValidator,
         createdAt: v.number(),
-    })
-        // Future admin inbox (Phase 8) -- not read yet.
-        .index('by_status', ['status'])
-        // Rate-limit lookup: most recent submission from this email.
-        .index('by_email', ['email']),
+    }),
 });

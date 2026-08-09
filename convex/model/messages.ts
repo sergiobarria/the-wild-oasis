@@ -3,10 +3,7 @@ import { ConvexError } from 'convex/values';
 import { contactSchema } from '../../features/contact/contact-domain';
 import type { MutationCtx } from '../_generated/server';
 import { MESSAGE_STATUS } from '../lib/messages';
-
-// Placeholder guess, not derived from any spec number -- spec §49 only asks for
-// "submission throttling/rate limiting where practical".
-const RATE_LIMIT_WINDOW_MS = 60_000;
+import { rateLimiter } from '../lib/rateLimiter';
 
 export type SubmitContactMessageArgs = {
     name: string;
@@ -35,16 +32,13 @@ export async function submitContactMessage(ctx: MutationCtx, args: SubmitContact
     }
 
     // Email-keyed, not IP-keyed -- Convex mutations don't see the caller's IP without extra
-    // plumbing, and spec §4 argues against building infra (e.g. a rate-limiter component) for
-    // a demo app's one contact form. A bot can rotate emails; this is a basic deterrent, not a
-    // hardened defense.
-    const recent = await ctx.db
-        .query('messages')
-        .withIndex('by_email', (q) => q.eq('email', parsed.data.email))
-        .order('desc')
-        .first();
+    // plumbing. Lower-cased so `Jamie@example.com` and `jamie@example.com` share one limit.
+    // A bot can still rotate emails; this is a basic deterrent, not a hardened defense.
+    const { ok } = await rateLimiter.limit(ctx, 'contactMessage', {
+        key: parsed.data.email.toLowerCase(),
+    });
 
-    if (recent && Date.now() - recent.createdAt < RATE_LIMIT_WINDOW_MS) {
+    if (!ok) {
         throw new ConvexError('Please wait a moment before sending another message.');
     }
 

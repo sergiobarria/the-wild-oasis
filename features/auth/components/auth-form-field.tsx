@@ -2,8 +2,8 @@
 
 import type { AnyFieldApi } from '@tanstack/react-form';
 
+import { FormFieldShell } from '@/components/form-field-shell';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 type AuthFormFieldProps = {
     field: AnyFieldApi;
@@ -13,14 +13,6 @@ type AuthFormFieldProps = {
     autoComplete?: React.ComponentProps<'input'>['autoComplete'];
     helperText?: string;
 };
-
-export function errorMessage(error: unknown): string {
-    if (typeof error === 'string') return error;
-
-    if (error && typeof error === 'object' && 'message' in error) return String(error.message);
-
-    return 'Invalid value.';
-}
 
 export function AuthFormField({
     field,
@@ -37,8 +29,13 @@ export function AuthFormField({
     const hasError = errors.length > 0 && field.state.meta.isTouched;
 
     return (
-        <div className='space-y-1.5'>
-            <Label htmlFor={field.name}>{label}</Label>
+        <FormFieldShell
+            id={field.name}
+            label={label}
+            hasError={hasError}
+            errors={errors}
+            helperText={helperText}
+        >
             <Input
                 id={field.name}
                 name={field.name}
@@ -50,11 +47,6 @@ export function AuthFormField({
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
             />
-            {hasError ? (
-                <p className='text-xs text-destructive'>{errors.map(errorMessage).join(', ')}</p>
-            ) : (
-                helperText && <p className='text-xs text-muted-foreground'>{helperText}</p>
-            )}
-        </div>
+        </FormFieldShell>
     );
 }

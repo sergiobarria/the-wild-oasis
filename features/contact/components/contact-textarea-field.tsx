@@ -2,9 +2,8 @@
 
 import type { AnyFieldApi } from '@tanstack/react-form';
 
-import { Label } from '@/components/ui/label';
+import { FormFieldShell } from '@/components/form-field-shell';
 import { Textarea } from '@/components/ui/textarea';
-import { errorMessage } from '@/features/auth/components/auth-form-field';
 
 type ContactTextareaFieldProps = {
     field: AnyFieldApi;
@@ -25,8 +24,7 @@ export function ContactTextareaField({
     const hasError = errors.length > 0 && field.state.meta.isTouched;
 
     return (
-        <div className='space-y-1.5'>
-            <Label htmlFor={field.name}>{label}</Label>
+        <FormFieldShell id={field.name} label={label} hasError={hasError} errors={errors}>
             <Textarea
                 id={field.name}
                 name={field.name}
@@ -37,9 +35,6 @@ export function ContactTextareaField({
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
             />
-            {hasError && (
-                <p className='text-xs text-destructive'>{errors.map(errorMessage).join(', ')}</p>
-            )}
-        </div>
+        </FormFieldShell>
     );
 }

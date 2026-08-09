@@ -49,7 +49,10 @@ export function ContactScreen() {
 
     if (submitted) {
         return (
-            <div className='space-y-4 rounded-lg border border-border p-6 text-center'>
+            <div
+                role='status'
+                className='space-y-4 rounded-lg border border-border p-6 text-center'
+            >
                 <h2 className='font-heading text-xl font-medium'>Message sent</h2>
                 <p className='text-muted-foreground'>
                     Thanks for reaching out -- we&apos;ll get back to you soon.
@@ -119,7 +122,11 @@ export function ContactScreen() {
                 />
             </div>
 
-            {formError && <p className='text-sm text-destructive'>{formError}</p>}
+            {formError && (
+                <p role='alert' className='text-sm text-destructive'>
+                    {formError}
+                </p>
+            )}
 
             <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
                 {([canSubmit, isSubmitting]) => (
