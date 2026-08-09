@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Profile -- The Wild Oasis',
+    title: pageTitle('Profile'),
 };
 
-export default function DashboardProfilePage() {
+export default function GuestAreaProfilePage() {
     return (
         <div className='flex flex-col gap-2'>
             <h1 className='text-2xl font-semibold'>Profile</h1>

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Contact -- The Wild Oasis',
+    title: pageTitle('Contact'),
 };
 
 export default function ContactPage() {

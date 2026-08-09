@@ -1,6 +1,13 @@
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
+import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
+
+// Vitest doesn't load `.env.local` the way `next dev`/`next build` do, so
+// anything importing `lib/env.ts` (e.g. via `lib/site-config.ts`) would fail
+// `@t3-oss/env-nextjs` validation as soon as a test imports it. Load it the
+// same way Next does, into `process.env`, so tests see the real values.
+Object.assign(process.env, loadEnv('test', process.cwd(), ''));
 
 export default defineConfig({
     resolve: {
@@ -20,6 +27,7 @@ export default defineConfig({
                 'features/**',
                 'hooks/**',
                 'lib/**',
+                'providers/**',
                 'convex/**',
             ],
             exclude: [
@@ -33,8 +41,11 @@ export default defineConfig({
                 // a unit test here would assert that an assignment happened.
                 // Anything that grows a conditional must come off this list.
                 'app/layout.tsx',
+                // No global styles/theme reach this document (see the file's own
+                // comment) -- inline-styled, no conditionals worth unit testing.
+                'app/global-error.tsx',
                 'app/api/**',
-                'components/convex-client-provider.tsx',
+                'providers/convex-client-provider.tsx',
                 'convex/http.ts',
                 'convex/betterAuth/auth.ts',
                 'convex/betterAuth/adapter.ts',
@@ -77,7 +88,9 @@ export default defineConfig({
                 plugins: [react()],
                 test: {
                     name: 'frontend',
-                    include: ['{app,components,emails,features,hooks,lib}/**/*.test.{ts,tsx}'],
+                    include: [
+                        '{app,components,emails,features,hooks,lib,providers}/**/*.test.{ts,tsx}',
+                    ],
                     environment: 'jsdom',
                     setupFiles: ['./vitest.setup.ts'],
                     globals: true,

@@ -92,7 +92,7 @@ The only schema touched here is the one field auth already needs today; every ot
 table (cabins, reservations, messages, …) is defined later, in the phase that actually
 builds that feature.
 
-- [ ] **WO-007 (1.1) — Extend the auth user record with `role`**
+- [x] **WO-007 (1.1) — Extend the auth user record with `role`**
       Add `role: "guest" | "admin"` to the Better Auth user schema and default new
       signups to `"guest"` (spec §9, §54). This is the one piece of data model that has
       to exist before Phase 2's auth pages and this phase's own authorization helpers —
@@ -101,7 +101,7 @@ builds that feature.
       field.
       _Depends on: nothing._
 
-- [ ] **WO-008 (1.2) — Authorization helpers**
+- [x] **WO-008 (1.2) — Authorization helpers**
       `requireUser` / `requireAdmin` helpers used at the top of every protected Convex
       function, per spec §9's authorization chain (Client → Admin UI → Mutation → Auth
       Check → Admin Check → DB). Reads the `role` field from WO-007; no new schema. No
@@ -123,21 +123,21 @@ builds that feature.
 Better Auth + Convex wiring already exists (`convex/betterAuth/`, `app/api/auth/`).
 This phase is the UI layer per spec §53–56. No new schema.
 
-- [ ] **WO-010 (2.1) — Auth layout shell**
+- [x] **WO-010 (2.1) — Auth layout shell**
       Shared split layout (photography + form) per spec §53, collapsing to single-column
       on mobile.
 
-- [ ] **WO-011 (2.2) — `/sign-up`** — first/last name, email, password, confirm password,
+- [x] **WO-011 (2.2) — `/sign-up`** — first/last name, email, password, confirm password,
       terms acknowledgement. Client-side validation mirrored by backend validation
       (mirrored pure module pattern, `02_CODING_GUIDELINES.md` §7). Spec §54.
 
-- [ ] **WO-012 (2.3) — `/sign-in`** — email/password, forgot-password link, create-account
+- [x] **WO-012 (2.3) — `/sign-in`** — email/password, forgot-password link, create-account
       link. Preserve booking-flow return context after successful auth per spec §34, §55.
 
 - [ ] **WO-013 (2.4) — `/forgot-password`** + reset flow via Better Auth's supported
       recovery flow. Response must not leak whether an email exists (spec §56).
 
-- [ ] **WO-014 (2.5) — Protected route middleware/guards** for `/dashboard` and `/admin`,
+- [x] **WO-014 (2.5) — Protected route middleware/guards** for `/guest-area` and `/admin`,
       redirecting unauthenticated users to sign-in and unauthorized authenticated users
       to an appropriate unauthorized response (spec §57).
 
@@ -255,7 +255,7 @@ define them here.
 Deliberately small — spec §43 is explicit that this should not become a second admin
 dashboard. No new schema; reads/writes the `reservations` table from Phase 5.
 
-- [ ] **WO-034 (6.1) — `/dashboard` layout** — lightweight sidebar (Overview/Bookings/
+- [ ] **WO-034 (6.1) — `/guest-area` layout** — lightweight sidebar (Overview/Bookings/
       Profile/Logout), collapses to mobile nav. Spec §43.
 
 - [ ] **WO-035 (6.2) — Overview** — welcome message, upcoming stay card, recent bookings,

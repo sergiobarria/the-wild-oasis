@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Terms -- The Wild Oasis',
+    title: pageTitle('Terms'),
 };
 
 export default function TermsPage() {

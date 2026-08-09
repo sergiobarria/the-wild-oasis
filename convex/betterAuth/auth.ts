@@ -24,6 +24,25 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
         database: authComponent.adapter(ctx),
         emailAndPassword: {
             enabled: true,
+            minPasswordLength: 8,
+        },
+        user: {
+            additionalFields: {
+                // `type: ['guest', 'admin']` (a literal-string enum, which Better
+                // Auth's field-type syntax supports) would give this a real
+                // literal-union validator instead of `string` -- but the pinned
+                // `@better-auth/cli@1.4.21` (no 1.6.x release exists; see
+                // docs/01_PROJECT_SCAFFOLD.md) generates a broken Convex validator
+                // for that syntax (`v.union(v.null(), undefined)`, a type error).
+                // `USER_ROLES`/`UserRole` in lib/user-roles.ts is the TypeScript-level
+                // stand-in until the CLI catches up.
+                role: {
+                    type: 'string',
+                    required: false,
+                    defaultValue: 'guest',
+                    input: false,
+                },
+            },
         },
         plugins: [convex({ authConfig })],
     } satisfies BetterAuthOptions;

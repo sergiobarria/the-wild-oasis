@@ -3,10 +3,11 @@ import { Geist_Mono, Josefin_Sans } from 'next/font/google';
 
 import NextTopLoader from 'nextjs-toploader';
 
-import { ConvexClientProvider } from '@/components/convex-client-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { getToken } from '@/lib/auth-server';
+import { SITE_CONFIG } from '@/lib/site-config';
 import { cn } from '@/lib/utils';
+import { ConvexClientProvider } from '@/providers/convex-client-provider';
 
 import './globals.css';
 
@@ -20,8 +21,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: 'The Wild Oasis',
-    description: 'Cabin booking for The Wild Oasis.',
+    metadataBase: new URL(SITE_CONFIG.URL),
+    title: SITE_CONFIG.NAME,
+    description: SITE_CONFIG.DESCRIPTION,
     icons: {
         icon: [
             { url: '/favicon/favicon.ico', sizes: 'any' },

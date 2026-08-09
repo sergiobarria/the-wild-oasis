@@ -535,7 +535,7 @@ Primary public routes:
 │   ├── summary
 │   ├── success
 │   └── cancel
-├── dashboard
+├── guest-area
 ├── privacy
 └── terms
 ```
@@ -1158,8 +1158,12 @@ The frontend may use the same flag to adjust the interface, but backend validati
 Route:
 
 ```
-/dashboard
+/guest-area
 ```
+
+Named `/guest-area` rather than `/dashboard` so the URL itself doesn't read as
+a smaller version of `/admin` -- the two are separate route hierarchies with
+different authorization requirements (§9), not variations on one "dashboard".
 
 The Guest Dashboard should provide a deliberately lightweight account experience.
 

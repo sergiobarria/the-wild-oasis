@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 
 describe('Header', () => {
     it('renders the primary nav links pointing at their routes', () => {
-        render(<Header isAuthenticated={false} />);
+        render(<Header role={null} />);
 
         expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
         expect(screen.getByRole('link', { name: 'Cabins' })).toHaveAttribute('href', '/cabins');
@@ -19,7 +19,7 @@ describe('Header', () => {
     });
 
     it('shows Sign In and Explore Cabins when unauthenticated', () => {
-        render(<Header isAuthenticated={false} />);
+        render(<Header role={null} />);
 
         expect(screen.getByRole('button', { name: 'Sign In' })).toHaveAttribute('href', '/sign-in');
         expect(screen.getByRole('button', { name: 'Explore Cabins' })).toHaveAttribute(
@@ -29,19 +29,27 @@ describe('Header', () => {
         expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeInTheDocument();
     });
 
-    it('shows Dashboard when authenticated', () => {
-        render(<Header isAuthenticated={true} />);
+    it('shows Dashboard linking to /guest-area for a guest', () => {
+        render(<Header role='guest' />);
 
         expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveAttribute(
             'href',
-            '/dashboard',
+            '/guest-area',
         );
+        expect(screen.queryByRole('button', { name: 'Sign In' })).not.toBeInTheDocument();
+    });
+
+    it('shows Admin linking to /admin for an admin', () => {
+        render(<Header role='admin' />);
+
+        expect(screen.getByRole('button', { name: 'Admin' })).toHaveAttribute('href', '/admin');
+        expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Sign In' })).not.toBeInTheDocument();
     });
 
     it('opens the mobile menu and navigates its links', async () => {
         const user = userEvent.setup();
-        render(<Header isAuthenticated={false} />);
+        render(<Header role={null} />);
 
         await user.click(screen.getByRole('button', { name: 'Open menu' }));
 

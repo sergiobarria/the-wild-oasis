@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Overview -- The Wild Oasis',
+    title: pageTitle('Overview'),
 };
 
-export default function DashboardOverviewPage() {
+export default function GuestAreaOverviewPage() {
     return (
         <div className='flex flex-col gap-2'>
             <h1 className='text-2xl font-semibold'>Overview</h1>

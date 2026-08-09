@@ -104,9 +104,22 @@ Then copy the config files from §3–§8 and run
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "auth:generate": "auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts"
+    "auth:generate": "better-auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts"
 }
 ```
+
+`auth:generate` needs the `@better-auth/cli` package (devDependency, provides the `better-auth`
+binary) -- it's what actually reads `createAuthOptions` and writes `schema.ts`. **Its version
+does not track the `better-auth` runtime's.** As of writing, `@better-auth/cli` has no `1.6.x`
+release at all (it tops out around `1.4.x`/a `1.5.0` beta), so there is no pin that closes the
+gap with the runtime pinned at `1.6.15`. This is a real, hit-in-practice risk, not a theoretical
+one: giving a custom `additionalFields` field a literal-string-enum `type` (e.g.
+`type: ['guest', 'admin']`, which `better-auth`'s field-type syntax supports) generates a
+**broken** Convex validator with this CLI version (`v.union(v.null(), undefined)` -- a type
+error). Stick to primitive `type` values (`'string'`, `'number'`, `'boolean'`, ...) for
+`additionalFields` until a matching CLI release exists; narrow literal unions in TypeScript
+instead (see `lib/user-roles.ts`'s `isAdmin`, mirrored server-side in
+`convex/authorization.ts`).
 
 Also set at the root of `package.json`:
 
@@ -344,7 +357,7 @@ lib/
   auth-server.ts              convexBetterAuthNextJs({ ... })
   env.ts                      validated env
   utils.ts                    cn()
-components/
+providers/
   convex-client-provider.tsx  'use client' ConvexBetterAuthProvider
 app/
   api/auth/[...all]/route.ts  export const { GET, POST } = handler

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { APP_ROUTES } from '@/lib/routes';
+import { SITE_CONFIG } from '@/lib/site-config';
 
 const NAV_LINKS = [
     { label: 'Cabins', href: APP_ROUTES.CABINS },
@@ -20,14 +21,12 @@ export function Footer() {
                     <Link
                         href={APP_ROUTES.HOME}
                         className='flex items-center gap-2'
-                        aria-label='The Wild Oasis home'
+                        aria-label={`${SITE_CONFIG.NAME} home`}
                     >
                         <Image src='/assets/logo.webp' alt='' width={32} height={23} />
-                        <span className='font-heading text-lg font-medium'>The Wild Oasis</span>
+                        <span className='font-heading text-lg font-medium'>{SITE_CONFIG.NAME}</span>
                     </Link>
-                    <p className='max-w-xs text-sm text-muted-foreground'>
-                        Handpicked cabins for slowing down, away from the noise.
-                    </p>
+                    <p className='max-w-xs text-sm text-muted-foreground'>{SITE_CONFIG.TAGLINE}</p>
                 </div>
 
                 <nav aria-label='Footer' className='flex flex-col gap-2'>
@@ -63,7 +62,7 @@ export function Footer() {
 
             <div className='border-t border-border px-6 py-6 lg:px-8'>
                 <p className='text-xs text-muted-foreground'>
-                    © {new Date().getFullYear()} The Wild Oasis. All rights reserved.
+                    © {new Date().getFullYear()} {SITE_CONFIG.NAME}. All rights reserved.
                 </p>
             </div>
         </footer>

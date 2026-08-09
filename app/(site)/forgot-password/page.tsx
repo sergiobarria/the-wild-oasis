@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Forgot Password -- The Wild Oasis',
+    title: pageTitle('Forgot Password'),
 };
 
 export default function ForgotPasswordPage() {

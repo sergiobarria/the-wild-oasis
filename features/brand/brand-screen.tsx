@@ -7,6 +7,7 @@ import { IconsSection } from '@/features/brand/icons-section';
 import { MotionSection } from '@/features/brand/motion-section';
 import { SpacingRadiusSection } from '@/features/brand/spacing-radius-section';
 import { TypeScaleSection } from '@/features/brand/type-scale-section';
+import { SITE_CONFIG } from '@/lib/site-config';
 
 export function BrandScreen() {
     return (
@@ -24,12 +25,12 @@ export function BrandScreen() {
                 <p className='font-mono text-xs text-muted-foreground'>
                     /brand -- internal reference
                 </p>
-                <h1 className='mt-2 text-4xl font-light tracking-tight'>The Wild Oasis</h1>
+                <h1 className='mt-2 text-4xl font-light tracking-tight'>{SITE_CONFIG.NAME}</h1>
                 <p className='mt-3 max-w-2xl text-sm text-muted-foreground'>
-                    Design tokens, type, and components for The Wild Oasis. Reference this before
-                    shipping new UI -- if a screen needs a color, weight, or spacing value that
-                    isn&apos;t here, it&apos;s either a new decision worth documenting or a sign the
-                    screen is reaching for something the brand doesn&apos;t use.
+                    Design tokens, type, and components for {SITE_CONFIG.NAME}. Reference this
+                    before shipping new UI -- if a screen needs a color, weight, or spacing value
+                    that isn&apos;t here, it&apos;s either a new decision worth documenting or a
+                    sign the screen is reaching for something the brand doesn&apos;t use.
                 </p>
             </header>
 

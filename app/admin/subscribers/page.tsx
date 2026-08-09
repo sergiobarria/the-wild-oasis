@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Subscribers -- Admin -- The Wild Oasis',
+    title: pageTitle('Subscribers -- Admin'),
 };
 
 export default function AdminSubscribersPage() {

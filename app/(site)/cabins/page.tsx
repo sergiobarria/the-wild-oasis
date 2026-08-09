@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Cabins -- The Wild Oasis',
+    title: pageTitle('Cabins'),
 };
 
 export default function CabinsPage() {

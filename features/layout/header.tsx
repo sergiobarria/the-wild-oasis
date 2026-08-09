@@ -17,6 +17,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { APP_ROUTES } from '@/lib/routes';
+import { SITE_CONFIG } from '@/lib/site-config';
 import { cn } from '@/lib/utils';
 
 const NAV_LINKS = [
@@ -27,12 +28,15 @@ const NAV_LINKS = [
 ] as const;
 
 type HeaderProps = {
-    isAuthenticated: boolean;
+    /** The signed-in user's role, or `null` when unauthenticated. */
+    role: 'guest' | 'admin' | null;
 };
 
-export function Header({ isAuthenticated }: HeaderProps) {
+export function Header({ role }: HeaderProps) {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const accountHref = role === 'admin' ? APP_ROUTES.ADMIN : APP_ROUTES.GUEST_AREA;
+    const accountLabel = role === 'admin' ? 'Admin' : 'Dashboard';
 
     return (
         <header className='sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80'>
@@ -40,10 +44,10 @@ export function Header({ isAuthenticated }: HeaderProps) {
                 <Link
                     href={APP_ROUTES.HOME}
                     className='flex items-center gap-2'
-                    aria-label='The Wild Oasis home'
+                    aria-label={`${SITE_CONFIG.NAME} home`}
                 >
                     <Image src='/assets/logo.webp' alt='' width={32} height={23} priority />
-                    <span className='font-heading text-lg font-medium'>The Wild Oasis</span>
+                    <span className='font-heading text-lg font-medium'>{SITE_CONFIG.NAME}</span>
                 </Link>
 
                 <nav aria-label='Primary' className='hidden items-center gap-1 md:flex'>
@@ -66,13 +70,13 @@ export function Header({ isAuthenticated }: HeaderProps) {
                 </nav>
 
                 <div className='hidden items-center gap-2 md:flex'>
-                    {isAuthenticated ? (
+                    {role ? (
                         <Button
-                            render={<Link href={APP_ROUTES.DASHBOARD} />}
+                            render={<Link href={accountHref} />}
                             nativeButton={false}
                             variant='outline'
                         >
-                            Dashboard
+                            {accountLabel}
                         </Button>
                     ) : (
                         <>
@@ -127,18 +131,18 @@ export function Header({ isAuthenticated }: HeaderProps) {
                             })}
                         </nav>
                         <div className='flex flex-col gap-2'>
-                            {isAuthenticated ? (
+                            {role ? (
                                 <Button
                                     render={
                                         <Link
-                                            href={APP_ROUTES.DASHBOARD}
+                                            href={accountHref}
                                             onClick={() => setMobileOpen(false)}
                                         />
                                     }
                                     nativeButton={false}
                                     variant='outline'
                                 >
-                                    Dashboard
+                                    {accountLabel}
                                 </Button>
                             ) : (
                                 <>

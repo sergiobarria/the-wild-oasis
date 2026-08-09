@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
+import { pageTitle } from '@/lib/site-config';
+
 export const metadata: Metadata = {
-    title: 'Privacy Policy -- The Wild Oasis',
+    title: pageTitle('Privacy Policy'),
 };
 
 export default function PrivacyPage() {

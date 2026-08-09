@@ -16,13 +16,14 @@
         "typecheck": "tsc --noEmit",
         "check": "prettier --check . && eslint",
         "test:e2e": "playwright test",
-        "auth:generate": "auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts",
+        "auth:generate": "better-auth generate --config ./convex/betterAuth/auth.ts --output ./convex/betterAuth/schema.ts",
         "email:dev": "email dev --dir emails --port 3001"
     },
     "dependencies": {
         "@base-ui/react": "^1.7.0",
         "@convex-dev/better-auth": "^0.12.5",
         "@t3-oss/env-nextjs": "^0.13.11",
+        "@tanstack/react-form": "^1.33.4",
         "better-auth": "1.6.15",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -41,6 +42,7 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
+        "@better-auth/cli": "^1.4.21",
         "@edge-runtime/vm": "^5.0.0",
         "@playwright/test": "^1.62.1",
         "@react-email/ui": "^6.9.2",
