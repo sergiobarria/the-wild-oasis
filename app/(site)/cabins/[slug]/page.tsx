@@ -7,6 +7,7 @@ import { fetchQuery } from 'convex/nextjs';
 
 import { api } from '@/convex/_generated/api';
 import { CabinDetailScreen } from '@/features/cabins/cabin-detail-screen';
+import { isAuthenticated } from '@/lib/auth-server';
 import { pageTitle } from '@/lib/site-config';
 
 // `generateMetadata` and the page component each need this cabin -- Next's automatic fetch
@@ -23,9 +24,9 @@ export async function generateMetadata({ params }: PageProps<'/cabins/[slug]'>):
 
 export default async function CabinDetailPage({ params }: PageProps<'/cabins/[slug]'>) {
     const { slug } = await params;
-    const cabin = await getCabin(slug);
+    const [cabin, signedIn] = await Promise.all([getCabin(slug), isAuthenticated()]);
 
     if (!cabin) notFound();
 
-    return <CabinDetailScreen cabin={cabin} />;
+    return <CabinDetailScreen cabin={cabin} isAuthenticated={signedIn} />;
 }

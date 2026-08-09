@@ -48,3 +48,16 @@ export function cabinsSearchHref(params: {
     const qs = query.toString();
     return qs ? `${APP_ROUTES.CABINS}?${qs}` : APP_ROUTES.CABINS;
 }
+
+/** `/checkout/summary` for a fully-configured booking (cabin + dates + guests) carried over
+ *  from the booking panel -- unlike `cabinsSearchHref`, every param is required: there's
+ *  nothing useful to check out with a partial selection. */
+export function checkoutSummaryHref(params: {
+    cabinId: string;
+    checkIn: string;
+    checkOut: string;
+    guests: string;
+}): string {
+    const query = new URLSearchParams(params);
+    return `${APP_ROUTES.CHECKOUT_SUMMARY}?${query.toString()}`;
+}

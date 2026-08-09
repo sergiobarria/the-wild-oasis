@@ -1,17 +1,24 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CabinBookingPanel } from './cabin-booking-panel';
 
 const { useQuery } = vi.hoisted(() => ({ useQuery: vi.fn() }));
+const push = vi.fn();
 
 vi.mock('convex/react', () => ({ useQuery }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
 const CABIN_ID = 'cabin-1';
 
 function renderPanel(
-    overrides: Partial<{ nightlyRate: number; cleaningFee: number; maxGuests: number }> = {},
+    overrides: Partial<{
+        nightlyRate: number;
+        cleaningFee: number;
+        maxGuests: number;
+        isAuthenticated: boolean;
+    }> = {},
 ) {
     return render(
         <CabinBookingPanel
@@ -19,11 +26,25 @@ function renderPanel(
             nightlyRate={overrides.nightlyRate ?? 25000}
             cleaningFee={overrides.cleaningFee ?? 3500}
             maxGuests={overrides.maxGuests ?? 4}
+            isAuthenticated={overrides.isAuthenticated ?? true}
         />,
     );
 }
 
+function selectAvailableDates() {
+    fireEvent.change(screen.getByLabelText('Check-in'), {
+        target: { value: '2026-08-15' },
+    });
+    fireEvent.change(screen.getByLabelText('Check-out'), {
+        target: { value: '2026-08-18' },
+    });
+}
+
 describe('CabinBookingPanel', () => {
+    beforeEach(() => {
+        push.mockClear();
+    });
+
     it('prompts for dates before any total is shown', () => {
         useQuery.mockReturnValue(undefined);
         renderPanel();
@@ -34,13 +55,7 @@ describe('CabinBookingPanel', () => {
     it('computes and displays the live total once both dates are set', () => {
         useQuery.mockReturnValue(undefined);
         renderPanel();
-
-        fireEvent.change(screen.getByLabelText('Check-in'), {
-            target: { value: '2026-08-15' },
-        });
-        fireEvent.change(screen.getByLabelText('Check-out'), {
-            target: { value: '2026-08-18' },
-        });
+        selectAvailableDates();
 
         // 3 nights x $250 + $35 cleaning fee = $785
         expect(screen.getByText('$785')).toBeInTheDocument();
@@ -70,12 +85,11 @@ describe('CabinBookingPanel', () => {
         expect(screen.queryByRole('option', { name: '6 guests' })).not.toBeInTheDocument();
     });
 
-    it('keeps the Reserve button disabled with a coming-soon caption', () => {
+    it('keeps Reserve disabled until dates are set and available', () => {
         useQuery.mockReturnValue(undefined);
         renderPanel();
 
         expect(screen.getByRole('button', { name: 'Reserve' })).toBeDisabled();
-        expect(screen.getByText('Checkout coming soon.')).toBeInTheDocument();
     });
 
     it('does not query availability until both dates are set', () => {
@@ -88,13 +102,7 @@ describe('CabinBookingPanel', () => {
     it('queries availability once both dates are set', () => {
         useQuery.mockReturnValue(undefined);
         renderPanel();
-
-        fireEvent.change(screen.getByLabelText('Check-in'), {
-            target: { value: '2026-08-15' },
-        });
-        fireEvent.change(screen.getByLabelText('Check-out'), {
-            target: { value: '2026-08-18' },
-        });
+        selectAvailableDates();
 
         expect(useQuery).toHaveBeenLastCalledWith(
             expect.anything(),
@@ -113,13 +121,7 @@ describe('CabinBookingPanel', () => {
             violations: [{ code: 'DATE_UNAVAILABLE' }, { code: 'GUESTS_EXCEED_CAPACITY' }],
         });
         renderPanel();
-
-        fireEvent.change(screen.getByLabelText('Check-in'), {
-            target: { value: '2026-08-15' },
-        });
-        fireEvent.change(screen.getByLabelText('Check-out'), {
-            target: { value: '2026-08-18' },
-        });
+        selectAvailableDates();
 
         expect(
             screen.getByText('These dates are already booked. Try a different range.'),
@@ -127,21 +129,45 @@ describe('CabinBookingPanel', () => {
         expect(
             screen.getByText('This cabin can’t accommodate that many guests.'),
         ).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reserve' })).toBeDisabled();
     });
 
-    it('shows no violation messages when the dates are available', () => {
+    it('enables Reserve once the dates are available', () => {
         useQuery.mockReturnValue({ available: true });
         renderPanel();
-
-        fireEvent.change(screen.getByLabelText('Check-in'), {
-            target: { value: '2026-08-15' },
-        });
-        fireEvent.change(screen.getByLabelText('Check-out'), {
-            target: { value: '2026-08-18' },
-        });
+        selectAvailableDates();
 
         expect(
             screen.queryByText('These dates are already booked. Try a different range.'),
         ).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reserve' })).toBeEnabled();
+    });
+
+    it('navigates straight to checkout when already signed in', async () => {
+        useQuery.mockReturnValue({ available: true });
+        const user = userEvent.setup();
+        renderPanel({ isAuthenticated: true });
+        selectAvailableDates();
+
+        await user.click(screen.getByRole('button', { name: 'Reserve' }));
+
+        expect(push).toHaveBeenCalledWith(
+            `/checkout/summary?cabinId=${CABIN_ID}&checkIn=2026-08-15&checkOut=2026-08-18&guests=1`,
+        );
+    });
+
+    it('routes through sign-in with the checkout URL preserved when signed out', async () => {
+        useQuery.mockReturnValue({ available: true });
+        const user = userEvent.setup();
+        renderPanel({ isAuthenticated: false });
+        selectAvailableDates();
+
+        await user.click(screen.getByRole('button', { name: 'Reserve' }));
+
+        expect(push).toHaveBeenCalledWith(
+            `/sign-in?redirectTo=${encodeURIComponent(
+                `/checkout/summary?cabinId=${CABIN_ID}&checkIn=2026-08-15&checkOut=2026-08-18&guests=1`,
+            )}`,
+        );
     });
 });

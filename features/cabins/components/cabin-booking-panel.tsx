@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 
+import type { Route } from 'next';
+import { useRouter } from 'next/navigation';
+
 import { useQuery } from 'convex/react';
 
 import { Button } from '@/components/ui/button';
@@ -21,6 +24,7 @@ import { violationMessage } from '@/features/availability/violation-messages';
 import { todayIsoDate } from '@/lib/dates';
 import { guestOptionsFor } from '@/lib/guest-options';
 import { formatCents, formatNightlyRate } from '@/lib/money';
+import { APP_ROUTES, checkoutSummaryHref } from '@/lib/routes';
 
 import { calculateTotalCents, nightsBetween } from '../cabin-detail-domain';
 
@@ -29,6 +33,11 @@ type CabinBookingPanelProps = {
     nightlyRate: number;
     cleaningFee: number;
     maxGuests: number;
+    /** Server-computed at page render, same pattern as `Header`'s `role` prop -- this flow
+     *  only ever navigates to a fresh page (checkout summary, or sign-in first), so there's
+     *  no risk of the value going stale under client-side cache reuse the way a persistent
+     *  layout would need to guard against. */
+    isAuthenticated: boolean;
 };
 
 export function CabinBookingPanel({
@@ -36,7 +45,9 @@ export function CabinBookingPanel({
     nightlyRate,
     cleaningFee,
     maxGuests,
+    isAuthenticated,
 }: CabinBookingPanelProps) {
+    const router = useRouter();
     const [checkIn, setCheckIn] = useState('');
     const [checkOut, setCheckOut] = useState('');
     const [guests, setGuests] = useState('1');
@@ -50,6 +61,17 @@ export function CabinBookingPanel({
         api.reservations.checkAvailability,
         nights > 0 ? { cabinId, checkIn, checkOut, guests: Number(guests), now: today } : 'skip',
     );
+    const canContinue = nights > 0 && availability?.available === true;
+
+    function handleContinue() {
+        const summaryHref = checkoutSummaryHref({ cabinId, checkIn, checkOut, guests });
+
+        router.push(
+            (isAuthenticated
+                ? summaryHref
+                : `${APP_ROUTES.SIGN_IN}?redirectTo=${encodeURIComponent(summaryHref)}`) as Route,
+        );
+    }
 
     return (
         <Card className='lg:sticky lg:top-24'>
@@ -129,16 +151,14 @@ export function CabinBookingPanel({
                     </ul>
                 )}
 
-                <div className='space-y-1.5'>
-                    {/* Checkout (WO-028+) doesn't exist yet -- same honest scope-limiting as the
-                        home widget and the /cabins listing's date fields. */}
-                    <Button type='button' className='w-full' disabled>
-                        Reserve
-                    </Button>
-                    <p className='text-center text-xs text-muted-foreground'>
-                        Checkout coming soon.
-                    </p>
-                </div>
+                <Button
+                    type='button'
+                    className='w-full'
+                    disabled={!canContinue}
+                    onClick={handleContinue}
+                >
+                    Reserve
+                </Button>
             </CardContent>
         </Card>
     );

@@ -11,7 +11,13 @@ import { CabinReviewsSection } from './components/cabin-reviews-section';
 
 type Cabin = NonNullable<FunctionReturnType<typeof api.cabins.getBySlug>>;
 
-export function CabinDetailScreen({ cabin }: { cabin: Cabin }) {
+export function CabinDetailScreen({
+    cabin,
+    isAuthenticated,
+}: {
+    cabin: Cabin;
+    isAuthenticated: boolean;
+}) {
     const images =
         cabin.galleryImageUrls.length > 0 ? cabin.galleryImageUrls : ['/assets/placeholder.jpg'];
 
@@ -37,6 +43,7 @@ export function CabinDetailScreen({ cabin }: { cabin: Cabin }) {
                         nightlyRate={cabin.nightlyRate}
                         cleaningFee={cabin.cleaningFee}
                         maxGuests={cabin.maxGuests}
+                        isAuthenticated={isAuthenticated}
                     />
                 </div>
 
