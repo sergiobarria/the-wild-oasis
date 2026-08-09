@@ -629,6 +629,11 @@ relational database. The universal rules below apply to both; the path-specific 
   mirrorable to the client (§7).
 - **Index every query.** No unbounded scans; ownership first in the index; every list paginated or
   bounded.
+- **Model a table when the feature that needs it is being built, not ahead of time.** A schema
+  guessed before the feature exists gets the shape wrong and is expensive to unwind once other code
+  depends on it; a table added alongside its first real consumer gets modeled against actual
+  requirements. Let the schema grow one table at a time across a project's task list rather than
+  scaffolding the full data model up front.
 - **Schema changes on populated tables start optional.** New indexes on large tables are staged and
   observed before being relied on.
 - **Long or non-transactional work is scheduled,** not awaited inside a mutation, so the mutation

@@ -10,6 +10,7 @@ agents here, so a document that is not listed effectively does not exist.
 | [`00_SPEC.md`](00_SPEC.md)                           | Product spec — what the app does, for whom, and the domain model                    | Building or changing a feature                        |
 | [`01_PROJECT_SCAFFOLD.md`](01_PROJECT_SCAFFOLD.md)   | Stack, config, env vars, Convex + Better Auth wiring, testing, CI, deployment       | Touching tooling, config, env, auth, CI, or deploying |
 | [`02_CODING_GUIDELINES.md`](02_CODING_GUIDELINES.md) | How code is written here: principles, layout, naming, domain modeling, testing, git | Writing or reviewing any code                         |
+| [`03_MVP_TASKS.md`](03_MVP_TASKS.md)                 | MVP build order — phased task list derived from the spec                           | Picking up the next piece of work                     |
 
 **`02` is portable, `01` is not.** The coding guidelines are copied across all projects
 and stay framework-agnostic; the scaffold is this stack's instance of them. Improvements
