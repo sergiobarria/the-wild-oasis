@@ -1,16 +1,21 @@
 import type { Metadata } from 'next';
 
+import { ContentPageShell } from '@/components/content-page-shell';
+import { ContactScreen } from '@/features/contact/contact-screen';
 import { pageTitle } from '@/lib/site-config';
 
 export const metadata: Metadata = {
     title: pageTitle('Contact'),
+    description: 'Get in touch with The Wild Oasis -- questions, feedback, or booking help.',
 };
 
 export default function ContactPage() {
     return (
-        <div className='flex flex-1 flex-col items-center justify-center gap-2 p-8'>
-            <h1 className='text-2xl font-semibold'>Contact</h1>
-            <p className='text-muted-foreground'>Coming soon.</p>
-        </div>
+        <ContentPageShell
+            title='Get in touch'
+            description="Questions about a stay, feedback, or anything else -- we'd love to hear from you."
+        >
+            <ContactScreen />
+        </ContentPageShell>
     );
 }
