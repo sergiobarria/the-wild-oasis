@@ -10,7 +10,7 @@ const modules = import.meta.glob('../**/*.ts');
 
 async function seedCabin(
     t: ReturnType<typeof convexTest>,
-    overrides: { maxGuests?: number } = {},
+    overrides: { maxGuests?: number; published?: boolean } = {},
 ): Promise<Id<'cabins'>> {
     const coverImage = await t.run((ctx) =>
         ctx.storage.store(new Blob(['fake-image'], { type: 'image/jpeg' })),
@@ -32,7 +32,7 @@ async function seedCabin(
             coverImage,
             galleryImages: [coverImage],
             amenities: [],
-            published: true,
+            published: overrides.published ?? true,
             featured: false,
             createdAt: 1700000000000,
             updatedAt: 1700000000000,
@@ -83,6 +83,23 @@ describe('checkAvailability', () => {
                 }),
             ),
         ).rejects.toThrow();
+    });
+
+    test('throws for an unpublished cabin, same as an unknown one', async () => {
+        const t = convexTest(schema, modules);
+        const cabinId = await seedCabin(t, { published: false });
+
+        await expect(
+            t.run((ctx) =>
+                checkAvailability(ctx, {
+                    cabinId,
+                    checkIn: '2026-08-15',
+                    checkOut: '2026-08-18',
+                    guests: 2,
+                    now: '2026-08-10',
+                }),
+            ),
+        ).rejects.toThrow(`Unknown cabin id "${cabinId}".`);
     });
 
     test('is available with no conflicting reservations', async () => {

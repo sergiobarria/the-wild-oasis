@@ -26,12 +26,18 @@ export type ExistingReservationLike = DateRange & {
  *  pass an empty array; Phase 8 wires real rows in without changing this module's signature. */
 export type AvailabilityBlockLike = DateRange;
 
-export type AvailabilityViolation =
-    | { code: 'INVALID_RANGE' }
-    | { code: 'PAST_CHECK_IN' }
-    | { code: 'INVALID_GUEST_COUNT' }
-    | { code: 'GUESTS_EXCEED_CAPACITY' }
-    | { code: 'DATE_UNAVAILABLE' };
+/** The full set of violation codes, as a runtime array -- lets a Convex return validator derive
+ *  its `v.union(v.literal(...))` from this instead of hand-duplicating the list, so a new code
+ *  added here can't silently drift out of sync with what a public query is allowed to return. */
+export const AVAILABILITY_VIOLATION_CODES = [
+    'INVALID_RANGE',
+    'PAST_CHECK_IN',
+    'INVALID_GUEST_COUNT',
+    'GUESTS_EXCEED_CAPACITY',
+    'DATE_UNAVAILABLE',
+] as const;
+
+export type AvailabilityViolation = { code: (typeof AVAILABILITY_VIOLATION_CODES)[number] };
 
 export type AvailabilityResult =
     { available: true } | { available: false; violations: AvailabilityViolation[] };

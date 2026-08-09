@@ -18,6 +18,7 @@ import {
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { violationMessage } from '@/features/availability/violation-messages';
+import { todayIsoDate } from '@/lib/dates';
 import { guestOptionsFor } from '@/lib/guest-options';
 import { formatCents, formatNightlyRate } from '@/lib/money';
 
@@ -39,7 +40,7 @@ export function CabinBookingPanel({
     const [checkIn, setCheckIn] = useState('');
     const [checkOut, setCheckOut] = useState('');
     const [guests, setGuests] = useState('1');
-    const [today] = useState(() => new Date().toISOString().slice(0, 10));
+    const [today] = useState(() => todayIsoDate());
 
     const nights = nightsBetween(checkIn, checkOut);
     const total = calculateTotalCents(nightlyRate, cleaningFee, nights);

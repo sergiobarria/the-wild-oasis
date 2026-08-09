@@ -1,16 +1,11 @@
 import { v } from 'convex/values';
 
+import { AVAILABILITY_VIOLATION_CODES } from '../features/availability/availability-domain';
 import { query } from './_generated/server';
 import * as Reservations from './model/reservations';
 
 const availabilityViolationValidator = v.object({
-    code: v.union(
-        v.literal('INVALID_RANGE'),
-        v.literal('PAST_CHECK_IN'),
-        v.literal('INVALID_GUEST_COUNT'),
-        v.literal('GUESTS_EXCEED_CAPACITY'),
-        v.literal('DATE_UNAVAILABLE'),
-    ),
+    code: v.union(...AVAILABILITY_VIOLATION_CODES.map((code) => v.literal(code))),
 });
 
 const availabilityResultValidator = v.union(
