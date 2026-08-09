@@ -68,3 +68,9 @@ export function checkoutSummaryHref(params: {
 export function signInHref(redirectTo: string): string {
     return `${APP_ROUTES.SIGN_IN}?redirectTo=${encodeURIComponent(redirectTo)}`;
 }
+
+/** `/checkout/success` for a just-created reservation. */
+export function checkoutSuccessHref(reservationId: string): string {
+    const query = new URLSearchParams({ reservationId });
+    return `${APP_ROUTES.CHECKOUT_SUCCESS}?${query.toString()}`;
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { cabinsSearchHref, checkoutSummaryHref, signInHref } from './routes';
+import { cabinsSearchHref, checkoutSuccessHref, checkoutSummaryHref, signInHref } from './routes';
 
 describe('cabinsSearchHref', () => {
     it('builds a query string from all three params', () => {
@@ -35,6 +35,14 @@ describe('signInHref', () => {
     it('URL-encodes the redirect path', () => {
         expect(signInHref('/checkout/summary?cabinId=cabin-1&guests=2')).toBe(
             '/sign-in?redirectTo=%2Fcheckout%2Fsummary%3FcabinId%3Dcabin-1%26guests%3D2',
+        );
+    });
+});
+
+describe('checkoutSuccessHref', () => {
+    it('builds a query string with the reservation id', () => {
+        expect(checkoutSuccessHref('reservation-1')).toBe(
+            '/checkout/success?reservationId=reservation-1',
         );
     });
 });

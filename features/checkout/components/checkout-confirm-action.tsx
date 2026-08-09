@@ -11,7 +11,7 @@ import { ConvexError } from 'convex/values';
 import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { APP_ROUTES } from '@/lib/routes';
+import { checkoutSuccessHref } from '@/lib/routes';
 
 type CheckoutConfirmActionProps = {
     cabinId: Id<'cabins'>;
@@ -51,7 +51,7 @@ export function CheckoutConfirmAction({
                 checkOut,
                 guests,
             });
-            router.push(`${APP_ROUTES.CHECKOUT_SUCCESS}?reservationId=${reservationId}` as Route);
+            router.push(checkoutSuccessHref(reservationId) as Route);
         } catch (thrown) {
             setError(
                 thrown instanceof ConvexError && typeof thrown.data === 'string'
