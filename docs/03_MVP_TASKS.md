@@ -107,7 +107,7 @@ builds that feature.
       Check → Admin Check → DB). Reads the `role` field from WO-007; no new schema. No
       admin mutation ships without calling this.
 
-- [ ] **WO-009 (1.3) — Availability calculation (pure domain module)**
+- [x] **WO-009 (1.3) — Availability calculation (pure domain module)**
       `features/availability/availability-domain.ts`: given a cabin's capacity, a date
       range, and lists of reservation-shaped and availability-block-shaped inputs,
       return whether the range is bookable. Pure, framework-free, unit-tested against
@@ -206,42 +206,42 @@ fallback bolted on after Stripe. Build it first; Stripe becomes an additive path
 `reservations` or `featureFlags` tables exist before this point — WO-025 and WO-026
 define them here.
 
-- [ ] **WO-025 (5.1) — Define `reservations` schema**
+- [x] **WO-025 (5.1) — Define `reservations` schema**
       Fields per spec §65–67: cabin ref, guest ref, check-in/check-out, guest count,
       reservation status, payment status, pricing snapshot (nightly subtotal, cleaning
       fee, taxes, total), `paymentRequired`, timestamps. Define `RESERVATION_STATUS` and
       `PAYMENT_STATUS` as typed constants alongside it (`02_CODING_GUIDELINES.md` §7).
 
-- [ ] **WO-026 (5.2) — Define `featureFlags` schema + `isFeatureEnabled` utility**
+- [x] **WO-026 (5.2) — Define `featureFlags` schema + `isFeatureEnabled` utility**
       Fields per spec §40 (key, name, description, enabled, updatedAt, updatedBy). Seed
       `stripePaymentsEnabled = false`. Centralized `isFeatureEnabled(key)` utility per
       spec §42 — feature code never queries the flags table ad hoc. Defaults to
       `disabled` when a flag can't be retrieved, which matters specifically for
       `stripePaymentsEnabled` since it gates payment creation.
 
-- [ ] **WO-027 (5.3) — Booking panel** (on cabin detail) — date range + guest count, live
+- [x] **WO-027 (5.3) — Booking panel** (on cabin detail) — date range + guest count, live
       total calculation (nightly × nights + cleaning fee + taxes), backend availability
       validation before allowing checkout to proceed. Spec §31–32.
 
-- [ ] **WO-028 (5.4) — Auth gate at checkout entry** — unauthenticated users can configure
+- [x] **WO-028 (5.4) — Auth gate at checkout entry** — unauthenticated users can configure
       a reservation freely; sign-in/sign-up is requested only when continuing to
       checkout, preserving booking context. Spec §33–34.
 
-- [ ] **WO-029 (5.5) — `/checkout/summary`** — cabin, dates, guests, pricing breakdown,
+- [x] **WO-029 (5.5) — `/checkout/summary`** — cabin, dates, guests, pricing breakdown,
       guest info. Branches on `stripePaymentsEnabled`: "Pay & Confirm" (real flow) vs.
       "Confirm Reservation" with the disabled-payments notice (demo flow). Spec §35, §41.
 
-- [ ] **WO-030 (5.6) — Demo confirmation path** — creates a reservation with
+- [x] **WO-030 (5.6) — Demo confirmation path** — creates a reservation with
       `paymentRequired: false`, `paymentStatus: "not_required"`, flag check enforced
       **server-side** in the mutation, not just hidden in the UI. Spec §41–42.
 
-- [ ] **WO-031 (5.7) — `/checkout/success`** — confirmation, reference, cabin, dates,
+- [x] **WO-031 (5.7) — `/checkout/success`** — confirmation, reference, cabin, dates,
       total, link to dashboard. Spec §38.
 
-- [ ] **WO-032 (5.8) — `/checkout/cancel`** — cancellation messaging, return-to-cabin /
+- [x] **WO-032 (5.8) — `/checkout/cancel`** — cancellation messaging, return-to-cabin /
       retry actions, no reservation left in a confirmed state. Spec §39.
 
-- [ ] **WO-033 (5.9) — Reservation creation backend rules** — re-validates availability,
+- [x] **WO-033 (5.9) — Reservation creation backend rules** — re-validates availability,
       guest-count ≤ capacity, no past check-in, no overlap with confirmed reservations
       or availability blocks — all server-side regardless of what the frontend showed.
       Wires WO-009's domain module against the real `reservations` table (blocks are
