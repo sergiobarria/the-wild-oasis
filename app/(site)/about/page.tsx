@@ -1,16 +1,25 @@
 import type { Metadata } from 'next';
 
+import { fetchQuery } from 'convex/nextjs';
+
+import { api } from '@/convex/_generated/api';
+import { AboutScreen } from '@/features/about/about-screen';
 import { pageTitle } from '@/lib/site-config';
+
+const GALLERY_CABIN_COUNT = 6;
 
 export const metadata: Metadata = {
     title: pageTitle('About'),
+    description: 'The story, philosophy, and people behind The Wild Oasis.',
 };
 
-export default function AboutPage() {
-    return (
-        <div className='flex flex-1 flex-col items-center justify-center gap-2 p-8'>
-            <h1 className='text-2xl font-semibold'>About</h1>
-            <p className='text-muted-foreground'>Coming soon.</p>
-        </div>
-    );
+export default async function AboutPage() {
+    const result = await fetchQuery(api.cabins.listPublished, {
+        paginationOpts: { numItems: GALLERY_CABIN_COUNT, cursor: null },
+    });
+    const galleryImageUrls = result.page
+        .map((cabin) => cabin.coverImageUrl)
+        .filter((url) => url !== null);
+
+    return <AboutScreen galleryImageUrls={galleryImageUrls} />;
 }
