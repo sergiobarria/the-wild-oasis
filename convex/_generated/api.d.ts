@@ -14,6 +14,7 @@ import type * as cabins from "../cabins.js";
 import type * as http from "../http.js";
 import type * as lib_amenities from "../lib/amenities.js";
 import type * as lib_money from "../lib/money.js";
+import type * as lib_reservations from "../lib/reservations.js";
 import type * as lib_reviews from "../lib/reviews.js";
 import type * as model_amenities from "../model/amenities.js";
 import type * as model_auth from "../model/auth.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/amenities": typeof lib_amenities;
   "lib/money": typeof lib_money;
+  "lib/reservations": typeof lib_reservations;
   "lib/reviews": typeof lib_reviews;
   "model/amenities": typeof model_amenities;
   "model/auth": typeof model_auth;

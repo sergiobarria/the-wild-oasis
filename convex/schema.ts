@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 import { amenityCategoryValidator } from './lib/amenities';
+import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
 
 export default defineSchema({
     amenities: defineTable({
@@ -56,4 +57,34 @@ export default defineSchema({
         comment: v.string(),
         createdAt: v.number(),
     }).index('by_cabinId', ['cabinId']),
+
+    reservations: defineTable({
+        cabinId: v.id('cabins'),
+        /** Shaped like a real Better Auth identity (`identity.subject`), same reasoning as
+         *  `reviews.userId` -- Better Auth's `user` table is owned by an isolated Convex
+         *  component, so this can never be a native `v.id()` reference. */
+        guestId: v.string(),
+        /** ISO 'YYYY-MM-DD' calendar-day strings, half-open range. See
+         *  features/availability/availability-domain.ts. */
+        checkIn: v.string(),
+        checkOut: v.string(),
+        guests: v.number(),
+        status: reservationStatusValidator,
+        paymentStatus: paymentStatusValidator,
+        paymentRequired: v.boolean(),
+        /** Integer cents, snapshotted at booking time -- never re-derived from the live cabin
+         *  (docs/02_CODING_GUIDELINES.md §7): a later change to the cabin's nightly rate must
+         *  not affect an existing reservation's stored total. */
+        pricing: v.object({
+            nightlySubtotal: v.number(),
+            cleaningFee: v.number(),
+            /** No tax engine exists yet (spec §4) -- always 0 for now. */
+            taxes: v.number(),
+            total: v.number(),
+        }),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index('by_guestId', ['guestId'])
+        .index('by_cabinId_and_status', ['cabinId', 'status']),
 });
