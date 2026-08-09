@@ -7,6 +7,7 @@ import authComponentSchema from '../betterAuth/schema';
 import { RESERVATION_STATUS } from '../lib/reservations';
 import schema from '../schema';
 import {
+    cancelReservation,
     checkAvailability,
     createDemoReservation,
     getOwnReservation,
@@ -554,5 +555,116 @@ describe('listOwnReservations', () => {
             paymentRequired: false,
         });
         expect(result[0]!.coverImageUrl).toEqual(expect.any(String));
+    });
+});
+
+describe('cancelReservation', () => {
+    async function seedGuest(t: ReturnType<typeof setupTest>, email = 'guest@example.com') {
+        return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+            email,
+            password: 'password123',
+            name: 'Guest User',
+        });
+    }
+
+    test('throws for an unauthenticated caller', async () => {
+        const t = setupTest();
+
+        await expect(
+            t.run((ctx) => cancelReservation(ctx, { reservationId: 'not-real' })),
+        ).rejects.toThrow();
+    });
+
+    test('throws for an unknown reservation id', async () => {
+        const t = setupTest();
+        const identity = await seedGuest(t);
+
+        await expect(
+            t
+                .withIdentity(identity)
+                .run((ctx) => cancelReservation(ctx, { reservationId: 'not-real' })),
+        ).rejects.toThrow('Unknown reservation.');
+    });
+
+    test("throws for another guest's reservation", async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const owner = await seedGuest(t, 'owner@example.com');
+        const other = await seedGuest(t, 'other@example.com');
+        const { reservationId } = await t.withIdentity(owner).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        await expect(
+            t.withIdentity(other).run((ctx) => cancelReservation(ctx, { reservationId })),
+        ).rejects.toThrow('Unknown reservation.');
+    });
+
+    test('cancels a reservation well outside the 48h window, leaving paymentStatus untouched', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        await t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId }));
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({
+            status: 'cancelled',
+            paymentStatus: 'not_required',
+        });
+    });
+
+    test('rejects cancelling an already-cancelled reservation', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+        await t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId }));
+
+        await expect(
+            t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId })),
+        ).rejects.toThrow('This reservation has already been cancelled.');
+    });
+
+    test('rejects cancelling within the 48-hour window', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const checkIn = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+        const checkOut = new Date(tomorrow.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const checkOutString = `${checkOut.getFullYear()}-${String(checkOut.getMonth() + 1).padStart(2, '0')}-${String(checkOut.getDate()).padStart(2, '0')}`;
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn,
+                checkOut: checkOutString,
+                guests: 2,
+            }),
+        );
+
+        await expect(
+            t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId })),
+        ).rejects.toThrow('Cancellation is only available more than 48 hours before check-in.');
     });
 });

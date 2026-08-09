@@ -9,6 +9,7 @@ import { todayIsoDate } from '../../lib/dates';
 import { nightsBetween } from '../../lib/pricing';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
+import { type CancellationDenialReason, canSelfCancel } from '../lib/cancellation';
 import { assertIntegerCents } from '../lib/money';
 import { isBlockingStatus, PAYMENT_STATUS, RESERVATION_STATUS } from '../lib/reservations';
 import { requireUser } from './auth';
@@ -167,26 +168,41 @@ export async function listOwnReservations(ctx: QueryCtx) {
         .order('desc')
         .take(OWN_RESERVATIONS_CAP);
 
-    return await Promise.all(
-        reservations.map(async (reservation) => {
-            const cabin = await ctx.db.get(reservation.cabinId);
-
-            return {
-                _id: reservation._id,
-                cabinName: cabin?.name ?? 'Unknown cabin',
-                cabinSlug: cabin?.slug ?? null,
-                coverImageUrl: cabin ? await ctx.storage.getUrl(cabin.coverImage) : null,
-                checkIn: reservation.checkIn,
-                checkOut: reservation.checkOut,
-                guests: reservation.guests,
-                status: reservation.status,
-                paymentStatus: reservation.paymentStatus,
-                paymentRequired: reservation.paymentRequired,
-                pricing: reservation.pricing,
-                createdAt: reservation.createdAt,
-            };
-        }),
+    // Resolve each distinct cabin once, not once per reservation -- a guest with several
+    // stays at the same cabin would otherwise pay for the same doc + storage-url lookup
+    // repeatedly.
+    const uniqueCabinIds = [...new Set(reservations.map((reservation) => reservation.cabinId))];
+    const cabinsById = new Map(
+        await Promise.all(
+            uniqueCabinIds.map(async (cabinId) => {
+                const cabin = await ctx.db.get(cabinId);
+                const coverImageUrl = cabin ? await ctx.storage.getUrl(cabin.coverImage) : null;
+                return [cabinId, { cabin, coverImageUrl }] as const;
+            }),
+        ),
     );
+
+    return reservations.map((reservation) => {
+        const { cabin, coverImageUrl } = cabinsById.get(reservation.cabinId) ?? {
+            cabin: null,
+            coverImageUrl: null,
+        };
+
+        return {
+            _id: reservation._id,
+            cabinName: cabin?.name ?? 'Unknown cabin',
+            cabinSlug: cabin?.slug ?? null,
+            coverImageUrl,
+            checkIn: reservation.checkIn,
+            checkOut: reservation.checkOut,
+            guests: reservation.guests,
+            status: reservation.status,
+            paymentStatus: reservation.paymentStatus,
+            paymentRequired: reservation.paymentRequired,
+            pricing: reservation.pricing,
+            createdAt: reservation.createdAt,
+        };
+    });
 }
 
 /**
@@ -219,4 +235,47 @@ export async function getOwnReservation(ctx: QueryCtx, args: { reservationId: st
         pricing: reservation.pricing,
         createdAt: reservation.createdAt,
     };
+}
+
+const CANCELLATION_DENIAL_MESSAGES: Record<CancellationDenialReason, string> = {
+    'already-cancelled': 'This reservation has already been cancelled.',
+    'not-upcoming': 'Only upcoming reservations can be cancelled.',
+    'within-window': 'Cancellation is only available more than 48 hours before check-in.',
+    'requires-admin': 'This reservation requires admin assistance to cancel.',
+};
+
+/**
+ * Self-service cancellation (spec §47), gated by the guest's ownership and the 48h window
+ * enforced in `canSelfCancel`. Patches `status` only -- never `paymentStatus`. Cancelling a
+ * reservation and refunding a payment are explicitly distinct operations (spec §47); this
+ * mutation only ever does the former. A future refund action would be a separate, its own
+ * server-side operation, not a side effect of cancellation.
+ */
+export async function cancelReservation(ctx: MutationCtx, args: { reservationId: string }) {
+    const user = await requireUser(ctx);
+    const id = ctx.db.normalizeId('reservations', args.reservationId);
+    const reservation = id ? await ctx.db.get(id) : null;
+
+    if (!reservation || reservation.guestId !== user._id) {
+        throw new ConvexError('Unknown reservation.');
+    }
+
+    const check = canSelfCancel({
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        status: reservation.status,
+        paymentRequired: reservation.paymentRequired,
+        now: new Date(Date.now()),
+    });
+
+    if (!check.allowed) {
+        throw new ConvexError(CANCELLATION_DENIAL_MESSAGES[check.reason]);
+    }
+
+    await ctx.db.patch(reservation._id, {
+        status: RESERVATION_STATUS.CANCELLED,
+        updatedAt: Date.now(),
+    });
+
+    return null;
 }

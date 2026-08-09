@@ -14,6 +14,7 @@ import type * as cabins from "../cabins.js";
 import type * as featureFlags from "../featureFlags.js";
 import type * as http from "../http.js";
 import type * as lib_amenities from "../lib/amenities.js";
+import type * as lib_cancellation from "../lib/cancellation.js";
 import type * as lib_messages from "../lib/messages.js";
 import type * as lib_money from "../lib/money.js";
 import type * as lib_rateLimiter from "../lib/rateLimiter.js";
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   featureFlags: typeof featureFlags;
   http: typeof http;
   "lib/amenities": typeof lib_amenities;
+  "lib/cancellation": typeof lib_cancellation;
   "lib/messages": typeof lib_messages;
   "lib/money": typeof lib_money;
   "lib/rateLimiter": typeof lib_rateLimiter;

@@ -82,3 +82,9 @@ export const listOwnReservations = query({
     returns: v.array(ownReservationSummaryValidator),
     handler: async (ctx) => await Reservations.listOwnReservations(ctx),
 });
+
+export const cancelReservation = mutation({
+    args: { reservationId: v.string() },
+    returns: v.null(),
+    handler: async (ctx, args) => await Reservations.cancelReservation(ctx, args),
+});
