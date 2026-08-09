@@ -378,12 +378,21 @@ describe('getOwnReservation', () => {
 
     test('throws for an unauthenticated caller', async () => {
         const t = setupTest();
-        const cabinId = await seedCabin(t);
-        await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
 
         await expect(
-            t.run((ctx) => getOwnReservation(ctx, { reservationId: 'not-real' as never })),
+            t.run((ctx) => getOwnReservation(ctx, { reservationId: 'not-real' })),
         ).rejects.toThrow();
+    });
+
+    test('returns null for a malformed reservation id', async () => {
+        const t = setupTest();
+        const identity = await seedGuest(t);
+
+        const result = await t
+            .withIdentity(identity)
+            .run((ctx) => getOwnReservation(ctx, { reservationId: 'not-real' }));
+
+        expect(result).toBeNull();
     });
 
     test('returns null for an unknown reservation id', async () => {

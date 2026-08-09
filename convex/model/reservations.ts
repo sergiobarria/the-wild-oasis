@@ -152,13 +152,15 @@ export async function createDemoReservation(
  * dashboard (Phase 6). Authorization is ownership, not just "signed in": `null` for a
  * reservation that exists but belongs to someone else, same as "doesn't exist" -- the caller
  * can't distinguish the two, so this never leaks another guest's booking.
+ *
+ * Takes the id as a plain string and normalizes it rather than validating as `v.id(...)` at the
+ * boundary -- this is read from a URL query param (stale bookmark, manually edited, bot
+ * crawler), so a malformed value is an expected "not found" case, not a 500.
  */
-export async function getOwnReservation(
-    ctx: QueryCtx,
-    args: { reservationId: Id<'reservations'> },
-) {
+export async function getOwnReservation(ctx: QueryCtx, args: { reservationId: string }) {
     const user = await requireUser(ctx);
-    const reservation = await ctx.db.get(args.reservationId);
+    const id = ctx.db.normalizeId('reservations', args.reservationId);
+    const reservation = id ? await ctx.db.get(id) : null;
 
     if (!reservation || reservation.guestId !== user._id) return null;
 

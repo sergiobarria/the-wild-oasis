@@ -55,7 +55,7 @@ const ownReservationValidator = v.object({
 });
 
 export const getOwnReservation = query({
-    args: { reservationId: v.id('reservations') },
+    args: { reservationId: v.string() },
     returns: v.union(ownReservationValidator, v.null()),
     handler: async (ctx, args) => await Reservations.getOwnReservation(ctx, args),
 });

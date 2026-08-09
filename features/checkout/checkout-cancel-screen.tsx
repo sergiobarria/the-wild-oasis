@@ -1,3 +1,4 @@
+import type { Route } from 'next';
 import Link from 'next/link';
 
 import { XCircle } from 'lucide-react';
@@ -19,7 +20,7 @@ export function CheckoutCancelScreen({ cabinHref }: { cabinHref: string | null }
 
             <div className='flex flex-col items-center gap-2 sm:flex-row sm:justify-center'>
                 {cabinHref && (
-                    <Button render={<Link href={cabinHref as never} />} nativeButton={false}>
+                    <Button render={<Link href={cabinHref as Route} />} nativeButton={false}>
                         Back to cabin
                     </Button>
                 )}
