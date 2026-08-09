@@ -37,6 +37,13 @@ export const createDemoReservation = mutation({
     handler: async (ctx, args) => await Reservations.createDemoReservation(ctx, args),
 });
 
+const pricingValidator = v.object({
+    nightlySubtotal: v.number(),
+    cleaningFee: v.number(),
+    taxes: v.number(),
+    total: v.number(),
+});
+
 const ownReservationValidator = v.object({
     _id: v.id('reservations'),
     cabinName: v.string(),
@@ -45,12 +52,7 @@ const ownReservationValidator = v.object({
     guests: v.number(),
     status: reservationStatusValidator,
     paymentStatus: paymentStatusValidator,
-    pricing: v.object({
-        nightlySubtotal: v.number(),
-        cleaningFee: v.number(),
-        taxes: v.number(),
-        total: v.number(),
-    }),
+    pricing: pricingValidator,
     createdAt: v.number(),
 });
 
@@ -58,4 +60,25 @@ export const getOwnReservation = query({
     args: { reservationId: v.string() },
     returns: v.union(ownReservationValidator, v.null()),
     handler: async (ctx, args) => await Reservations.getOwnReservation(ctx, args),
+});
+
+const ownReservationSummaryValidator = v.object({
+    _id: v.id('reservations'),
+    cabinName: v.string(),
+    cabinSlug: v.union(v.string(), v.null()),
+    coverImageUrl: v.union(v.string(), v.null()),
+    checkIn: v.string(),
+    checkOut: v.string(),
+    guests: v.number(),
+    status: reservationStatusValidator,
+    paymentStatus: paymentStatusValidator,
+    paymentRequired: v.boolean(),
+    pricing: pricingValidator,
+    createdAt: v.number(),
+});
+
+export const listOwnReservations = query({
+    args: {},
+    returns: v.array(ownReservationSummaryValidator),
+    handler: async (ctx) => await Reservations.listOwnReservations(ctx),
 });

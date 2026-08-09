@@ -147,6 +147,48 @@ export async function createDemoReservation(
     return { reservationId };
 }
 
+// Generous bound, same reasoning as BLOCKING_RESERVATIONS_CAP -- a guest's own booking
+// history is small; `.take()` with a cap is simpler than pagination at this scale.
+const OWN_RESERVATIONS_CAP = 200;
+
+/**
+ * All of a guest's own reservations (most recent first), for the guest dashboard's
+ * Overview and Bookings screens (Phase 6). No server-side status/date filtering --
+ * grouping into Upcoming/Past/Cancelled is a pure client-side concern (see
+ * features/guest-area/reservations-grouping.ts), so this one query backs both screens
+ * instead of near-duplicate queries.
+ */
+export async function listOwnReservations(ctx: QueryCtx) {
+    const user = await requireUser(ctx);
+
+    const reservations = await ctx.db
+        .query('reservations')
+        .withIndex('by_guestId', (q) => q.eq('guestId', user._id))
+        .order('desc')
+        .take(OWN_RESERVATIONS_CAP);
+
+    return await Promise.all(
+        reservations.map(async (reservation) => {
+            const cabin = await ctx.db.get(reservation.cabinId);
+
+            return {
+                _id: reservation._id,
+                cabinName: cabin?.name ?? 'Unknown cabin',
+                cabinSlug: cabin?.slug ?? null,
+                coverImageUrl: cabin ? await ctx.storage.getUrl(cabin.coverImage) : null,
+                checkIn: reservation.checkIn,
+                checkOut: reservation.checkOut,
+                guests: reservation.guests,
+                status: reservation.status,
+                paymentStatus: reservation.paymentStatus,
+                paymentRequired: reservation.paymentRequired,
+                pricing: reservation.pricing,
+                createdAt: reservation.createdAt,
+            };
+        }),
+    );
+}
+
 /**
  * A guest's own reservation, for the checkout success page (spec §38) and later the guest
  * dashboard (Phase 6). Authorization is ownership, not just "signed in": `null` for a
