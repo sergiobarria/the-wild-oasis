@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useQuery } from 'convex/react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,25 +15,40 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { violationMessage } from '@/features/availability/violation-messages';
 import { guestOptionsFor } from '@/lib/guest-options';
 import { formatCents, formatNightlyRate } from '@/lib/money';
 
 import { calculateTotalCents, nightsBetween } from '../cabin-detail-domain';
 
 type CabinBookingPanelProps = {
+    cabinId: Id<'cabins'>;
     nightlyRate: number;
     cleaningFee: number;
     maxGuests: number;
 };
 
-export function CabinBookingPanel({ nightlyRate, cleaningFee, maxGuests }: CabinBookingPanelProps) {
+export function CabinBookingPanel({
+    cabinId,
+    nightlyRate,
+    cleaningFee,
+    maxGuests,
+}: CabinBookingPanelProps) {
     const [checkIn, setCheckIn] = useState('');
     const [checkOut, setCheckOut] = useState('');
     const [guests, setGuests] = useState('1');
+    const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
     const nights = nightsBetween(checkIn, checkOut);
     const total = calculateTotalCents(nightlyRate, cleaningFee, nights);
     const guestOptions = guestOptionsFor(maxGuests);
+
+    const availability = useQuery(
+        api.reservations.checkAvailability,
+        nights > 0 ? { cabinId, checkIn, checkOut, guests: Number(guests), now: today } : 'skip',
+    );
 
     return (
         <Card className='lg:sticky lg:top-24'>
@@ -46,6 +63,7 @@ export function CabinBookingPanel({ nightlyRate, cleaningFee, maxGuests }: Cabin
                         <Input
                             id='booking-check-in'
                             type='date'
+                            min={today}
                             value={checkIn}
                             onChange={(event) => setCheckIn(event.target.value)}
                         />
@@ -102,8 +120,16 @@ export function CabinBookingPanel({ nightlyRate, cleaningFee, maxGuests }: Cabin
                     </p>
                 )}
 
+                {nights > 0 && availability?.available === false && (
+                    <ul className='space-y-1 text-sm text-destructive'>
+                        {availability.violations.map((violation) => (
+                            <li key={violation.code}>{violationMessage(violation)}</li>
+                        ))}
+                    </ul>
+                )}
+
                 <div className='space-y-1.5'>
-                    {/* Checkout (WO-027+) doesn't exist yet -- same honest scope-limiting as the
+                    {/* Checkout (WO-028+) doesn't exist yet -- same honest scope-limiting as the
                         home widget and the /cabins listing's date fields. */}
                     <Button type='button' className='w-full' disabled>
                         Reserve

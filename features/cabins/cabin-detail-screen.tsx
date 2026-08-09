@@ -33,6 +33,7 @@ export function CabinDetailScreen({ cabin }: { cabin: Cabin }) {
             <div className='grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-12'>
                 <div className='lg:order-2'>
                     <CabinBookingPanel
+                        cabinId={cabin._id}
                         nightlyRate={cabin.nightlyRate}
                         cleaningFee={cabin.cleaningFee}
                         maxGuests={cabin.maxGuests}
