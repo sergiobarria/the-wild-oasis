@@ -12,6 +12,15 @@ function positiveNumberString(message: string) {
         });
 }
 
+/** For whole-count fields (maxGuests/bedrooms/beds/bathrooms) -- the backend's
+ *  `assertNonNegativeInteger` rejects a fraction, so this must too, or a value that passes
+ *  client validation still throws server-side with no field to attribute the error to. */
+function positiveIntegerString(message: string) {
+    return positiveNumberString(message).refine((value) => Number.isInteger(Number(value)), {
+        message: 'Enter a whole number.',
+    });
+}
+
 export const cabinFormSchema = z.object({
     name: z.string().trim().min(1, 'Enter a name.'),
     slug: z
@@ -25,10 +34,10 @@ export const cabinFormSchema = z.object({
     address: z.string().trim(),
     nightlyRate: positiveNumberString('Enter a nightly rate.'),
     cleaningFee: positiveNumberString('Enter a cleaning fee.'),
-    maxGuests: positiveNumberString('Enter the max number of guests.'),
-    bedrooms: positiveNumberString('Enter the number of bedrooms.'),
-    beds: positiveNumberString('Enter the number of beds.'),
-    bathrooms: positiveNumberString('Enter the number of bathrooms.'),
+    maxGuests: positiveIntegerString('Enter the max number of guests.'),
+    bedrooms: positiveIntegerString('Enter the number of bedrooms.'),
+    beds: positiveIntegerString('Enter the number of beds.'),
+    bathrooms: positiveIntegerString('Enter the number of bathrooms.'),
     amenityIds: z.array(z.string()),
     published: z.boolean(),
     featured: z.boolean(),

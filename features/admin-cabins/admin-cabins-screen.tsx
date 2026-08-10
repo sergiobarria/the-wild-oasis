@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation, usePaginatedQuery } from 'convex/react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -41,10 +41,14 @@ function PublishToggle({ cabinId, published }: { cabinId: string; published: boo
     );
 }
 
+const CABINS_PAGE_SIZE = 25;
+
 export function AdminCabinsScreen() {
-    const cabins = useQuery(api.cabins.adminListCabins, {
-        paginationOpts: { numItems: 100, cursor: null },
-    });
+    const { results, status, isLoading, loadMore } = usePaginatedQuery(
+        api.cabins.adminListCabins,
+        {},
+        { initialNumItems: CABINS_PAGE_SIZE },
+    );
 
     return (
         <div className='space-y-6'>
@@ -53,13 +57,13 @@ export function AdminCabinsScreen() {
                 <Button render={<Link href={APP_ROUTES.ADMIN_CABIN_NEW} />}>New cabin</Button>
             </div>
 
-            {cabins === undefined ? (
+            {status === 'LoadingFirstPage' ? (
                 <div className='space-y-2'>
                     {Array.from({ length: 4 }, (_, index) => (
                         <Skeleton key={index} className='h-12 w-full rounded-lg' />
                     ))}
                 </div>
-            ) : cabins.page.length === 0 ? (
+            ) : results.length === 0 ? (
                 <p className='text-sm text-muted-foreground'>No cabins yet.</p>
             ) : (
                 <Table>
@@ -73,7 +77,7 @@ export function AdminCabinsScreen() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {cabins.page.map((cabin) => (
+                        {results.map((cabin) => (
                             <TableRow key={cabin._id}>
                                 <TableCell>
                                     <Link
@@ -105,6 +109,17 @@ export function AdminCabinsScreen() {
                         ))}
                     </TableBody>
                 </Table>
+            )}
+
+            {status === 'CanLoadMore' && (
+                <Button
+                    type='button'
+                    variant='outline'
+                    disabled={isLoading}
+                    onClick={() => loadMore(CABINS_PAGE_SIZE)}
+                >
+                    Load more
+                </Button>
             )}
         </div>
     );

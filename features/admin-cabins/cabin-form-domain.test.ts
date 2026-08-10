@@ -52,6 +52,24 @@ describe('cabinFormSchema', () => {
             false,
         );
     });
+
+    test('accepts a fractional nightly rate (a real dollar-and-cents amount)', () => {
+        expect(cabinFormSchema.safeParse({ ...validValues(), nightlyRate: '250.50' }).success).toBe(
+            true,
+        );
+    });
+
+    test('rejects a fractional bedrooms count', () => {
+        expect(cabinFormSchema.safeParse({ ...validValues(), bedrooms: '2.5' }).success).toBe(
+            false,
+        );
+    });
+
+    test('rejects a fractional maxGuests count', () => {
+        expect(cabinFormSchema.safeParse({ ...validValues(), maxGuests: '4.5' }).success).toBe(
+            false,
+        );
+    });
 });
 
 describe('slugify', () => {
