@@ -36,23 +36,28 @@ function FlagRow({ flag }: { flag: AdminFlag }) {
     const adminToggleFlag = useMutation(api.featureFlags.adminToggleFlag);
     const [confirming, setConfirming] = useState(false);
     const [pending, setPending] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     async function toggle(enabled: boolean) {
         setPending(true);
+        setError(null);
         try {
             await adminToggleFlag({ flagId: flag._id, enabled });
             toast.success(`${flag.name} ${enabled ? 'enabled' : 'disabled'}`);
+            // Only close on success -- a failed toggle on a consequential flag should leave
+            // the confirmation open with the error visible, not silently dismiss.
+            setConfirming(false);
         } catch {
-            toast.error('Something went wrong updating this flag.');
+            setError('Something went wrong updating this flag. Please try again.');
         } finally {
             setPending(false);
-            setConfirming(false);
         }
     }
 
     function handleToggleClick() {
         const next = !flag.enabled;
         if (CONSEQUENTIAL_FLAG_KEYS.has(flag.key)) {
+            setError(null);
             setConfirming(true);
         } else {
             toggle(next);
@@ -91,6 +96,11 @@ function FlagRow({ flag }: { flag: AdminFlag }) {
                         This is a consequential flag -- confirm before{' '}
                         {flag.enabled ? 'disabling' : 'enabling'} it.
                     </p>
+                    {error && (
+                        <p role='alert' className='text-sm text-destructive'>
+                            {error}
+                        </p>
+                    )}
                     <DialogFooter>
                         <Button
                             type='button'
