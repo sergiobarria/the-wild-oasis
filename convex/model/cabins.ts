@@ -5,6 +5,7 @@ import type { Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { assertIntegerCents } from '../lib/money';
 import * as Amenities from './amenities';
+import { requireAdmin } from './auth';
 import * as Reviews from './reviews';
 
 /**
@@ -200,6 +201,175 @@ export async function getById(ctx: QueryCtx, args: { cabinId: Id<'cabins'> }) {
         cleaningFee: cabin.cleaningFee,
         maxGuests: cabin.maxGuests,
         coverImageUrl: await ctx.storage.getUrl(cabin.coverImage),
+    };
+}
+
+async function assertUniqueSlug(
+    ctx: QueryCtx,
+    slug: string,
+    excludingCabinId?: Id<'cabins'>,
+): Promise<void> {
+    const existing = await ctx.db
+        .query('cabins')
+        .withIndex('by_slug', (q) => q.eq('slug', slug))
+        .unique();
+
+    if (existing && existing._id !== excludingCabinId) {
+        throw new ConvexError(`A cabin with the slug "${slug}" already exists.`);
+    }
+}
+
+type AdminCabinInput = {
+    name: string;
+    slug: string;
+    shortDescription: string;
+    description: string;
+    location: string;
+    address?: string;
+    nightlyRate: number;
+    cleaningFee: number;
+    maxGuests: number;
+    bedrooms: number;
+    beds: number;
+    bathrooms: number;
+    amenityIds: Id<'amenities'>[];
+    published: boolean;
+    featured: boolean;
+    coverImage: Id<'_storage'>;
+};
+
+/** Admin cabin creation (WO-048), slug uniqueness enforced (WO-050). `galleryImages` starts
+ *  empty -- gallery management is a separate, edit-mode-only feature (WO-049). */
+export async function adminCreateCabin(ctx: MutationCtx, args: AdminCabinInput) {
+    await requireAdmin(ctx);
+
+    await assertUniqueSlug(ctx, args.slug);
+    assertIntegerCents(args.nightlyRate, 'nightlyRate');
+    assertIntegerCents(args.cleaningFee, 'cleaningFee');
+
+    const timestamp = Date.now();
+
+    return await ctx.db.insert('cabins', {
+        name: args.name,
+        slug: args.slug,
+        shortDescription: args.shortDescription,
+        description: args.description,
+        location: args.location,
+        address: args.address,
+        nightlyRate: args.nightlyRate,
+        cleaningFee: args.cleaningFee,
+        maxGuests: args.maxGuests,
+        bedrooms: args.bedrooms,
+        beds: args.beds,
+        bathrooms: args.bathrooms,
+        coverImage: args.coverImage,
+        galleryImages: [],
+        amenities: args.amenityIds,
+        published: args.published,
+        featured: args.featured,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+    });
+}
+
+/** Admin cabin edits (WO-048), re-checking slug uniqueness only when the slug actually
+ *  changed (WO-050) -- excludes the cabin's own row from the collision check. */
+export async function adminUpdateCabin(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'> } & Partial<Omit<AdminCabinInput, 'coverImage'>>,
+) {
+    await requireAdmin(ctx);
+
+    const { cabinId, ...fields } = args;
+    const cabin = await ctx.db.get(cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    if (fields.slug && fields.slug !== cabin.slug) {
+        await assertUniqueSlug(ctx, fields.slug, cabinId);
+    }
+    if (fields.nightlyRate !== undefined) assertIntegerCents(fields.nightlyRate, 'nightlyRate');
+    if (fields.cleaningFee !== undefined) assertIntegerCents(fields.cleaningFee, 'cleaningFee');
+
+    const { amenityIds, ...rest } = fields;
+
+    await ctx.db.patch(cabinId, {
+        ...rest,
+        ...(amenityIds ? { amenities: amenityIds } : {}),
+        updatedAt: Date.now(),
+    });
+}
+
+/** Kept separate from `adminUpdateCabin` so the list view's publish/unpublish toggle doesn't
+ *  need to resubmit the cabin's whole form payload. */
+export async function adminSetPublished(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; published: boolean },
+) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    await ctx.db.patch(args.cabinId, { published: args.published, updatedAt: Date.now() });
+}
+
+/**
+ * Every cabin -- published and unpublished alike -- for the admin cabins table. Unlike
+ * `listPublished`, this is admin-only, so there's no leak-prevention filtering to apply.
+ */
+export async function adminListCabins(ctx: QueryCtx, args: { paginationOpts: PaginationOptions }) {
+    await requireAdmin(ctx);
+
+    const result = await ctx.db.query('cabins').order('desc').paginate(args.paginationOpts);
+
+    const page = await Promise.all(
+        result.page.map(async (cabin) => ({
+            _id: cabin._id,
+            name: cabin.name,
+            slug: cabin.slug,
+            nightlyRate: cabin.nightlyRate,
+            maxGuests: cabin.maxGuests,
+            coverImageUrl: await ctx.storage.getUrl(cabin.coverImage),
+            published: cabin.published,
+            featured: cabin.featured,
+        })),
+    );
+
+    return { ...result, page };
+}
+
+/** Full cabin record for the admin edit form to preload -- unlike the public queries, includes
+ *  `address` and raw amenity ids (the form needs ids to drive its checkboxes, not the resolved
+ *  amenity cards `getBySlug` returns for public display). */
+export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'> }) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) return null;
+
+    return {
+        _id: cabin._id,
+        name: cabin.name,
+        slug: cabin.slug,
+        shortDescription: cabin.shortDescription,
+        description: cabin.description,
+        location: cabin.location,
+        address: cabin.address,
+        nightlyRate: cabin.nightlyRate,
+        cleaningFee: cabin.cleaningFee,
+        maxGuests: cabin.maxGuests,
+        bedrooms: cabin.bedrooms,
+        beds: cabin.beds,
+        bathrooms: cabin.bathrooms,
+        coverImageUrl: await ctx.storage.getUrl(cabin.coverImage),
+        galleryImageUrls: await Promise.all(
+            cabin.galleryImages.map((id) => ctx.storage.getUrl(id)),
+        ),
+        amenityIds: cabin.amenities,
+        published: cabin.published,
+        featured: cabin.featured,
+        createdAt: cabin.createdAt,
+        updatedAt: cabin.updatedAt,
     };
 }
 

@@ -1,7 +1,7 @@
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
 import { v } from 'convex/values';
 
-import { internalMutation, internalQuery, query } from './_generated/server';
+import { internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { amenityCategoryValidator } from './lib/amenities';
 import * as Cabins from './model/cabins';
 import { reviewValidator } from './reviews';
@@ -106,6 +106,111 @@ export const getById = query({
     args: { cabinId: v.id('cabins') },
     returns: v.union(cabinSummaryCardValidator, v.null()),
     handler: async (ctx, args) => await Cabins.getById(ctx, args),
+});
+
+const adminCabinInputFields = {
+    name: v.string(),
+    slug: v.string(),
+    shortDescription: v.string(),
+    description: v.string(),
+    location: v.string(),
+    address: v.optional(v.string()),
+    nightlyRate: v.number(),
+    cleaningFee: v.number(),
+    maxGuests: v.number(),
+    bedrooms: v.number(),
+    beds: v.number(),
+    bathrooms: v.number(),
+    amenityIds: v.array(v.id('amenities')),
+    published: v.boolean(),
+    featured: v.boolean(),
+};
+
+export const adminCreateCabin = mutation({
+    args: { ...adminCabinInputFields, coverImage: v.id('_storage') },
+    returns: v.id('cabins'),
+    handler: async (ctx, args) => await Cabins.adminCreateCabin(ctx, args),
+});
+
+export const adminUpdateCabin = mutation({
+    args: {
+        cabinId: v.id('cabins'),
+        name: v.optional(v.string()),
+        slug: v.optional(v.string()),
+        shortDescription: v.optional(v.string()),
+        description: v.optional(v.string()),
+        location: v.optional(v.string()),
+        address: v.optional(v.string()),
+        nightlyRate: v.optional(v.number()),
+        cleaningFee: v.optional(v.number()),
+        maxGuests: v.optional(v.number()),
+        bedrooms: v.optional(v.number()),
+        beds: v.optional(v.number()),
+        bathrooms: v.optional(v.number()),
+        amenityIds: v.optional(v.array(v.id('amenities'))),
+        published: v.optional(v.boolean()),
+        featured: v.optional(v.boolean()),
+    },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminUpdateCabin(ctx, args);
+        return null;
+    },
+});
+
+export const adminSetPublished = mutation({
+    args: { cabinId: v.id('cabins'), published: v.boolean() },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminSetPublished(ctx, args);
+        return null;
+    },
+});
+
+const adminCabinRowValidator = v.object({
+    _id: v.id('cabins'),
+    name: v.string(),
+    slug: v.string(),
+    nightlyRate: v.number(),
+    maxGuests: v.number(),
+    coverImageUrl: v.union(v.string(), v.null()),
+    published: v.boolean(),
+    featured: v.boolean(),
+});
+
+export const adminListCabins = query({
+    args: { paginationOpts: paginationOptsValidator },
+    returns: paginationResultValidator(adminCabinRowValidator),
+    handler: async (ctx, args) => await Cabins.adminListCabins(ctx, args),
+});
+
+const adminCabinDetailValidator = v.object({
+    _id: v.id('cabins'),
+    name: v.string(),
+    slug: v.string(),
+    shortDescription: v.string(),
+    description: v.string(),
+    location: v.string(),
+    address: v.optional(v.string()),
+    nightlyRate: v.number(),
+    cleaningFee: v.number(),
+    maxGuests: v.number(),
+    bedrooms: v.number(),
+    beds: v.number(),
+    bathrooms: v.number(),
+    coverImageUrl: v.union(v.string(), v.null()),
+    galleryImageUrls: v.array(v.union(v.string(), v.null())),
+    amenityIds: v.array(v.id('amenities')),
+    published: v.boolean(),
+    featured: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+});
+
+export const adminGetCabin = query({
+    args: { cabinId: v.id('cabins') },
+    returns: v.union(adminCabinDetailValidator, v.null()),
+    handler: async (ctx, args) => await Cabins.adminGetCabin(ctx, args),
 });
 
 /**

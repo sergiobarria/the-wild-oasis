@@ -3,14 +3,75 @@ import { describe, expect, test } from 'vitest';
 
 import { api, internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import authComponentSchema from './betterAuth/schema';
 import schema from './schema';
 
 const modules = import.meta.glob('./**/*.ts');
+const authComponentModules = import.meta.glob('./betterAuth/**/*.ts');
+
+function setupTestWithAuth() {
+    const t = convexTest(schema, modules);
+    t.registerComponent('betterAuth', authComponentSchema, authComponentModules);
+    return t;
+}
+
+async function seedAdmin(t: ReturnType<typeof setupTestWithAuth>) {
+    return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+        email: 'admin@example.com',
+        password: 'password123',
+        name: 'Admin User',
+        role: 'admin',
+    });
+}
+
+async function seedGuest(t: ReturnType<typeof setupTestWithAuth>) {
+    return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+        email: 'guest@example.com',
+        password: 'password123',
+        name: 'Guest User',
+    });
+}
 
 async function seedImage(t: ReturnType<typeof convexTest>) {
     return await t.run((ctx) =>
         ctx.storage.store(new Blob(['fake-image'], { type: 'image/jpeg' })),
     );
+}
+
+function adminCabinArgs(
+    overrides: { coverImage: Id<'_storage'>; slug?: string } & Partial<{
+        name: string;
+        shortDescription: string;
+        description: string;
+        location: string;
+        nightlyRate: number;
+        cleaningFee: number;
+        maxGuests: number;
+        bedrooms: number;
+        beds: number;
+        bathrooms: number;
+        amenityIds: Id<'amenities'>[];
+        published: boolean;
+        featured: boolean;
+    }>,
+) {
+    return {
+        name: overrides.name ?? 'Pine Ridge Cabin',
+        slug: overrides.slug ?? 'pine-ridge-cabin',
+        shortDescription: overrides.shortDescription ?? 'A quiet cabin in the woods.',
+        description: overrides.description ?? 'A longer description of a quiet cabin.',
+        location: overrides.location ?? 'Pine Ridge',
+        nightlyRate: overrides.nightlyRate ?? 25000,
+        cleaningFee: overrides.cleaningFee ?? 3500,
+        maxGuests: overrides.maxGuests ?? 4,
+        bedrooms: overrides.bedrooms ?? 2,
+        beds: overrides.beds ?? 3,
+        bathrooms: overrides.bathrooms ?? 1,
+        amenityIds: overrides.amenityIds ?? [],
+        published: overrides.published ?? true,
+        featured: overrides.featured ?? false,
+        coverImage: overrides.coverImage,
+    };
 }
 
 function cabinInput(overrides: {
@@ -500,5 +561,245 @@ describe('seedCabins', () => {
                 ],
             }),
         ).rejects.toThrow();
+    });
+});
+
+describe('adminCreateCabin', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const guest = await seedGuest(t);
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage })),
+        ).rejects.toThrow();
+    });
+
+    test('creates an unpublished-by-default-allowed cabin with the given fields', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(
+                api.cabins.adminCreateCabin,
+                adminCabinArgs({ coverImage, published: false }),
+            );
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin).toMatchObject({
+            name: 'Pine Ridge Cabin',
+            slug: 'pine-ridge-cabin',
+            published: false,
+            galleryImages: [],
+        });
+    });
+
+    test('rejects a duplicate slug', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage })),
+        ).rejects.toThrow('A cabin with the slug "pine-ridge-cabin" already exists.');
+    });
+});
+
+describe('adminUpdateCabin', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminUpdateCabin, { cabinId, name: 'New Name' }),
+        ).rejects.toThrow();
+    });
+
+    test('patches only the given fields', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminUpdateCabin, { cabinId, name: 'Renamed Cabin' });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin).toMatchObject({ name: 'Renamed Cabin', slug: 'pine-ridge-cabin' });
+    });
+
+    test('allows re-saving the same slug on the same cabin', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t.withIdentity(admin).mutation(api.cabins.adminUpdateCabin, {
+                cabinId,
+                slug: 'pine-ridge-cabin',
+            }),
+        ).resolves.not.toThrow();
+    });
+
+    test('rejects renaming the slug to one already used by another cabin', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage, slug: 'taken' }));
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(
+                api.cabins.adminCreateCabin,
+                adminCabinArgs({ coverImage, slug: 'other-cabin' }),
+            );
+
+        await expect(
+            t.withIdentity(admin).mutation(api.cabins.adminUpdateCabin, { cabinId, slug: 'taken' }),
+        ).rejects.toThrow('A cabin with the slug "taken" already exists.');
+    });
+});
+
+describe('adminSetPublished', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(
+                api.cabins.adminCreateCabin,
+                adminCabinArgs({ coverImage, published: false }),
+            );
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminSetPublished, { cabinId, published: true }),
+        ).rejects.toThrow();
+    });
+
+    test('toggles published without touching other fields', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(
+                api.cabins.adminCreateCabin,
+                adminCabinArgs({ coverImage, published: false }),
+            );
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminSetPublished, { cabinId, published: true });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin).toMatchObject({ published: true, name: 'Pine Ridge Cabin' });
+    });
+});
+
+describe('adminListCabins', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const guest = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(guest).query(api.cabins.adminListCabins, {
+                paginationOpts: { numItems: 10, cursor: null },
+            }),
+        ).rejects.toThrow();
+    });
+
+    test('includes unpublished cabins, unlike listPublished', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        await t
+            .withIdentity(admin)
+            .mutation(
+                api.cabins.adminCreateCabin,
+                adminCabinArgs({ coverImage, published: false }),
+            );
+
+        const result = await t.withIdentity(admin).query(api.cabins.adminListCabins, {
+            paginationOpts: { numItems: 10, cursor: null },
+        });
+
+        expect(result.page).toHaveLength(1);
+        expect(result.page[0]).toMatchObject({ published: false });
+    });
+});
+
+describe('adminGetCabin', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t.withIdentity(guest).query(api.cabins.adminGetCabin, { cabinId }),
+        ).rejects.toThrow();
+    });
+
+    test('returns null for an unknown cabin', async () => {
+        const t = setupTestWithAuth();
+        const admin = await seedAdmin(t);
+        const coverImage = await seedImage(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        expect(await t.withIdentity(admin).query(api.cabins.adminGetCabin, { cabinId })).toBeNull();
+    });
+
+    test('returns the full record, including unpublished cabins and raw amenity ids', async () => {
+        const t = setupTestWithAuth();
+        await t.mutation(internal.amenities.seedAmenities, {});
+        const amenities = await t.query(api.amenities.list);
+        const wifi = amenities.find((amenity) => amenity.name === 'WiFi');
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t.withIdentity(admin).mutation(
+            api.cabins.adminCreateCabin,
+            adminCabinArgs({
+                coverImage,
+                published: false,
+                amenityIds: wifi ? [wifi._id] : [],
+            }),
+        );
+
+        const cabin = await t.withIdentity(admin).query(api.cabins.adminGetCabin, { cabinId });
+
+        expect(cabin).toMatchObject({ published: false, amenityIds: wifi ? [wifi._id] : [] });
     });
 });
