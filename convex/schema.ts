@@ -123,6 +123,17 @@ export default defineSchema({
         subscribedAt: v.number(),
     }).index('by_email', ['email']),
 
+    // Single-row table -- always exactly one document, read via `getAppSettings`'s
+    // `.first()` (falling back to a hardcoded default if the row doesn't exist yet, so no
+    // separate seed/bootstrap step is needed). Never query this table any other way.
+    appSettings: defineTable({
+        cancellationWindowHours: v.number(),
+        updatedAt: v.number(),
+        /** Better Auth identity.subject of the admin who last changed a setting, same shape
+         *  reasoning as `featureFlags.updatedBy`. Absent until the first admin edit. */
+        updatedBy: v.optional(v.string()),
+    }),
+
     availabilityBlocks: defineTable({
         cabinId: v.id('cabins'),
         /** ISO 'YYYY-MM-DD' calendar-day strings, half-open range, same convention as

@@ -707,6 +707,37 @@ describe('cancelReservation', () => {
             t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId })),
         ).rejects.toThrow('Cancellation is only available more than 48 hours before check-in.');
     });
+
+    test('uses the live admin-configured cancellation window instead of the hardcoded default', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        await t.run((ctx) =>
+            ctx.db.insert('appSettings', {
+                cancellationWindowHours: 1,
+                updatedAt: 1700000000000,
+            }),
+        );
+        // 24h out -- would be rejected under the hardcoded 48h default, but allowed once the
+        // admin-configured window is 1h.
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const checkIn = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+        const checkOut = new Date(tomorrow.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const checkOutString = `${checkOut.getFullYear()}-${String(checkOut.getMonth() + 1).padStart(2, '0')}-${String(checkOut.getDate()).padStart(2, '0')}`;
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn,
+                checkOut: checkOutString,
+                guests: 2,
+            }),
+        );
+
+        await t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId }));
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'cancelled' });
+    });
 });
 
 async function seedAdmin(t: ReturnType<typeof setupTest>) {

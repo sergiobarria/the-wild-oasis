@@ -21,6 +21,7 @@ import {
     RESERVATION_STATUS,
     type ReservationStatus,
 } from '../lib/reservations';
+import { getAppSettings } from './appSettings';
 import { requireAdmin, requireUser } from './auth';
 import { loadActiveBlocks } from './availabilityBlocks';
 import { isFeatureEnabled } from './featureFlags';
@@ -272,12 +273,15 @@ export async function cancelReservation(ctx: MutationCtx, args: { reservationId:
         throw new ConvexError('Unknown reservation.');
     }
 
+    const { cancellationWindowHours } = await getAppSettings(ctx);
+
     const check = canSelfCancel({
         checkIn: reservation.checkIn,
         checkOut: reservation.checkOut,
         status: reservation.status,
         paymentRequired: reservation.paymentRequired,
         now: new Date(Date.now()),
+        windowHours: cancellationWindowHours,
     });
 
     if (!check.allowed) {

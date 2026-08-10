@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
-import { canSelfCancel } from '@/convex/lib/cancellation';
+import { CANCELLATION_WINDOW_HOURS, canSelfCancel } from '@/convex/lib/cancellation';
 
 import type { ReservationSummary } from './reservation-row';
 
@@ -24,8 +24,14 @@ import type { ReservationSummary } from './reservation-row';
  */
 export function CancelReservationAction({ reservation }: { reservation: ReservationSummary }) {
     const cancelReservation = useMutation(api.reservations.cancelReservation);
+    const settings = useQuery(api.appSettings.getAppSettings);
     const [error, setError] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
+
+    // WO-057: the window is admin-configurable at runtime -- fall back to the hardcoded
+    // default only while settings are still loading, so this doesn't flash a wrong disabled
+    // state before the live value arrives.
+    const windowHours = settings?.cancellationWindowHours ?? CANCELLATION_WINDOW_HOURS;
 
     const check = canSelfCancel({
         checkIn: reservation.checkIn,
@@ -33,6 +39,7 @@ export function CancelReservationAction({ reservation }: { reservation: Reservat
         status: reservation.status,
         paymentRequired: reservation.paymentRequired,
         now: new Date(),
+        windowHours,
     });
 
     // Nothing to show for a reservation that isn't a live, upcoming stay -- no cancel
@@ -71,7 +78,7 @@ export function CancelReservationAction({ reservation }: { reservation: Reservat
         const message =
             check.reason === 'requires-admin'
                 ? 'This reservation requires admin assistance to cancel.'
-                : 'Cancellation is only available more than 48 hours before check-in.';
+                : `Cancellation is only available more than ${windowHours} hours before check-in.`;
 
         return <p className='text-xs text-muted-foreground'>{message}</p>;
     }

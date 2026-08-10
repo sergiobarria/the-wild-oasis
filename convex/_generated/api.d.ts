@@ -9,6 +9,7 @@
  */
 
 import type * as amenities from "../amenities.js";
+import type * as appSettings from "../appSettings.js";
 import type * as auth from "../auth.js";
 import type * as availabilityBlocks from "../availabilityBlocks.js";
 import type * as cabins from "../cabins.js";
@@ -25,6 +26,7 @@ import type * as lib_reviews from "../lib/reviews.js";
 import type * as lib_subscribers from "../lib/subscribers.js";
 import type * as messages from "../messages.js";
 import type * as model_amenities from "../model/amenities.js";
+import type * as model_appSettings from "../model/appSettings.js";
 import type * as model_auth from "../model/auth.js";
 import type * as model_availabilityBlocks from "../model/availabilityBlocks.js";
 import type * as model_cabins from "../model/cabins.js";
@@ -48,6 +50,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   amenities: typeof amenities;
+  appSettings: typeof appSettings;
   auth: typeof auth;
   availabilityBlocks: typeof availabilityBlocks;
   cabins: typeof cabins;
@@ -64,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   "lib/subscribers": typeof lib_subscribers;
   messages: typeof messages;
   "model/amenities": typeof model_amenities;
+  "model/appSettings": typeof model_appSettings;
   "model/auth": typeof model_auth;
   "model/availabilityBlocks": typeof model_availabilityBlocks;
   "model/cabins": typeof model_cabins;

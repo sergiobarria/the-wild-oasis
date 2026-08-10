@@ -6,10 +6,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CancelReservationAction } from './cancel-reservation-action';
 import type { ReservationSummary } from './reservation-row';
 
-const { useMutation } = vi.hoisted(() => ({ useMutation: vi.fn() }));
+const { useMutation, useQuery } = vi.hoisted(() => ({
+    useMutation: vi.fn(),
+    useQuery: vi.fn(),
+}));
 const cancelReservation = vi.fn();
 
-vi.mock('convex/react', () => ({ useMutation }));
+vi.mock('convex/react', () => ({ useMutation, useQuery }));
 
 function reservation(overrides: Partial<ReservationSummary> = {}): ReservationSummary {
     const farFuture = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -39,6 +42,37 @@ describe('CancelReservationAction', () => {
     beforeEach(() => {
         cancelReservation.mockClear();
         useMutation.mockReturnValue(cancelReservation);
+        useQuery.mockReturnValue(undefined);
+    });
+
+    it('falls back to the hardcoded 48h default while settings are still loading', () => {
+        useQuery.mockReturnValue(undefined);
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+        render(
+            <CancelReservationAction
+                reservation={reservation({ checkIn: tomorrow, checkOut: '2099-01-01' })}
+            />,
+        );
+
+        expect(
+            screen.getByText('Cancellation is only available more than 48 hours before check-in.'),
+        ).toBeInTheDocument();
+    });
+
+    it('uses the live admin-configured window once settings load', () => {
+        useQuery.mockReturnValue({ cancellationWindowHours: 72, updatedAt: 0 });
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+        render(
+            <CancelReservationAction
+                reservation={reservation({ checkIn: tomorrow, checkOut: '2099-01-01' })}
+            />,
+        );
+
+        expect(
+            screen.getByText('Cancellation is only available more than 72 hours before check-in.'),
+        ).toBeInTheDocument();
     });
 
     it('renders nothing for an already-cancelled reservation', () => {

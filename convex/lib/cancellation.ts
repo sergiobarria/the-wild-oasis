@@ -2,8 +2,9 @@ import { groupReservation } from '../../features/guest-area/reservations-groupin
 import { todayIsoDate } from '../../lib/dates';
 import type { ReservationStatus } from './reservations';
 
-/** WO-038: hardcoded per spec §47's example, not a DB setting -- WO-057 promotes this to
- *  an admin-configurable `appSettings` value only if/when that's actually needed. */
+/** WO-038's original default, per spec §47's example -- WO-057 promotes the *live* value to
+ *  the admin-configurable `appSettings.cancellationWindowHours` (see convex/model/appSettings.ts),
+ *  but this constant remains the fallback default and what existing tests exercise. */
 export const CANCELLATION_WINDOW_HOURS = 48;
 
 export type CancellationDenialReason =
@@ -27,6 +28,9 @@ export function canSelfCancel(args: {
     status: ReservationStatus;
     paymentRequired: boolean;
     now: Date;
+    /** Defaults to the hardcoded constant so existing callers/tests are unaffected --
+     *  WO-057's admin settings screen passes the live, admin-configured value instead. */
+    windowHours?: number;
 }): CancellationCheck {
     if (args.status === 'cancelled') return { allowed: false, reason: 'already-cancelled' };
 
@@ -47,7 +51,7 @@ export function canSelfCancel(args: {
     // later than expected. `>=` (not `>`) so exactly-48h-out is still cancellable, favoring
     // the guest at the boundary.
     const checkInInstant = new Date(`${args.checkIn}T00:00:00`);
-    const windowMs = CANCELLATION_WINDOW_HOURS * 60 * 60 * 1000;
+    const windowMs = (args.windowHours ?? CANCELLATION_WINDOW_HOURS) * 60 * 60 * 1000;
 
     if (checkInInstant.getTime() - args.now.getTime() < windowMs) {
         return { allowed: false, reason: 'within-window' };
