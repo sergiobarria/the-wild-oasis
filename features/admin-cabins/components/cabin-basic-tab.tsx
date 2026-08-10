@@ -25,7 +25,7 @@ export function CabinBasicTab({
             <form.Field name='slug'>
                 {(field) => (
                     <div>
-                        <div className='flex items-end gap-2'>
+                        <div className='flex flex-col gap-2 sm:flex-row sm:items-end'>
                             <div className='flex-1'>
                                 <AuthFormField
                                     field={field}
@@ -36,6 +36,7 @@ export function CabinBasicTab({
                             <Button
                                 type='button'
                                 variant='outline'
+                                className='shrink-0'
                                 onClick={() =>
                                     field.handleChange(
                                         slugify(form.getFieldValue('name') as string),
