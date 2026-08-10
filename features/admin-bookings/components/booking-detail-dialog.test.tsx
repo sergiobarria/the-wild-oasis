@@ -86,7 +86,7 @@ describe('BookingDetailDialog', () => {
         useQuery.mockReturnValue(reservation());
         render(<BookingDetailDialog reservationId='reservation-1' onClose={vi.fn()} />);
 
-        expect(screen.getByText('reservation-1')).toBeInTheDocument();
+        expect(screen.getByText('WO-VATI-ON-1')).toBeInTheDocument();
         expect(screen.getByText('Jamie Alder (jamie@example.com)')).toBeInTheDocument();
         expect(screen.getByText('Pine Ridge Cabin')).toBeInTheDocument();
         expect(screen.getByText('$785')).toBeInTheDocument();

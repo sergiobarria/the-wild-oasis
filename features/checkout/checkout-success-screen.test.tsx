@@ -31,7 +31,7 @@ describe('CheckoutSuccessScreen', () => {
     it('shows the reservation reference, cabin, dates, and total', () => {
         renderScreen();
 
-        expect(screen.getByText('reservation-1')).toBeInTheDocument();
+        expect(screen.getByText('WO-VATI-ON-1')).toBeInTheDocument();
         expect(screen.getByText('Pine Ridge Cabin')).toBeInTheDocument();
         expect(screen.getByText('2026-08-15 → 2026-08-18')).toBeInTheDocument();
         expect(screen.getByText('$785')).toBeInTheDocument();

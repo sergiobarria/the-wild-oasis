@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { paymentStatusLabel } from '@/features/guest-area/components/payment-status-label';
 import { ReservationStatusBadge } from '@/features/guest-area/components/reservation-status-badge';
+import { formatBookingReference } from '@/lib/booking-reference';
 import { formatCents } from '@/lib/money';
 
 import { CancelBookingAction } from './cancel-booking-action';
@@ -58,7 +59,9 @@ export function BookingDetailDialog({
                                 <div className='space-y-2 text-sm'>
                                     <div className='flex justify-between'>
                                         <span className='text-muted-foreground'>Reference</span>
-                                        <span className='font-medium'>{reservation._id}</span>
+                                        <span className='font-medium'>
+                                            {formatBookingReference(reservation._id)}
+                                        </span>
                                     </div>
                                     <div className='flex justify-between'>
                                         <span className='text-muted-foreground'>Guest</span>

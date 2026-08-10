@@ -9,6 +9,7 @@ import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { api } from '@/convex/_generated/api';
+import { formatBookingReference } from '@/lib/booking-reference';
 import { formatCents } from '@/lib/money';
 import { APP_ROUTES } from '@/lib/routes';
 
@@ -57,7 +58,9 @@ export function CheckoutSuccessScreen({ preloadedReservation }: CheckoutSuccessS
                 <CardContent className='space-y-2 text-sm'>
                     <div className='flex justify-between'>
                         <span className='text-muted-foreground'>Reference</span>
-                        <span className='font-medium'>{reservation._id}</span>
+                        <span className='font-medium'>
+                            {formatBookingReference(reservation._id)}
+                        </span>
                     </div>
                     <div className='flex justify-between'>
                         <span className='text-muted-foreground'>Cabin</span>
