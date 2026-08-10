@@ -972,4 +972,45 @@ describe('adminGetStats', () => {
         expect(result.reservationsByCabin).toHaveLength(2);
         expect(result.reservationsByCabin.every((row) => row.count === 1)).toBe(true);
     });
+
+    test('excludes a cancelled reservation from revenue even though paymentStatus stays paid', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-08-05',
+            checkOut: '2026-08-08',
+            status: RESERVATION_STATUS.CANCELLED,
+            paymentRequired: true,
+            paymentStatus: 'paid',
+            total: 50000,
+            createdAt: new Date('2026-08-05').getTime(),
+        });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.revenueCents).toBe(0);
+    });
+
+    test('excludes a reservation created outside the window from revenue even if its stay overlaps it', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-08-05',
+            checkOut: '2026-08-08',
+            paymentRequired: true,
+            paymentStatus: 'paid',
+            total: 50000,
+            createdAt: new Date('2026-01-01').getTime(),
+        });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.revenueCents).toBe(0);
+    });
 });
