@@ -30,7 +30,11 @@ export function AdminUserDetailScreen({ userId }: { userId: string }) {
         <div className='space-y-6'>
             <div className='flex items-center justify-between'>
                 <h1 className='font-heading text-2xl font-medium'>User details</h1>
-                <Button variant='ghost' render={<Link href={APP_ROUTES.ADMIN_USERS} />}>
+                <Button
+                    variant='ghost'
+                    render={<Link href={APP_ROUTES.ADMIN_USERS} />}
+                    nativeButton={false}
+                >
                     Back to users
                 </Button>
             </div>

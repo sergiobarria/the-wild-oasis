@@ -264,7 +264,11 @@ export function CabinFormScreen(props: { mode: 'create' } | { mode: 'edit'; cabi
                 <h1 className='font-heading text-2xl font-medium'>
                     {props.mode === 'create' ? 'New cabin' : 'Edit cabin'}
                 </h1>
-                <Button variant='ghost' render={<Link href={APP_ROUTES.ADMIN_CABINS} />}>
+                <Button
+                    variant='ghost'
+                    render={<Link href={APP_ROUTES.ADMIN_CABINS} />}
+                    nativeButton={false}
+                >
                     Back to cabins
                 </Button>
             </div>

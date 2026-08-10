@@ -54,7 +54,9 @@ export function AdminCabinsScreen() {
         <div className='space-y-6'>
             <div className='flex items-center justify-between'>
                 <h1 className='font-heading text-2xl font-medium'>Cabins</h1>
-                <Button render={<Link href={APP_ROUTES.ADMIN_CABIN_NEW} />}>New cabin</Button>
+                <Button render={<Link href={APP_ROUTES.ADMIN_CABIN_NEW} />} nativeButton={false}>
+                    New cabin
+                </Button>
             </div>
 
             {status === 'LoadingFirstPage' ? (
