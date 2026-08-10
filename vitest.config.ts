@@ -41,6 +41,14 @@ export default defineConfig({
                 // a unit test here would assert that an assignment happened.
                 // Anything that grows a conditional must come off this list.
                 'app/layout.tsx',
+                // Every route file is the same shape: thin, renders a screen component
+                // from a feature slice (docs/02_CODING_GUIDELINES.md's own convention) or
+                // gates on an auth check that's proven behaviorally by the e2e auth
+                // fixture (e2e/guest-flow.spec.ts, e2e/admin-flow.spec.ts), never unit-
+                // tested against Next's redirect()/notFound() internals. Same reasoning
+                // as app/layout.tsx above, just applied consistently as the app grew.
+                'app/**/page.tsx',
+                'app/**/layout.tsx',
                 // No global styles/theme reach this document (see the file's own
                 // comment) -- inline-styled, no conditionals worth unit testing.
                 'app/global-error.tsx',
@@ -52,6 +60,32 @@ export default defineConfig({
                 'lib/auth-client.ts',
                 'lib/auth-server.ts',
                 'lib/env.ts',
+                // Thin validator+delegate wrappers (docs/01/02's Convex "model pattern") --
+                // all business logic lives in, and is tested via, the corresponding
+                // convex/model/*.ts file directly (never through this public API surface,
+                // per this project's established convex-test pattern of calling model
+                // functions with `t.run()`). Nothing here has a branch of its own.
+                'convex/appSettings.ts',
+                'convex/availabilityBlocks.ts',
+                'convex/featureFlags.ts',
+                'convex/messages.ts',
+                'convex/subscribers.ts',
+                'convex/users.ts',
+                // Internal design-system reference (see BRAND route's own doc comment:
+                // "never linked from public nav") -- not part of the product surface.
+                'features/brand/**',
+                // shadcn-owned vendor primitives (components/ui is shadcn-owned per
+                // CLAUDE.md) -- exercised indirectly through every feature test that
+                // renders one; a direct unit test here would just re-assert Base UI's own
+                // behavior.
+                'components/ui/**',
+                // Static, no-branch presentational content -- copy and links, nothing to
+                // unit-test beyond what a snapshot would (guidelines: avoid large
+                // snapshots, they fail on every change and get regenerated unread).
+                'features/home/components/*-section.tsx',
+                'features/layout/footer.tsx',
+                'features/layout/admin-sidebar.tsx',
+                'hooks/**',
             ],
             thresholds: {
                 // Global floor. Raise it as real code lands; never lower it to merge a
