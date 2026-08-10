@@ -379,19 +379,24 @@ model speculatively by the time this phase starts. Spec §57–79.
 Only reachable when `stripePaymentsEnabled = true`. Build after the demo flow (Phase 5)
 is solid, since the demo flow is the one that must always work.
 
-- [ ] **WO-058 (9.1) — Stripe Checkout session creation** — server-side, triggered from
+- [x] **WO-058 (9.1) — Stripe Checkout session creation** — server-side, triggered from
       `/checkout/summary` "Pay & Confirm"; flag re-checked in the mutation itself.
       Extends the `reservations` schema from WO-025 with a Stripe session/reference
       field here, when the integration that needs it is actually being built. Spec §36,
       §41–42.
 
-- [ ] **WO-059 (9.2) — Webhook handler** — idempotent processing of Stripe events,
+- [x] **WO-059 (9.2) — Webhook handler** — idempotent processing of Stripe events,
       transitions reservation `paymentStatus` (`pending → paid/failed`) and
       `reservationStatus` accordingly. Browser redirect alone is never treated as proof
       of payment. Spec §37.
 
-- [ ] **WO-060 (9.3) — Reservation states from webhook** — confirm the reservation only
+- [x] **WO-060 (9.3) — Reservation states from webhook** — confirm the reservation only
       on the authoritative webhook event, not on Checkout redirect.
+
+- [x] **Admin refund action** (not separately WO-numbered — added alongside Phase 9 at the
+      user's request) — full-amount-only Stripe refund for a paid reservation, admin-only,
+      kept deliberately separate from `adminCancelReservation` (spec §47: cancelling and
+      refunding are distinct operations, patches `paymentStatus` only).
 
 ---
 
