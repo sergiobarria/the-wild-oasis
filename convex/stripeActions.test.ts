@@ -17,9 +17,15 @@ const createMock = vi.fn(
     }),
 );
 
+const refundMock = vi.fn(async (params: { payment_intent: string }) => ({
+    id: 're_test_123',
+    payment_intent: params.payment_intent,
+}));
+
 vi.mock('stripe', () => ({
     default: class StripeMock {
         checkout = { sessions: { create: createMock } };
+        refunds = { create: refundMock };
         static createFetchHttpClient = () => ({});
     },
 }));
@@ -61,6 +67,36 @@ async function seedCabin(t: ReturnType<typeof setupTest>) {
             amenities: [],
             published: true,
             featured: false,
+            createdAt: 1700000000000,
+            updatedAt: 1700000000000,
+        }),
+    );
+}
+
+async function seedAdmin(t: ReturnType<typeof setupTest>) {
+    return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+        email: 'admin@example.com',
+        password: 'password123',
+        name: 'Admin User',
+        role: 'admin',
+    });
+}
+
+async function seedPaidReservation(t: ReturnType<typeof setupTest>) {
+    const cabinId = await seedCabin(t);
+    return await t.run((ctx) =>
+        ctx.db.insert('reservations', {
+            cabinId,
+            guestId: 'guest-1',
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            guests: 2,
+            status: 'confirmed',
+            paymentStatus: 'paid',
+            paymentRequired: true,
+            pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
+            stripeCheckoutSessionId: 'cs_test_paid',
+            stripePaymentIntentId: 'pi_test_paid',
             createdAt: 1700000000000,
             updatedAt: 1700000000000,
         }),
@@ -126,5 +162,38 @@ describe('createStripeCheckoutSession', () => {
             }),
         ).rejects.toThrow('Stripe payments are not currently enabled.');
         expect(createMock).not.toHaveBeenCalled();
+    });
+});
+
+describe('adminRefundReservation', () => {
+    beforeEach(() => {
+        refundMock.mockClear();
+    });
+
+    test('throws for a non-admin caller, before ever calling Stripe', async () => {
+        const t = setupTest();
+        const reservationId = await seedPaidReservation(t);
+        const identity = await seedGuest(t);
+
+        await expect(
+            t
+                .withIdentity(identity)
+                .action(api.stripeActions.adminRefundReservation, { reservationId }),
+        ).rejects.toThrow();
+        expect(refundMock).not.toHaveBeenCalled();
+    });
+
+    test('refunds the payment intent and marks the reservation refunded', async () => {
+        const t = setupTest();
+        const reservationId = await seedPaidReservation(t);
+        const admin = await seedAdmin(t);
+
+        await t
+            .withIdentity(admin)
+            .action(api.stripeActions.adminRefundReservation, { reservationId });
+
+        expect(refundMock).toHaveBeenCalledWith({ payment_intent: 'pi_test_paid' });
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'refunded' });
     });
 });

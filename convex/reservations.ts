@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 
 import { AVAILABILITY_VIOLATION_CODES } from '../features/availability/availability-domain';
-import { internalMutation, mutation, query } from './_generated/server';
+import { internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
 import * as Reservations from './model/reservations';
 
@@ -213,4 +213,21 @@ export const adminGetStats = query({
         recentBookings: v.array(recentBookingValidator),
     }),
     handler: async (ctx, args) => await Reservations.adminGetStats(ctx, args),
+});
+
+// Internal-only: called exclusively by convex/stripeActions.ts's adminRefundReservation
+// action (admin refund capability) -- `requireAdmin` needs `ctx.db`, unavailable to an action.
+export const getReservationForRefund = internalQuery({
+    args: { reservationId: v.string() },
+    returns: v.object({
+        reservationId: v.id('reservations'),
+        stripePaymentIntentId: v.string(),
+    }),
+    handler: async (ctx, args) => await Reservations.getReservationForRefund(ctx, args),
+});
+
+export const markReservationRefunded = internalMutation({
+    args: { reservationId: v.id('reservations') },
+    returns: v.null(),
+    handler: async (ctx, args) => await Reservations.markReservationRefunded(ctx, args),
 });

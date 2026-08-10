@@ -3,12 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BookingDetailDialog } from './booking-detail-dialog';
 
-const { useQuery, useMutation } = vi.hoisted(() => ({
+const { useQuery, useMutation, useAction } = vi.hoisted(() => ({
     useQuery: vi.fn(),
     useMutation: vi.fn(),
+    useAction: vi.fn(),
 }));
 
-vi.mock('convex/react', () => ({ useQuery, useMutation }));
+vi.mock('convex/react', () => ({ useQuery, useMutation, useAction }));
 
 type ReservationStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -54,6 +55,7 @@ describe('BookingDetailDialog', () => {
     beforeEach(() => {
         useQuery.mockReset();
         useMutation.mockReturnValue(vi.fn());
+        useAction.mockReturnValue(vi.fn());
     });
 
     it('renders nothing when no reservation is selected', () => {
@@ -104,5 +106,19 @@ describe('BookingDetailDialog', () => {
         expect(
             screen.queryByRole('button', { name: 'Cancel reservation' }),
         ).not.toBeInTheDocument();
+    });
+
+    it('renders the refund action for a paid reservation', () => {
+        useQuery.mockReturnValue(reservation({ paymentStatus: 'paid' }));
+        render(<BookingDetailDialog reservationId='reservation-1' onClose={vi.fn()} />);
+
+        expect(screen.getByRole('button', { name: 'Refund payment' })).toBeInTheDocument();
+    });
+
+    it('omits the refund action for a reservation that is not paid', () => {
+        useQuery.mockReturnValue(reservation({ paymentStatus: 'not_required' }));
+        render(<BookingDetailDialog reservationId='reservation-1' onClose={vi.fn()} />);
+
+        expect(screen.queryByRole('button', { name: 'Refund payment' })).not.toBeInTheDocument();
     });
 });

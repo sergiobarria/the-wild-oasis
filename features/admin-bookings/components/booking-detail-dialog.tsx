@@ -10,6 +10,7 @@ import { ReservationStatusBadge } from '@/features/guest-area/components/reserva
 import { formatCents } from '@/lib/money';
 
 import { CancelBookingAction } from './cancel-booking-action';
+import { RefundBookingAction } from './refund-booking-action';
 
 export function BookingDetailDialog({
     reservationId,
@@ -99,10 +100,16 @@ export function BookingDetailDialog({
                                     </div>
                                 </div>
 
-                                <CancelBookingAction
-                                    reservationId={reservation._id}
-                                    status={reservation.status}
-                                />
+                                <div className='space-y-2'>
+                                    <CancelBookingAction
+                                        reservationId={reservation._id}
+                                        status={reservation.status}
+                                    />
+                                    <RefundBookingAction
+                                        reservationId={reservation._id}
+                                        paymentStatus={reservation.paymentStatus}
+                                    />
+                                </div>
                             </>
                         )}
                     </>

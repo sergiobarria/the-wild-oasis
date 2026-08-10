@@ -69,3 +69,28 @@ export const createStripeCheckoutSession = action({
         return { url: session.url };
     },
 });
+
+/**
+ * Refunds a paid reservation in full (admin-only, no partial refunds -- spec's explicit
+ * non-goal). Authorization and validation happen first via an `internalQuery` (actions have no
+ * `ctx.db`, so `requireAdmin` can't run directly here); only after that succeeds does this call
+ * Stripe. Deliberately separate from `adminCancelReservation` -- cancelling and refunding are
+ * distinct operations (spec §47), never merged into one mutation.
+ */
+export const adminRefundReservation = action({
+    args: { reservationId: v.string() },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        const { reservationId, stripePaymentIntentId } = await ctx.runQuery(
+            internal.reservations.getReservationForRefund,
+            { reservationId: args.reservationId },
+        );
+
+        const stripe = getStripeClient();
+        await stripe.refunds.create({ payment_intent: stripePaymentIntentId });
+
+        await ctx.runMutation(internal.reservations.markReservationRefunded, { reservationId });
+
+        return null;
+    },
+});
