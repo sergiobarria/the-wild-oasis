@@ -66,6 +66,22 @@ export const attachStripeSessionId = internalMutation({
     },
 });
 
+// Internal-only: called exclusively by the `/stripe/webhook` httpAction in convex/http.ts
+// (WO-059, WO-060) -- never a public mutation, since it's the sole authoritative path a
+// reservation becomes CONFIRMED/PAID via Stripe.
+export const applyStripeWebhookTransition = internalMutation({
+    args: {
+        stripeCheckoutSessionId: v.string(),
+        paymentIntentId: v.optional(v.string()),
+        transition: v.union(v.literal('paid'), v.literal('failed'), v.literal('expired')),
+    },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Reservations.applyStripeWebhookTransition(ctx, args);
+        return null;
+    },
+});
+
 const ownReservationValidator = v.object({
     _id: v.id('reservations'),
     cabinName: v.string(),

@@ -23,6 +23,7 @@ import type * as lib_occupancy from "../lib/occupancy.js";
 import type * as lib_rateLimiter from "../lib/rateLimiter.js";
 import type * as lib_reservations from "../lib/reservations.js";
 import type * as lib_reviews from "../lib/reviews.js";
+import type * as lib_stripeWebhook from "../lib/stripeWebhook.js";
 import type * as lib_subscribers from "../lib/subscribers.js";
 import type * as messages from "../messages.js";
 import type * as model_amenities from "../model/amenities.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   "lib/rateLimiter": typeof lib_rateLimiter;
   "lib/reservations": typeof lib_reservations;
   "lib/reviews": typeof lib_reviews;
+  "lib/stripeWebhook": typeof lib_stripeWebhook;
   "lib/subscribers": typeof lib_subscribers;
   messages: typeof messages;
   "model/amenities": typeof model_amenities;

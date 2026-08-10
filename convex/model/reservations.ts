@@ -235,6 +235,75 @@ export async function attachStripeSessionId(
     });
 }
 
+// A reservation already in one of these paymentStatus/status combinations has already been
+// resolved by an earlier webhook delivery -- any further transition is a no-op. This is the
+// actual idempotency guard for WO-059: Stripe explicitly warns webhook events can be
+// redelivered, so a duplicate `checkout.session.completed` must never double-process.
+const TERMINAL_PAYMENT_STATUSES: PaymentStatus[] = [
+    PAYMENT_STATUS.PAID,
+    PAYMENT_STATUS.FAILED,
+    PAYMENT_STATUS.REFUNDED,
+];
+
+/**
+ * Applies a Stripe webhook-driven state transition to the reservation matching
+ * `stripeCheckoutSessionId` (WO-059, WO-060) -- the sole place a reservation ever becomes
+ * `CONFIRMED`/`PAID` via Stripe. Called only from the `/stripe/webhook` httpAction, via an
+ * internal mutation, never directly from the client (spec §37: a browser redirect alone is
+ * never proof of payment).
+ */
+export async function applyStripeWebhookTransition(
+    ctx: MutationCtx,
+    args: {
+        stripeCheckoutSessionId: string;
+        paymentIntentId?: string;
+        transition: 'paid' | 'failed' | 'expired';
+    },
+) {
+    const reservation = await ctx.db
+        .query('reservations')
+        .withIndex('by_stripeCheckoutSessionId', (q) =>
+            q.eq('stripeCheckoutSessionId', args.stripeCheckoutSessionId),
+        )
+        .unique();
+
+    // Unknown session id (e.g. test-mode noise, or an event for a session this deployment
+    // never created) -- ignore rather than throw, so the webhook still returns 200 and Stripe
+    // doesn't retry an event this app was never going to act on.
+    if (!reservation) return;
+
+    // Idempotency guard: a reservation already cancelled, or already in a terminal payment
+    // state, has already been resolved by an earlier delivery of this (or a conflicting)
+    // event -- re-applying would either be a no-op or actively wrong (e.g. re-confirming a
+    // reservation the guest already cancelled).
+    if (
+        reservation.status === RESERVATION_STATUS.CANCELLED ||
+        TERMINAL_PAYMENT_STATUSES.includes(reservation.paymentStatus)
+    ) {
+        return;
+    }
+
+    const updatedAt = Date.now();
+
+    if (args.transition === 'paid') {
+        await ctx.db.patch(reservation._id, {
+            status: RESERVATION_STATUS.CONFIRMED,
+            paymentStatus: PAYMENT_STATUS.PAID,
+            stripePaymentIntentId: args.paymentIntentId,
+            updatedAt,
+        });
+        return;
+    }
+
+    // 'failed' and 'expired' both vacate the calendar hold -- this app's Checkout Sessions are
+    // single-attempt, so there's no in-place retry to wait for.
+    await ctx.db.patch(reservation._id, {
+        status: RESERVATION_STATUS.CANCELLED,
+        paymentStatus: PAYMENT_STATUS.FAILED,
+        updatedAt,
+    });
+}
+
 // Generous bound, same reasoning as BLOCKING_RESERVATIONS_CAP -- a guest's own booking
 // history is small; `.take()` with a cap is simpler than pagination at this scale.
 const OWN_RESERVATIONS_CAP = 200;

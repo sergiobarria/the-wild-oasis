@@ -11,6 +11,7 @@ import {
     adminGetReservation,
     adminGetStats,
     adminListReservations,
+    applyStripeWebhookTransition,
     attachStripeSessionId,
     cancelReservation,
     checkAvailability,
@@ -559,6 +560,139 @@ describe('attachStripeSessionId', () => {
 
         const updated = await t.run((ctx) => ctx.db.get(reservation!._id));
         expect(updated!.stripeCheckoutSessionId).toBe('cs_test_123');
+    });
+});
+
+describe('applyStripeWebhookTransition', () => {
+    async function seedPendingStripeReservation(
+        t: ReturnType<typeof setupTest>,
+        cabinId: Id<'cabins'>,
+        stripeCheckoutSessionId: string,
+    ) {
+        return await t.run((ctx) =>
+            ctx.db.insert('reservations', {
+                cabinId,
+                guestId: 'guest-1',
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+                status: RESERVATION_STATUS.PENDING,
+                paymentStatus: 'pending',
+                paymentRequired: true,
+                pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
+                stripeCheckoutSessionId,
+                createdAt: 1700000000000,
+                updatedAt: 1700000000000,
+            }),
+        );
+    }
+
+    test('a paid transition confirms the reservation and records the payment intent', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const reservationId = await seedPendingStripeReservation(t, cabinId, 'cs_test_123');
+
+        await t.run((ctx) =>
+            applyStripeWebhookTransition(ctx, {
+                stripeCheckoutSessionId: 'cs_test_123',
+                paymentIntentId: 'pi_test_123',
+                transition: 'paid',
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({
+            status: 'confirmed',
+            paymentStatus: 'paid',
+            stripePaymentIntentId: 'pi_test_123',
+        });
+    });
+
+    test('a duplicate paid delivery is a no-op (idempotency, WO-059)', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const reservationId = await seedPendingStripeReservation(t, cabinId, 'cs_test_123');
+
+        await t.run((ctx) =>
+            applyStripeWebhookTransition(ctx, {
+                stripeCheckoutSessionId: 'cs_test_123',
+                paymentIntentId: 'pi_test_123',
+                transition: 'paid',
+            }),
+        );
+        await t.run((ctx) =>
+            applyStripeWebhookTransition(ctx, {
+                stripeCheckoutSessionId: 'cs_test_123',
+                paymentIntentId: 'pi_test_123',
+                transition: 'paid',
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'paid' });
+    });
+
+    test('an unknown session id is a no-op', async () => {
+        const t = setupTest();
+
+        await expect(
+            t.run((ctx) =>
+                applyStripeWebhookTransition(ctx, {
+                    stripeCheckoutSessionId: 'cs_unknown',
+                    transition: 'paid',
+                }),
+            ),
+        ).resolves.not.toThrow();
+    });
+
+    test('an expired transition cancels a still-pending reservation', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const reservationId = await seedPendingStripeReservation(t, cabinId, 'cs_test_456');
+
+        await t.run((ctx) =>
+            applyStripeWebhookTransition(ctx, {
+                stripeCheckoutSessionId: 'cs_test_456',
+                transition: 'expired',
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'cancelled', paymentStatus: 'failed' });
+    });
+
+    test('a failed transition cancels a still-pending reservation', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const reservationId = await seedPendingStripeReservation(t, cabinId, 'cs_test_789');
+
+        await t.run((ctx) =>
+            applyStripeWebhookTransition(ctx, {
+                stripeCheckoutSessionId: 'cs_test_789',
+                transition: 'failed',
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'cancelled', paymentStatus: 'failed' });
+    });
+
+    test('a paid transition never fires on an already-cancelled reservation', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const reservationId = await seedPendingStripeReservation(t, cabinId, 'cs_test_999');
+        await t.run((ctx) => ctx.db.patch(reservationId, { status: RESERVATION_STATUS.CANCELLED }));
+
+        await t.run((ctx) =>
+            applyStripeWebhookTransition(ctx, {
+                stripeCheckoutSessionId: 'cs_test_999',
+                paymentIntentId: 'pi_test_999',
+                transition: 'paid',
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'cancelled', paymentStatus: 'pending' });
     });
 });
 
