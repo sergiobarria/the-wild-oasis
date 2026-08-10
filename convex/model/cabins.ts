@@ -219,6 +219,12 @@ async function assertUniqueSlug(
     }
 }
 
+function assertNonNegativeInteger(value: number, fieldName: string): void {
+    if (!Number.isInteger(value) || value < 0) {
+        throw new ConvexError(`${fieldName} must be a whole, non-negative number.`);
+    }
+}
+
 type AdminCabinInput = {
     name: string;
     slug: string;
@@ -246,6 +252,10 @@ export async function adminCreateCabin(ctx: MutationCtx, args: AdminCabinInput) 
     await assertUniqueSlug(ctx, args.slug);
     assertIntegerCents(args.nightlyRate, 'nightlyRate');
     assertIntegerCents(args.cleaningFee, 'cleaningFee');
+    assertNonNegativeInteger(args.maxGuests, 'maxGuests');
+    assertNonNegativeInteger(args.bedrooms, 'bedrooms');
+    assertNonNegativeInteger(args.beds, 'beds');
+    assertNonNegativeInteger(args.bathrooms, 'bathrooms');
 
     const timestamp = Date.now();
 
@@ -284,11 +294,15 @@ export async function adminUpdateCabin(
     const cabin = await ctx.db.get(cabinId);
     if (!cabin) throw new ConvexError('Unknown cabin.');
 
-    if (fields.slug && fields.slug !== cabin.slug) {
+    if (fields.slug !== undefined && fields.slug !== cabin.slug) {
         await assertUniqueSlug(ctx, fields.slug, cabinId);
     }
     if (fields.nightlyRate !== undefined) assertIntegerCents(fields.nightlyRate, 'nightlyRate');
     if (fields.cleaningFee !== undefined) assertIntegerCents(fields.cleaningFee, 'cleaningFee');
+    if (fields.maxGuests !== undefined) assertNonNegativeInteger(fields.maxGuests, 'maxGuests');
+    if (fields.bedrooms !== undefined) assertNonNegativeInteger(fields.bedrooms, 'bedrooms');
+    if (fields.beds !== undefined) assertNonNegativeInteger(fields.beds, 'beds');
+    if (fields.bathrooms !== undefined) assertNonNegativeInteger(fields.bathrooms, 'bathrooms');
 
     const { amenityIds, ...rest } = fields;
 
@@ -347,6 +361,11 @@ export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'>
     const cabin = await ctx.db.get(args.cabinId);
     if (!cabin) return null;
 
+    const [coverImageUrl, galleryImageUrls] = await Promise.all([
+        ctx.storage.getUrl(cabin.coverImage),
+        Promise.all(cabin.galleryImages.map((id) => ctx.storage.getUrl(id))),
+    ]);
+
     return {
         _id: cabin._id,
         name: cabin.name,
@@ -361,16 +380,24 @@ export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'>
         bedrooms: cabin.bedrooms,
         beds: cabin.beds,
         bathrooms: cabin.bathrooms,
-        coverImageUrl: await ctx.storage.getUrl(cabin.coverImage),
-        galleryImageUrls: await Promise.all(
-            cabin.galleryImages.map((id) => ctx.storage.getUrl(id)),
-        ),
+        coverImageUrl,
+        galleryImageUrls,
         amenityIds: cabin.amenities,
         published: cabin.published,
         featured: cabin.featured,
         createdAt: cabin.createdAt,
         updatedAt: cabin.updatedAt,
     };
+}
+
+/**
+ * The real, `requireAdmin`-gated sibling `cabins.ts`'s dev/seed-only `generateUploadUrl`
+ * anticipates -- used by the admin cabin form (create's required cover image, edit's gallery
+ * management) rather than the seed script.
+ */
+export async function adminGenerateUploadUrl(ctx: MutationCtx) {
+    await requireAdmin(ctx);
+    return await ctx.storage.generateUploadUrl();
 }
 
 /**

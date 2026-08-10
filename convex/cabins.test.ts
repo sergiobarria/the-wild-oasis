@@ -612,6 +612,36 @@ describe('adminCreateCabin', () => {
                 .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage })),
         ).rejects.toThrow('A cabin with the slug "pine-ridge-cabin" already exists.');
     });
+
+    test('rejects a negative maxGuests', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .mutation(
+                    api.cabins.adminCreateCabin,
+                    adminCabinArgs({ coverImage, maxGuests: -1 }),
+                ),
+        ).rejects.toThrow();
+    });
+
+    test('rejects a fractional bedrooms count', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .mutation(
+                    api.cabins.adminCreateCabin,
+                    adminCabinArgs({ coverImage, bedrooms: 2.5 }),
+                ),
+        ).rejects.toThrow();
+    });
 });
 
 describe('adminUpdateCabin', () => {
@@ -680,6 +710,29 @@ describe('adminUpdateCabin', () => {
         await expect(
             t.withIdentity(admin).mutation(api.cabins.adminUpdateCabin, { cabinId, slug: 'taken' }),
         ).rejects.toThrow('A cabin with the slug "taken" already exists.');
+    });
+
+    test('rejects blanking the slug to an empty string that could collide with another blanked cabin', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinA = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage, slug: 'cabin-a' }));
+        const cabinB = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage, slug: 'cabin-b' }));
+
+        await t.withIdentity(admin).mutation(api.cabins.adminUpdateCabin, {
+            cabinId: cabinA,
+            slug: '',
+        });
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .mutation(api.cabins.adminUpdateCabin, { cabinId: cabinB, slug: '' }),
+        ).rejects.toThrow('A cabin with the slug "" already exists.');
     });
 });
 
@@ -801,5 +854,25 @@ describe('adminGetCabin', () => {
         const cabin = await t.withIdentity(admin).query(api.cabins.adminGetCabin, { cabinId });
 
         expect(cabin).toMatchObject({ published: false, amenityIds: wifi ? [wifi._id] : [] });
+    });
+});
+
+describe('adminGenerateUploadUrl', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const guest = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(guest).mutation(api.cabins.adminGenerateUploadUrl, {}),
+        ).rejects.toThrow();
+    });
+
+    test('returns an upload url for an admin', async () => {
+        const t = setupTestWithAuth();
+        const admin = await seedAdmin(t);
+
+        const url = await t.withIdentity(admin).mutation(api.cabins.adminGenerateUploadUrl, {});
+
+        expect(url).toEqual(expect.any(String));
     });
 });

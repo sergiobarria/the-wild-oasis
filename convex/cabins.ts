@@ -108,7 +108,11 @@ export const getById = query({
     handler: async (ctx, args) => await Cabins.getById(ctx, args),
 });
 
-const adminCabinInputFields = {
+// Defined once via `v.object(...)`, then derived with `.fields`/`.partial()` for
+// adminCreateCabin/adminUpdateCabin below (per convex/_generated/ai/guidelines.md: "define a
+// shape once and derive variants instead of duplicating fields") -- a future field added here
+// automatically appears in both mutations' args instead of needing two hand-edits.
+const adminCabinInputValidator = v.object({
     name: v.string(),
     slug: v.string(),
     shortDescription: v.string(),
@@ -124,33 +128,16 @@ const adminCabinInputFields = {
     amenityIds: v.array(v.id('amenities')),
     published: v.boolean(),
     featured: v.boolean(),
-};
+});
 
 export const adminCreateCabin = mutation({
-    args: { ...adminCabinInputFields, coverImage: v.id('_storage') },
+    args: { ...adminCabinInputValidator.fields, coverImage: v.id('_storage') },
     returns: v.id('cabins'),
     handler: async (ctx, args) => await Cabins.adminCreateCabin(ctx, args),
 });
 
 export const adminUpdateCabin = mutation({
-    args: {
-        cabinId: v.id('cabins'),
-        name: v.optional(v.string()),
-        slug: v.optional(v.string()),
-        shortDescription: v.optional(v.string()),
-        description: v.optional(v.string()),
-        location: v.optional(v.string()),
-        address: v.optional(v.string()),
-        nightlyRate: v.optional(v.number()),
-        cleaningFee: v.optional(v.number()),
-        maxGuests: v.optional(v.number()),
-        bedrooms: v.optional(v.number()),
-        beds: v.optional(v.number()),
-        bathrooms: v.optional(v.number()),
-        amenityIds: v.optional(v.array(v.id('amenities'))),
-        published: v.optional(v.boolean()),
-        featured: v.optional(v.boolean()),
-    },
+    args: { cabinId: v.id('cabins'), ...adminCabinInputValidator.partial().fields },
     returns: v.null(),
     handler: async (ctx, args) => {
         await Cabins.adminUpdateCabin(ctx, args);
@@ -211,6 +198,12 @@ export const adminGetCabin = query({
     args: { cabinId: v.id('cabins') },
     returns: v.union(adminCabinDetailValidator, v.null()),
     handler: async (ctx, args) => await Cabins.adminGetCabin(ctx, args),
+});
+
+export const adminGenerateUploadUrl = mutation({
+    args: {},
+    returns: v.string(),
+    handler: async (ctx) => await Cabins.adminGenerateUploadUrl(ctx),
 });
 
 /**
