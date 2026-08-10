@@ -1378,6 +1378,31 @@ describe('adminGetStats', () => {
         expect(result.occupancy.availableCabinNights).toBe(30);
     });
 
+    test('includes a reservation created earlier "today" -- the window is inclusive of today, not exclusive', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        // A real timestamp for "today" -- hours after midnight, the exact case the old
+        // exclusive-of-today window excluded until the next calendar day.
+        const createdAt = new Date('2026-08-30T14:30:00').getTime();
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-09-05',
+            checkOut: '2026-09-08',
+            paymentRequired: true,
+            paymentStatus: 'paid',
+            total: 56500,
+            createdAt,
+        });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.revenueCents).toBe(56500);
+        expect(result.bookingsOverTime.at(-1)).toEqual({ date: '2026-08-30', count: 1 });
+        expect(result.revenueOverTime.at(-1)).toEqual({ date: '2026-08-30', cents: 56500 });
+    });
+
     test('counts an upcoming reservation only when its check-in is after "now"', async () => {
         const t = setupTest();
         const admin = await seedAdmin(t);

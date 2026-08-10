@@ -460,12 +460,14 @@ const OCCUPANCY_COUNTING_STATUSES: ReservationStatus[] = [
     RESERVATION_STATUS.COMPLETED,
 ];
 
+// `windowEnd` (today) is inclusive on both ends of this range -- a reservation booked earlier
+// today belongs on today's bucket, not excluded until tomorrow.
 function isoDateRange(windowStart: string, windowEnd: string): string[] {
     const dates: string[] = [];
     const cursor = new Date(`${windowStart}T00:00:00`);
     const end = new Date(`${windowEnd}T00:00:00`);
 
-    while (cursor < end) {
+    while (cursor <= end) {
         dates.push(todayIsoDate(cursor));
         cursor.setDate(cursor.getDate() + 1);
     }
@@ -503,7 +505,10 @@ export async function adminGetStats(ctx: QueryCtx, args: { now: string }) {
     const windowStart = occupancyWindowStart(args.now);
     const windowEnd = args.now;
     const windowStartMs = new Date(`${windowStart}T00:00:00`).getTime();
-    const windowEndMs = new Date(`${windowEnd}T00:00:00`).getTime();
+    // Midnight of the day AFTER `windowEnd`, not `windowEnd` itself -- `createdAt` is a real
+    // timestamp, and comparing it against midnight of "today" would exclude every reservation
+    // created today (any time after 00:00) from the "trailing 30 days" window until tomorrow.
+    const windowEndMs = new Date(`${windowEnd}T00:00:00`).getTime() + 24 * 60 * 60 * 1000;
 
     const [reservations, publishedCabins, unreadMessages] = await Promise.all([
         ctx.db.query('reservations').order('desc').take(STATS_RESERVATIONS_CAP),
