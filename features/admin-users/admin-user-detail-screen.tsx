@@ -21,15 +21,7 @@ import { ReservationStatusBadge } from '@/features/guest-area/components/reserva
 import { formatCents } from '@/lib/money';
 import { APP_ROUTES } from '@/lib/routes';
 
-function initials(name: string): string {
-    return name
-        .split(' ')
-        .map((part) => part[0])
-        .filter(Boolean)
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
+import { initials } from './admin-users-domain';
 
 export function AdminUserDetailScreen({ userId }: { userId: string }) {
     const user = useQuery(api.users.adminGetUserDetail, { userId });

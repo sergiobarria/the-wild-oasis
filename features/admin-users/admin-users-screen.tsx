@@ -25,7 +25,10 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { api } from '@/convex/_generated/api';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { adminUserDetailHref } from '@/lib/routes';
+
+import { initials, parseRoleParam } from './admin-users-domain';
 
 const ALL_VALUE = 'all';
 
@@ -34,21 +37,15 @@ const filterParsers = {
     role: parseAsString.withDefault(''),
 };
 
-function initials(name: string): string {
-    return name
-        .split(' ')
-        .map((part) => part[0])
-        .filter(Boolean)
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
-
 export function AdminUsersScreen() {
     const [filters, setFilters] = useQueryStates(filterParsers);
+    // nuqs' `limitUrlUpdates: debounce(...)` only throttles the URL write -- `filters.search`
+    // itself still updates every keystroke, so the Convex query args must be debounced
+    // separately or every keystroke fires its own query.
+    const debouncedSearch = useDebouncedValue(filters.search, 400);
     const users = useQuery(api.users.adminListUsers, {
-        search: filters.search || undefined,
-        role: filters.role || undefined,
+        search: debouncedSearch || undefined,
+        role: parseRoleParam(filters.role),
     });
 
     return (

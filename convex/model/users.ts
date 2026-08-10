@@ -1,6 +1,7 @@
 import { components } from '../_generated/api';
 import type { Id } from '../_generated/dataModel';
 import type { QueryCtx } from '../_generated/server';
+import { authComponent } from '../betterAuth/auth';
 import { requireAdmin } from './auth';
 
 // Generous bound, same reasoning as elsewhere in this codebase -- never an unbounded read,
@@ -71,11 +72,7 @@ export async function adminListUsers(ctx: QueryCtx, args: { search?: string; rol
 export async function adminGetUserDetail(ctx: QueryCtx, args: { userId: string }) {
     await requireAdmin(ctx);
 
-    const user = (await ctx.runQuery(components.betterAuth.adapter.findOne, {
-        model: 'user',
-        where: [{ field: '_id', operator: 'eq' as const, value: args.userId }],
-    })) as BetterAuthUser | null;
-
+    const user = (await authComponent.getAnyUserById(ctx, args.userId)) as BetterAuthUser | null;
     if (!user) return null;
 
     const reservations = await ctx.db
