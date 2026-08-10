@@ -29,6 +29,9 @@ export async function adminCreateBlock(
 ) {
     const admin = await requireAdmin(ctx);
 
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
     if (args.endDate <= args.startDate) {
         throw new ConvexError('End date must be after the start date.');
     }

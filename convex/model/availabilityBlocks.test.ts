@@ -85,6 +85,24 @@ describe('adminCreateBlock', () => {
         ).rejects.toThrow();
     });
 
+    test('throws for an unknown cabin', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        await expect(
+            t.withIdentity(admin).run((ctx) =>
+                adminCreateBlock(ctx, {
+                    cabinId,
+                    startDate: '2026-08-15',
+                    endDate: '2026-08-18',
+                    reason: 'Maintenance',
+                }),
+            ),
+        ).rejects.toThrow('Unknown cabin.');
+    });
+
     test('rejects an endDate on or before startDate', async () => {
         const t = setupTest();
         const cabinId = await seedCabin(t);

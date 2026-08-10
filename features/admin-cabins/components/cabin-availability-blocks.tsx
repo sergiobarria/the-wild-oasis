@@ -11,6 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
+import { todayIsoDate } from '@/lib/dates';
+
+/** The server requires `endDate > startDate` (strictly after, half-open range) -- the date
+ *  picker's `min` must be the day *after* `startDate`, not `startDate` itself, or the browser
+ *  happily accepts a same-day range the mutation always rejects. */
+function dayAfter(dateIso: string): string {
+    const date = new Date(`${dateIso}T00:00:00`);
+    date.setDate(date.getDate() + 1);
+    return todayIsoDate(date);
+}
 
 /** Operational, not one of the cabin form's Basic/Pricing/Amenities/Images tabs (WO-051) --
  *  blocks are calendar management, not cabin data, so they render as a section below the
@@ -108,7 +118,7 @@ export function CabinAvailabilityBlocks({ cabinId }: { cabinId: Id<'cabins'> }) 
                         id='block-end'
                         type='date'
                         required
-                        min={startDate || undefined}
+                        min={startDate ? dayAfter(startDate) : undefined}
                         value={endDate}
                         onChange={(event) => setEndDate(event.target.value)}
                     />
