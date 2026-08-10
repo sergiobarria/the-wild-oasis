@@ -88,3 +88,58 @@ export const cancelReservation = mutation({
     returns: v.null(),
     handler: async (ctx, args) => await Reservations.cancelReservation(ctx, args),
 });
+
+const adminListRowValidator = v.object({
+    _id: v.id('reservations'),
+    cabinName: v.string(),
+    guestName: v.string(),
+    guestEmail: v.string(),
+    checkIn: v.string(),
+    checkOut: v.string(),
+    guests: v.number(),
+    status: reservationStatusValidator,
+    paymentStatus: paymentStatusValidator,
+    total: v.number(),
+    createdAt: v.number(),
+});
+
+export const adminListReservations = query({
+    args: {
+        search: v.optional(v.string()),
+        status: v.optional(reservationStatusValidator),
+        paymentStatus: v.optional(paymentStatusValidator),
+        cabinId: v.optional(v.id('cabins')),
+        checkInFrom: v.optional(v.string()),
+        checkInTo: v.optional(v.string()),
+    },
+    returns: v.array(adminListRowValidator),
+    handler: async (ctx, args) => await Reservations.adminListReservations(ctx, args),
+});
+
+const adminReservationDetailValidator = v.object({
+    _id: v.id('reservations'),
+    cabinName: v.string(),
+    guestName: v.string(),
+    guestEmail: v.string(),
+    checkIn: v.string(),
+    checkOut: v.string(),
+    guests: v.number(),
+    status: reservationStatusValidator,
+    paymentStatus: paymentStatusValidator,
+    paymentRequired: v.boolean(),
+    pricing: pricingValidator,
+    createdAt: v.number(),
+    updatedAt: v.number(),
+});
+
+export const adminGetReservation = query({
+    args: { reservationId: v.string() },
+    returns: v.union(adminReservationDetailValidator, v.null()),
+    handler: async (ctx, args) => await Reservations.adminGetReservation(ctx, args),
+});
+
+export const adminCancelReservation = mutation({
+    args: { reservationId: v.string() },
+    returns: v.null(),
+    handler: async (ctx, args) => await Reservations.adminCancelReservation(ctx, args),
+});

@@ -9,10 +9,17 @@ import { todayIsoDate } from '../../lib/dates';
 import { nightsBetween } from '../../lib/pricing';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
+import { authComponent } from '../betterAuth/auth';
 import { type CancellationDenialReason, canSelfCancel } from '../lib/cancellation';
 import { assertIntegerCents } from '../lib/money';
-import { isBlockingStatus, PAYMENT_STATUS, RESERVATION_STATUS } from '../lib/reservations';
-import { requireUser } from './auth';
+import {
+    isBlockingStatus,
+    PAYMENT_STATUS,
+    type PaymentStatus,
+    RESERVATION_STATUS,
+    type ReservationStatus,
+} from '../lib/reservations';
+import { requireAdmin, requireUser } from './auth';
 import { isFeatureEnabled } from './featureFlags';
 
 // Generous bound, same reasoning as cabins.ts's LISTING_RESULT_CAP -- never `.collect()`
@@ -270,6 +277,171 @@ export async function cancelReservation(ctx: MutationCtx, args: { reservationId:
 
     if (!check.allowed) {
         throw new ConvexError(CANCELLATION_DENIAL_MESSAGES[check.reason]);
+    }
+
+    await ctx.db.patch(reservation._id, {
+        status: RESERVATION_STATUS.CANCELLED,
+        updatedAt: Date.now(),
+    });
+
+    return null;
+}
+
+// Generous bound, same reasoning as cabins.ts's listFiltered -- not true infinite-scale
+// pagination, a capped `.take()` narrowed in JS. Fine as long as the business's total
+// reservation count stays under this; real cursor pagination is a follow-up if it doesn't.
+const ADMIN_LISTING_RESULT_CAP = 500;
+
+async function resolveGuestSummary(ctx: QueryCtx, guestId: string) {
+    const user = await authComponent.getAnyUserById(ctx, guestId);
+    return { name: user?.name ?? 'Unknown guest', email: user?.email ?? 'unknown' };
+}
+
+/**
+ * All reservations across every guest, for the admin bookings table (spec §61/§75, WO-046).
+ * Narrows by `cabinId`/`status` via the existing `by_cabinId_and_status` index when both are
+ * supplied; otherwise reads the capped, most-recent-first set and filters the rest in JS --
+ * guest name/email live in the Better Auth component, not this table, so free-text `search`
+ * can never be pushed into a Convex index here.
+ */
+export async function adminListReservations(
+    ctx: QueryCtx,
+    args: {
+        search?: string;
+        status?: ReservationStatus;
+        paymentStatus?: PaymentStatus;
+        cabinId?: Id<'cabins'>;
+        checkInFrom?: string;
+        checkInTo?: string;
+    },
+) {
+    await requireAdmin(ctx);
+
+    const { cabinId, status } = args;
+
+    const reservations =
+        cabinId && status
+            ? await ctx.db
+                  .query('reservations')
+                  .withIndex('by_cabinId_and_status', (q) =>
+                      q.eq('cabinId', cabinId).eq('status', status),
+                  )
+                  .order('desc')
+                  .take(ADMIN_LISTING_RESULT_CAP)
+            : await ctx.db.query('reservations').order('desc').take(ADMIN_LISTING_RESULT_CAP);
+
+    const uniqueCabinIds = [...new Set(reservations.map((reservation) => reservation.cabinId))];
+    const cabinsById = new Map(
+        await Promise.all(
+            uniqueCabinIds.map(async (cabinId) => [cabinId, await ctx.db.get(cabinId)] as const),
+        ),
+    );
+
+    const uniqueGuestIds = [...new Set(reservations.map((reservation) => reservation.guestId))];
+    const guestsById = new Map(
+        await Promise.all(
+            uniqueGuestIds.map(
+                async (guestId) => [guestId, await resolveGuestSummary(ctx, guestId)] as const,
+            ),
+        ),
+    );
+
+    const normalizedSearch = args.search?.trim().toLowerCase();
+
+    const rows = reservations
+        .filter((reservation) => !args.cabinId || reservation.cabinId === args.cabinId)
+        .filter((reservation) => !args.status || reservation.status === args.status)
+        .filter(
+            (reservation) =>
+                !args.paymentStatus || reservation.paymentStatus === args.paymentStatus,
+        )
+        .filter((reservation) => !args.checkInFrom || reservation.checkIn >= args.checkInFrom)
+        .filter((reservation) => !args.checkInTo || reservation.checkIn <= args.checkInTo)
+        .map((reservation) => {
+            const cabin = cabinsById.get(reservation.cabinId) ?? null;
+            const guest = guestsById.get(reservation.guestId) ?? {
+                name: 'Unknown guest',
+                email: 'unknown',
+            };
+
+            return {
+                _id: reservation._id,
+                cabinName: cabin?.name ?? 'Unknown cabin',
+                guestName: guest.name,
+                guestEmail: guest.email,
+                checkIn: reservation.checkIn,
+                checkOut: reservation.checkOut,
+                guests: reservation.guests,
+                status: reservation.status,
+                paymentStatus: reservation.paymentStatus,
+                total: reservation.pricing.total,
+                createdAt: reservation.createdAt,
+            };
+        })
+        .filter((row) => {
+            if (!normalizedSearch) return true;
+
+            return (
+                row.guestName.toLowerCase().includes(normalizedSearch) ||
+                row.guestEmail.toLowerCase().includes(normalizedSearch) ||
+                row._id.toLowerCase().includes(normalizedSearch)
+            );
+        });
+
+    return rows;
+}
+
+/**
+ * A single reservation for the admin booking detail view (WO-047) -- unlike
+ * `getOwnReservation`, not ownership-scoped: any admin can view any reservation. `null`
+ * for an unknown id (same normalize-then-get pattern as the guest-side query).
+ */
+export async function adminGetReservation(ctx: QueryCtx, args: { reservationId: string }) {
+    await requireAdmin(ctx);
+
+    const id = ctx.db.normalizeId('reservations', args.reservationId);
+    const reservation = id ? await ctx.db.get(id) : null;
+    if (!reservation) return null;
+
+    const [cabin, guest] = await Promise.all([
+        ctx.db.get(reservation.cabinId),
+        resolveGuestSummary(ctx, reservation.guestId),
+    ]);
+
+    return {
+        _id: reservation._id,
+        cabinName: cabin?.name ?? 'Unknown cabin',
+        guestName: guest.name,
+        guestEmail: guest.email,
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        guests: reservation.guests,
+        status: reservation.status,
+        paymentStatus: reservation.paymentStatus,
+        paymentRequired: reservation.paymentRequired,
+        pricing: reservation.pricing,
+        createdAt: reservation.createdAt,
+        updatedAt: reservation.updatedAt,
+    };
+}
+
+/**
+ * Admin-initiated cancellation (WO-047) -- unlike the guest's `cancelReservation`, not gated
+ * by ownership or the 48h window (an admin can cancel on a guest's behalf at any time). Same
+ * discipline as the guest path regardless: patches `status` only, never `paymentStatus` --
+ * cancelling isn't refunding, and no arbitrary post-payment financial edit belongs here.
+ */
+export async function adminCancelReservation(ctx: MutationCtx, args: { reservationId: string }) {
+    await requireAdmin(ctx);
+
+    const id = ctx.db.normalizeId('reservations', args.reservationId);
+    const reservation = id ? await ctx.db.get(id) : null;
+    if (!reservation) {
+        throw new ConvexError('Unknown reservation.');
+    }
+
+    if (reservation.status === RESERVATION_STATUS.CANCELLED) {
+        throw new ConvexError('This reservation has already been cancelled.');
     }
 
     await ctx.db.patch(reservation._id, {

@@ -7,6 +7,9 @@ import authComponentSchema from '../betterAuth/schema';
 import { RESERVATION_STATUS } from '../lib/reservations';
 import schema from '../schema';
 import {
+    adminCancelReservation,
+    adminGetReservation,
+    adminListReservations,
     cancelReservation,
     checkAvailability,
     createDemoReservation,
@@ -666,5 +669,196 @@ describe('cancelReservation', () => {
         await expect(
             t.withIdentity(identity).run((ctx) => cancelReservation(ctx, { reservationId })),
         ).rejects.toThrow('Cancellation is only available more than 48 hours before check-in.');
+    });
+});
+
+async function seedAdmin(t: ReturnType<typeof setupTest>) {
+    return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+        email: 'admin@example.com',
+        password: 'password123',
+        name: 'Admin User',
+        role: 'admin',
+    });
+}
+
+async function seedGuestIdentity(t: ReturnType<typeof setupTest>, email = 'guest@example.com') {
+    return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+        email,
+        password: 'password123',
+        name: 'Guest User',
+    });
+}
+
+describe('adminListReservations', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTest();
+        const identity = await seedGuestIdentity(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) => adminListReservations(ctx, {})),
+        ).rejects.toThrow();
+    });
+
+    test("lists every guest's reservations with resolved names", async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuestIdentity(t);
+        await t.withIdentity(guest).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const result = await t.withIdentity(admin).run((ctx) => adminListReservations(ctx, {}));
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toMatchObject({
+            cabinName: 'Pine Ridge Cabin',
+            guestEmail: 'guest@example.com',
+        });
+    });
+
+    test('filters by status', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            status: RESERVATION_STATUS.CANCELLED,
+        });
+        await seedReservation(t, cabinId, { checkIn: '2030-02-15', checkOut: '2030-02-18' });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminListReservations(ctx, { status: RESERVATION_STATUS.CANCELLED }));
+
+        expect(result).toHaveLength(1);
+        expect(result[0]!.status).toBe('cancelled');
+    });
+
+    test('filters by free-text search against guest name/email', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuestIdentity(t, 'jamie@example.com');
+        await t.withIdentity(guest).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const match = await t
+            .withIdentity(admin)
+            .run((ctx) => adminListReservations(ctx, { search: 'jamie' }));
+        const noMatch = await t
+            .withIdentity(admin)
+            .run((ctx) => adminListReservations(ctx, { search: 'nobody' }));
+
+        expect(match).toHaveLength(1);
+        expect(noMatch).toHaveLength(0);
+    });
+});
+
+describe('adminGetReservation', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTest();
+        const identity = await seedGuestIdentity(t);
+
+        await expect(
+            t
+                .withIdentity(identity)
+                .run((ctx) => adminGetReservation(ctx, { reservationId: 'not-real' })),
+        ).rejects.toThrow();
+    });
+
+    test('returns null for an unknown reservation id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetReservation(ctx, { reservationId: 'not-real' }));
+
+        expect(result).toBeNull();
+    });
+
+    test("returns any guest's reservation, not just the admin's own", async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuestIdentity(t);
+        const { reservationId } = await t.withIdentity(guest).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetReservation(ctx, { reservationId }));
+
+        expect(result).toMatchObject({ _id: reservationId, guestEmail: 'guest@example.com' });
+    });
+});
+
+describe('adminCancelReservation', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTest();
+        const identity = await seedGuestIdentity(t);
+
+        await expect(
+            t
+                .withIdentity(identity)
+                .run((ctx) => adminCancelReservation(ctx, { reservationId: 'not-real' })),
+        ).rejects.toThrow();
+    });
+
+    test('cancels any reservation regardless of the 48h window, leaving paymentStatus untouched', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuestIdentity(t);
+        const { reservationId } = await t.withIdentity(guest).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        await t.withIdentity(admin).run((ctx) => adminCancelReservation(ctx, { reservationId }));
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'cancelled', paymentStatus: 'not_required' });
+    });
+
+    test('rejects cancelling an already-cancelled reservation', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            status: RESERVATION_STATUS.CANCELLED,
+        });
+        const [reservation] = await t.run((ctx) => ctx.db.query('reservations').collect());
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .run((ctx) => adminCancelReservation(ctx, { reservationId: reservation!._id })),
+        ).rejects.toThrow('This reservation has already been cancelled.');
     });
 });
