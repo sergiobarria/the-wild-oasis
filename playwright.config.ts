@@ -1,7 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = Number(process.env.PORT ?? 3000);
-const baseURL = `http://127.0.0.1:${PORT}`;
+// Better Auth's trusted-origin check is configured for `localhost` (SITE_URL on the Convex
+// deployment) -- 127.0.0.1, though it resolves to the same server, sends a different Origin
+// header and gets rejected with "Invalid origin".
+const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({
     testDir: './e2e',
@@ -18,8 +21,25 @@ export default defineConfig({
     },
     projects: [
         {
+            name: 'setup',
+            testMatch: /.*\.setup\.ts/,
+        },
+        {
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
+            testMatch: /smoke\.spec\.ts/,
+        },
+        {
+            name: 'chromium-guest',
+            use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/guest.json' },
+            dependencies: ['setup'],
+            testMatch: /guest-flow\.spec\.ts/,
+        },
+        {
+            name: 'chromium-admin',
+            use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/admin.json' },
+            dependencies: ['setup'],
+            testMatch: /admin-flow\.spec\.ts/,
         },
     ],
     webServer: {

@@ -17,6 +17,8 @@
 /blob-report
 /playwright/.cache
 /.playwright-mcp
+# Playwright auth fixture -- live session tokens, never commit
+/e2e/.auth
 
 # next.js
 /.next/
