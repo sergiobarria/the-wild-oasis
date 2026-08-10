@@ -276,6 +276,33 @@ describe('checkAvailability', () => {
 
         expect(result).toEqual({ available: true });
     });
+
+    test('blocks a range overlapping an admin-created availability block', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await t.run((ctx) =>
+            ctx.db.insert('availabilityBlocks', {
+                cabinId,
+                startDate: '2026-08-16',
+                endDate: '2026-08-20',
+                reason: 'Maintenance',
+                createdBy: 'admin-1',
+                createdAt: 1700000000000,
+            }),
+        );
+
+        const result = await t.run((ctx) =>
+            checkAvailability(ctx, {
+                cabinId,
+                checkIn: '2026-08-17',
+                checkOut: '2026-08-19',
+                guests: 2,
+                now: '2026-08-10',
+            }),
+        );
+
+        expect(result).toEqual({ available: false, violations: [{ code: 'DATE_UNAVAILABLE' }] });
+    });
 });
 
 describe('createDemoReservation', () => {

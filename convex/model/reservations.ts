@@ -22,6 +22,7 @@ import {
     type ReservationStatus,
 } from '../lib/reservations';
 import { requireAdmin, requireUser } from './auth';
+import { loadActiveBlocks } from './availabilityBlocks';
 import { isFeatureEnabled } from './featureFlags';
 
 // Generous bound, same reasoning as cabins.ts's LISTING_RESULT_CAP -- never `.collect()`
@@ -64,9 +65,10 @@ async function resolveAvailability(
     ctx: QueryCtx,
     args: { cabinId: Id<'cabins'>; checkIn: string; checkOut: string; guests: number; now: string },
 ): Promise<{ cabin: Doc<'cabins'>; result: AvailabilityResult }> {
-    const [cabin, existingReservations] = await Promise.all([
+    const [cabin, existingReservations, blocks] = await Promise.all([
         ctx.db.get(args.cabinId),
         loadBlockingReservations(ctx, args.cabinId),
+        loadActiveBlocks(ctx, args.cabinId),
     ]);
 
     // Same reasoning as cabins.ts's getBySlug: an unauthenticated public query must never leak
@@ -82,6 +84,7 @@ async function resolveAvailability(
         capacity: cabin.maxGuests,
         now: args.now,
         existingReservations,
+        blocks,
     });
 
     return { cabin, result };

@@ -117,4 +117,17 @@ export default defineSchema({
         status: subscriberStatusValidator,
         subscribedAt: v.number(),
     }).index('by_email', ['email']),
+
+    availabilityBlocks: defineTable({
+        cabinId: v.id('cabins'),
+        /** ISO 'YYYY-MM-DD' calendar-day strings, half-open range, same convention as
+         *  `reservations.checkIn`/`checkOut`. See features/availability/availability-domain.ts. */
+        startDate: v.string(),
+        endDate: v.string(),
+        reason: v.string(),
+        /** Better Auth identity.subject of the admin who created this block, same shape
+         *  reasoning as `reservations.guestId`. */
+        createdBy: v.string(),
+        createdAt: v.number(),
+    }).index('by_cabinId', ['cabinId']),
 });
