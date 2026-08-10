@@ -29,10 +29,16 @@ function seedUser(user: Record<string, string>) {
             ['convex', 'run', 'testHelpers:seedAuthenticatedUser', JSON.stringify(user)],
             { stdio: 'pipe' },
         );
-    } catch {
+    } catch (thrown) {
         // Better Auth's sign-up throws for a duplicate email -- idempotent by design (the
-        // dev server may already have this user from a previous local run), so a failure
-        // here just means the user already exists and sign-in below will still work.
+        // dev server may already have this user from a previous local run). Re-throw
+        // anything else (bad CLI args, Convex unreachable, network issue) rather than
+        // silently proceeding to a sign-in that would then fail with a confusing,
+        // unrelated error.
+        const output = String(
+            (thrown as { stderr?: Buffer | string }).stderr ?? (thrown as Error).message ?? '',
+        );
+        if (!output.includes('User already exists')) throw thrown;
     }
 }
 

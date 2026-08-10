@@ -25,15 +25,12 @@ export default defineConfig({
             testMatch: /.*\.setup\.ts/,
         },
         {
+            // Unauthenticated -- also runs guest-flow.spec.ts, which signs up a brand-new
+            // account itself and must NOT start from a pre-authenticated context (sign-up
+            // redirects an already-signed-in visitor away before the flow can run).
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
-            testMatch: /smoke\.spec\.ts/,
-        },
-        {
-            name: 'chromium-guest',
-            use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/guest.json' },
-            dependencies: ['setup'],
-            testMatch: /guest-flow\.spec\.ts/,
+            testMatch: /(smoke|guest-flow)\.spec\.ts/,
         },
         {
             name: 'chromium-admin',
