@@ -81,7 +81,7 @@ function SettingsForm({
 }
 
 export function AdminSettingsScreen() {
-    const settings = useQuery(api.appSettings.getAppSettings);
+    const settings = useQuery(api.appSettings.adminGetAppSettings);
 
     return (
         <div className='space-y-6'>
@@ -93,7 +93,14 @@ export function AdminSettingsScreen() {
                     <Skeleton className='h-9 w-24' />
                 </div>
             ) : (
-                <SettingsForm initialCancellationWindowHours={settings.cancellationWindowHours} />
+                // Keyed by `updatedAt` -- if another admin session changes the setting while
+                // this one has the page open, the reactive query updates `settings` but a bare
+                // `useState` seeded from a prop would not re-initialize on its own. The key
+                // forces a remount so the input picks up the new live value.
+                <SettingsForm
+                    key={settings.updatedAt ?? 'default'}
+                    initialCancellationWindowHours={settings.cancellationWindowHours}
+                />
             )}
         </div>
     );

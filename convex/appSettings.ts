@@ -5,12 +5,18 @@ import * as AppSettings from './model/appSettings';
 
 export const getAppSettings = query({
     args: {},
+    returns: v.object({ cancellationWindowHours: v.number() }),
+    handler: async (ctx) => await AppSettings.getAppSettings(ctx),
+});
+
+export const adminGetAppSettings = query({
+    args: {},
     returns: v.object({
         cancellationWindowHours: v.number(),
         updatedAt: v.union(v.number(), v.null()),
         updatedBy: v.optional(v.string()),
     }),
-    handler: async (ctx) => await AppSettings.getAppSettings(ctx),
+    handler: async (ctx) => await AppSettings.adminGetAppSettings(ctx),
 });
 
 export const adminUpdateSettings = mutation({

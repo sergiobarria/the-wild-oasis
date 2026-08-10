@@ -5,7 +5,7 @@ import { internal } from '../_generated/api';
 import authComponentSchema from '../betterAuth/schema';
 import { CANCELLATION_WINDOW_HOURS } from '../lib/cancellation';
 import schema from '../schema';
-import { adminUpdateSettings, getAppSettings } from './appSettings';
+import { adminGetAppSettings, adminUpdateSettings, getAppSettings } from './appSettings';
 
 const modules = import.meta.glob('../**/*.ts');
 const authComponentModules = import.meta.glob('../betterAuth/**/*.ts');
@@ -39,14 +39,10 @@ describe('getAppSettings', () => {
 
         const result = await t.run((ctx) => getAppSettings(ctx));
 
-        expect(result).toEqual({
-            cancellationWindowHours: CANCELLATION_WINDOW_HOURS,
-            updatedAt: null,
-            updatedBy: undefined,
-        });
+        expect(result).toEqual({ cancellationWindowHours: CANCELLATION_WINDOW_HOURS });
     });
 
-    test('returns the stored row once one exists', async () => {
+    test('returns the stored value once a row exists', async () => {
         const t = setupTest();
         await t.run((ctx) =>
             ctx.db.insert('appSettings', {
@@ -58,7 +54,67 @@ describe('getAppSettings', () => {
 
         const result = await t.run((ctx) => getAppSettings(ctx));
 
-        expect(result).toMatchObject({ cancellationWindowHours: 72 });
+        expect(result).toEqual({ cancellationWindowHours: 72 });
+    });
+
+    test('never returns updatedBy -- this is the public, unauthenticated-callable query', async () => {
+        const t = setupTest();
+        await t.run((ctx) =>
+            ctx.db.insert('appSettings', {
+                cancellationWindowHours: 72,
+                updatedAt: 1700000000000,
+                updatedBy: 'admin-1',
+            }),
+        );
+
+        const result = await t.run((ctx) => getAppSettings(ctx));
+
+        expect(result).not.toHaveProperty('updatedBy');
+        expect(result).not.toHaveProperty('updatedAt');
+    });
+});
+
+describe('adminGetAppSettings', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTest();
+        const guest = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(guest).run((ctx) => adminGetAppSettings(ctx)),
+        ).rejects.toThrow();
+    });
+
+    test('includes updatedAt/updatedBy for an admin caller', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        await t.run((ctx) =>
+            ctx.db.insert('appSettings', {
+                cancellationWindowHours: 72,
+                updatedAt: 1700000000000,
+                updatedBy: 'admin-1',
+            }),
+        );
+
+        const result = await t.withIdentity(admin).run((ctx) => adminGetAppSettings(ctx));
+
+        expect(result).toEqual({
+            cancellationWindowHours: 72,
+            updatedAt: 1700000000000,
+            updatedBy: 'admin-1',
+        });
+    });
+
+    test('falls back to the hardcoded default with null updatedAt when no row exists yet', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+
+        const result = await t.withIdentity(admin).run((ctx) => adminGetAppSettings(ctx));
+
+        expect(result).toEqual({
+            cancellationWindowHours: CANCELLATION_WINDOW_HOURS,
+            updatedAt: null,
+            updatedBy: undefined,
+        });
     });
 });
 
@@ -104,7 +160,7 @@ describe('adminUpdateSettings', () => {
             .withIdentity(admin)
             .run((ctx) => adminUpdateSettings(ctx, { cancellationWindowHours: 24 }));
 
-        const result = await t.run((ctx) => getAppSettings(ctx));
+        const result = await t.withIdentity(admin).run((ctx) => adminGetAppSettings(ctx));
         expect(result.cancellationWindowHours).toBe(24);
         expect(result.updatedBy).toBe(admin.subject);
     });

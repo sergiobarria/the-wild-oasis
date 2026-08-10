@@ -6,10 +6,25 @@ import { requireAdmin } from './auth';
 
 /**
  * The app's single settings row (WO-057) -- lazily defaulted rather than seeded, so a fresh
- * deployment works before any admin ever visits the settings screen. Both the guest-side
- * `cancelReservation` mutation and the admin settings screen read through this.
+ * deployment works before any admin ever visits the settings screen.
+ *
+ * Public and admin-only shapes are split, same discipline as `featureFlags.ts`'s public
+ * `isFeatureEnabled` (boolean only) vs. `adminListFlags` (resolves `updatedBy`): the guest-side
+ * `cancelReservation` mutation and `CancelReservationAction` UI only ever need
+ * `cancellationWindowHours`, so `getAppSettings` never returns `updatedBy` (an internal Better
+ * Auth user id) to an unauthenticated caller.
  */
 export async function getAppSettings(ctx: QueryCtx) {
+    const settings = await ctx.db.query('appSettings').first();
+
+    return {
+        cancellationWindowHours: settings?.cancellationWindowHours ?? CANCELLATION_WINDOW_HOURS,
+    };
+}
+
+export async function adminGetAppSettings(ctx: QueryCtx) {
+    await requireAdmin(ctx);
+
     const settings = await ctx.db.query('appSettings').first();
 
     return {
