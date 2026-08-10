@@ -2,7 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 import { amenityCategoryValidator } from './lib/amenities';
-import { messageStatusValidator } from './lib/messages';
+import { messageStatusValidator, preArchiveStatusValidator } from './lib/messages';
 import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
 import { subscriberStatusValidator } from './lib/subscribers';
 
@@ -109,6 +109,11 @@ export default defineSchema({
         subject: v.string(),
         message: v.string(),
         status: messageStatusValidator,
+        /** Set when `status` becomes `archived`, to `unread`/`read` (whichever it was) --
+         *  unarchiving restores this instead of always landing on `read`, which would
+         *  otherwise silently lose an unread message's unread-ness. Absent for a never-
+         *  archived message. See convex/model/messages.ts's adminArchive/adminUnarchive. */
+        preArchiveStatus: v.optional(preArchiveStatusValidator),
         createdAt: v.number(),
     }).index('by_status', ['status']),
 

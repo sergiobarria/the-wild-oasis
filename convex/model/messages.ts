@@ -88,7 +88,7 @@ async function setMessageStatus(
 }
 
 // Archive isn't terminal -- unread/read/archived all move independently, so a message can be
-// unarchived back to read rather than getting stuck once archived.
+// unarchived rather than getting stuck once archived.
 export async function adminMarkRead(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
     await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.READ);
 }
@@ -97,10 +97,28 @@ export async function adminMarkUnread(ctx: MutationCtx, args: { messageId: Id<'m
     await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.UNREAD);
 }
 
+/** Remembers whichever non-archived status the message had (`preArchiveStatus`) so
+ *  `adminUnarchive` can restore it exactly -- archiving an unread message and later
+ *  unarchiving it must not silently turn it into a read one. */
 export async function adminArchive(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
-    await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.ARCHIVED);
+    await requireAdmin(ctx);
+
+    const message = await ctx.db.get(args.messageId);
+    if (!message) throw new ConvexError('Unknown message.');
+
+    const preArchiveStatus =
+        message.status === MESSAGE_STATUS.ARCHIVED
+            ? (message.preArchiveStatus ?? MESSAGE_STATUS.READ)
+            : message.status;
+
+    await ctx.db.patch(args.messageId, { status: MESSAGE_STATUS.ARCHIVED, preArchiveStatus });
 }
 
 export async function adminUnarchive(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
-    await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.READ);
+    await requireAdmin(ctx);
+
+    const message = await ctx.db.get(args.messageId);
+    if (!message) throw new ConvexError('Unknown message.');
+
+    await ctx.db.patch(args.messageId, { status: message.preArchiveStatus ?? MESSAGE_STATUS.READ });
 }

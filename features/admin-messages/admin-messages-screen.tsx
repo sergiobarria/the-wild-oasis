@@ -18,10 +18,21 @@ const FILTERS = [
     { value: MESSAGE_STATUS.ARCHIVED, label: 'Archived' },
 ] as const;
 
+const VALID_STATUSES: string[] = Object.values(MESSAGE_STATUS);
+
+/** A hand-edited, stale, or bookmarked `?status=` is never trusted to already be a valid
+ *  enum member -- same discipline as `features/admin-bookings/admin-bookings-domain.ts`'s
+ *  `buildAdminBookingsQueryArgs`, falling back to "all" instead of reaching Convex's args
+ *  validator and throwing. */
+function parseStatusParam(value: string): MessageStatus | undefined {
+    return VALID_STATUSES.includes(value) ? (value as MessageStatus) : undefined;
+}
+
 export function AdminMessagesScreen() {
-    const [status, setStatus] = useQueryState('status', { defaultValue: 'all' });
+    const [rawStatus, setStatus] = useQueryState('status', { defaultValue: 'all' });
+    const status = parseStatusParam(rawStatus) ?? 'all';
     const messages = useQuery(api.messages.adminListMessages, {
-        status: status === 'all' ? undefined : (status as MessageStatus),
+        status: status === 'all' ? undefined : status,
     });
 
     return (

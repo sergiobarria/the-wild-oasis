@@ -14,3 +14,10 @@ export const messageStatusValidator = v.union(
     v.literal(MESSAGE_STATUS.READ),
     v.literal(MESSAGE_STATUS.ARCHIVED),
 );
+
+/** The two non-archived statuses -- what `preArchiveStatus` remembers so unarchiving can
+ *  restore exactly what a message was before it got archived. */
+export const preArchiveStatusValidator = v.union(
+    v.literal(MESSAGE_STATUS.UNREAD),
+    v.literal(MESSAGE_STATUS.READ),
+);

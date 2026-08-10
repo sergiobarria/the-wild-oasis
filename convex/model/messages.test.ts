@@ -264,4 +264,28 @@ describe('adminMarkRead / adminMarkUnread / adminArchive / adminUnarchive', () =
 
         expect(await t.run((ctx) => ctx.db.get(messageId))).toMatchObject({ status: 'read' });
     });
+
+    test('unarchiving a message archived while still unread restores it to unread, not read', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const messageId = await seedMessage(t, { status: 'unread' });
+
+        await t.withIdentity(admin).run((ctx) => adminArchive(ctx, { messageId }));
+        await t.withIdentity(admin).run((ctx) => adminUnarchive(ctx, { messageId }));
+
+        expect(await t.run((ctx) => ctx.db.get(messageId))).toMatchObject({ status: 'unread' });
+    });
+
+    test('re-archiving after unarchiving still remembers the original pre-archive status', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const messageId = await seedMessage(t, { status: 'unread' });
+
+        await t.withIdentity(admin).run((ctx) => adminArchive(ctx, { messageId }));
+        await t.withIdentity(admin).run((ctx) => adminUnarchive(ctx, { messageId }));
+        await t.withIdentity(admin).run((ctx) => adminArchive(ctx, { messageId }));
+        await t.withIdentity(admin).run((ctx) => adminUnarchive(ctx, { messageId }));
+
+        expect(await t.run((ctx) => ctx.db.get(messageId))).toMatchObject({ status: 'unread' });
+    });
 });
