@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { useMutation, useQuery } from 'convex/react';
+import { ConvexError } from 'convex/values';
 import { debounce, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 
@@ -20,45 +21,70 @@ import {
 } from '@/components/ui/table';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
+import type { SubscriberStatus } from '@/convex/lib/subscribers';
+
+function errorToastMessage(thrown: unknown, fallback: string): string {
+    return thrown instanceof ConvexError && typeof thrown.data === 'string'
+        ? thrown.data
+        : fallback;
+}
 
 function SubscriberActions({
     subscriberId,
     status,
 }: {
     subscriberId: Id<'subscribers'>;
-    status: 'active' | 'unsubscribed';
+    status: SubscriberStatus;
 }) {
     const adminUnsubscribe = useMutation(api.subscribers.adminUnsubscribe);
     const adminRemoveSubscriber = useMutation(api.subscribers.adminRemoveSubscriber);
     const [confirmingRemove, setConfirmingRemove] = useState(false);
+    const [pending, setPending] = useState(false);
 
     async function handleUnsubscribe() {
+        setPending(true);
         try {
             await adminUnsubscribe({ subscriberId });
-        } catch {
-            toast.error('Something went wrong updating this subscriber.');
+        } catch (thrown) {
+            toast.error(
+                errorToastMessage(thrown, 'Something went wrong updating this subscriber.'),
+            );
+        } finally {
+            setPending(false);
         }
     }
 
     async function handleRemove() {
+        setPending(true);
         try {
             await adminRemoveSubscriber({ subscriberId });
             toast.success('Subscriber removed');
-        } catch {
-            toast.error('Something went wrong removing this subscriber.');
+        } catch (thrown) {
+            toast.error(
+                errorToastMessage(thrown, 'Something went wrong removing this subscriber.'),
+            );
+        } finally {
+            setPending(false);
         }
     }
 
     if (confirmingRemove) {
         return (
             <div className='flex justify-end gap-2'>
-                <Button type='button' variant='destructive' size='sm' onClick={handleRemove}>
+                <Button
+                    type='button'
+                    variant='destructive'
+                    size='sm'
+                    disabled={pending}
+                    onClick={handleRemove}
+                >
                     Confirm remove
                 </Button>
                 <Button
                     type='button'
                     variant='ghost'
                     size='sm'
+                    disabled={pending}
                     onClick={() => setConfirmingRemove(false)}
                 >
                     Cancel
@@ -70,7 +96,13 @@ function SubscriberActions({
     return (
         <div className='flex justify-end gap-2'>
             {status === 'active' && (
-                <Button type='button' variant='outline' size='sm' onClick={handleUnsubscribe}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    disabled={pending}
+                    onClick={handleUnsubscribe}
+                >
                     Unsubscribe
                 </Button>
             )}
@@ -78,6 +110,7 @@ function SubscriberActions({
                 type='button'
                 variant='outline'
                 size='sm'
+                disabled={pending}
                 onClick={() => setConfirmingRemove(true)}
             >
                 Remove
