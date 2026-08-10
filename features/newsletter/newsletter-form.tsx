@@ -8,8 +8,8 @@ import { ConvexError } from 'convex/values';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { api } from '@/convex/_generated/api';
+import { AuthFormField } from '@/features/auth/components/auth-form-field';
 
 import { newsletterDefaultValues, newsletterSchema } from './newsletter-domain';
 
@@ -46,21 +46,18 @@ export function NewsletterForm() {
                 await form.handleSubmit();
             }}
         >
-            <label htmlFor='newsletter-email' className='text-sm font-medium text-foreground'>
-                Newsletter
-            </label>
-            <div className='flex gap-2'>
+            <div className='flex items-start gap-2'>
                 <form.Field name='email'>
                     {(field) => (
-                        <Input
-                            id='newsletter-email'
-                            type='email'
-                            placeholder='you@example.com'
-                            className='flex-1'
-                            value={field.state.value}
-                            onBlur={field.handleBlur}
-                            onChange={(event) => field.handleChange(event.target.value)}
-                        />
+                        <div className='flex-1'>
+                            <AuthFormField
+                                field={field}
+                                label='Newsletter'
+                                type='email'
+                                placeholder='you@example.com'
+                                autoComplete='email'
+                            />
+                        </div>
                     )}
                 </form.Field>
 
@@ -68,7 +65,11 @@ export function NewsletterForm() {
                     selector={(state) => [state.canSubmit, state.isSubmitting] as const}
                 >
                     {([canSubmit, isSubmitting]) => (
-                        <Button type='submit' disabled={!canSubmit || isSubmitting}>
+                        <Button
+                            type='submit'
+                            className='mt-6'
+                            disabled={!canSubmit || isSubmitting}
+                        >
                             {isSubmitting ? 'Subscribing…' : 'Subscribe'}
                         </Button>
                     )}
