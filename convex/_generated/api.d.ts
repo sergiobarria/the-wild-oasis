@@ -38,6 +38,7 @@ import type * as model_subscribers from "../model/subscribers.js";
 import type * as model_users from "../model/users.js";
 import type * as reservations from "../reservations.js";
 import type * as reviews from "../reviews.js";
+import type * as stripeActions from "../stripeActions.js";
 import type * as subscribers from "../subscribers.js";
 import type * as testHelpers from "../testHelpers.js";
 import type * as users from "../users.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   "model/users": typeof model_users;
   reservations: typeof reservations;
   reviews: typeof reviews;
+  stripeActions: typeof stripeActions;
   subscribers: typeof subscribers;
   testHelpers: typeof testHelpers;
   users: typeof users;

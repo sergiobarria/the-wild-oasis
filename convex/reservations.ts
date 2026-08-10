@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 
 import { AVAILABILITY_VIOLATION_CODES } from '../features/availability/availability-domain';
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
 import * as Reservations from './model/reservations';
 
@@ -42,6 +42,28 @@ const pricingValidator = v.object({
     cleaningFee: v.number(),
     taxes: v.number(),
     total: v.number(),
+});
+
+// Internal-only: called exclusively by convex/stripeActions.ts's createStripeCheckoutSession
+// action, never a public mutation, since it starts a real payment flow (WO-058).
+export const createPendingReservationForCheckout = internalMutation({
+    args: {
+        cabinId: v.id('cabins'),
+        checkIn: v.string(),
+        checkOut: v.string(),
+        guests: v.number(),
+    },
+    returns: v.object({ reservationId: v.id('reservations'), pricing: pricingValidator }),
+    handler: async (ctx, args) => await Reservations.createPendingStripeReservation(ctx, args),
+});
+
+export const attachStripeSessionId = internalMutation({
+    args: { reservationId: v.id('reservations'), stripeCheckoutSessionId: v.string() },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Reservations.attachStripeSessionId(ctx, args);
+        return null;
+    },
 });
 
 const ownReservationValidator = v.object({

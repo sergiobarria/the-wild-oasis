@@ -76,6 +76,13 @@ export function checkoutSuccessHref(reservationId: string): string {
     return `${APP_ROUTES.CHECKOUT_SUCCESS}?${query.toString()}`;
 }
 
+/** `/checkout/cancel` for a specific cabin -- used as Stripe Checkout's `cancel_url` (WO-058)
+ *  so an abandoned checkout can offer a "retry" link back to the same cabin. */
+export function checkoutCancelHref(cabinSlug: string): string {
+    const query = new URLSearchParams({ cabinSlug });
+    return `${APP_ROUTES.CHECKOUT_CANCEL}?${query.toString()}`;
+}
+
 /** `/guest-area/bookings` with a reservation pre-selected -- opens straight into that
  *  reservation's detail dialog (`BookingsScreen` reads the same `reservationId` param). */
 export function guestBookingHref(reservationId: string): string {

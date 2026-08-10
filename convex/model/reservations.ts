@@ -161,6 +161,80 @@ export async function createDemoReservation(
     return { reservationId };
 }
 
+/**
+ * Creates a reservation via the Stripe payment path (WO-058, spec §41's `stripePaymentsEnabled
+ * = true` branch) -- the inverse gate of `createDemoReservation`'s. Same re-validation
+ * discipline (re-check availability, re-derive pricing server-side, `assertIntegerCents`), but
+ * inserts as `PENDING`/`PENDING` rather than `CONFIRMED`/`NOT_REQUIRED`: `PENDING` is already a
+ * blocking status (`isBlockingStatus`), so this holds the calendar slot while the guest is on
+ * Stripe's Checkout page. The reservation only ever becomes `CONFIRMED` via the webhook
+ * (`applyStripeWebhookTransition`) -- never here, per spec §37's "redirect is never proof of
+ * payment."
+ */
+export async function createPendingStripeReservation(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; checkIn: string; checkOut: string; guests: number },
+) {
+    const user = await requireUser(ctx);
+
+    // The mirror image of createDemoReservation's gate: the Stripe path must never create a
+    // reservation while payments are disabled, even if a client somehow reaches this mutation.
+    if (!(await isFeatureEnabled(ctx, 'stripePaymentsEnabled'))) {
+        throw new ConvexError('Stripe payments are not currently enabled.');
+    }
+
+    const { cabin, result } = await resolveAvailability(ctx, {
+        ...args,
+        now: todayIsoDate(),
+    });
+
+    if (!result.available) {
+        throw new ConvexError('These dates are no longer available.');
+    }
+
+    const nights = nightsBetween(args.checkIn, args.checkOut);
+    const nightlySubtotal = cabin.nightlyRate * nights;
+    const taxes = 0; // No tax engine exists yet (spec §4).
+    const total = nightlySubtotal + cabin.cleaningFee + taxes;
+
+    assertIntegerCents(nightlySubtotal, 'nightlySubtotal');
+    assertIntegerCents(total, 'total');
+
+    const timestamp = Date.now();
+    const pricing = { nightlySubtotal, cleaningFee: cabin.cleaningFee, taxes, total };
+
+    const reservationId = await ctx.db.insert('reservations', {
+        cabinId: args.cabinId,
+        guestId: user._id,
+        checkIn: args.checkIn,
+        checkOut: args.checkOut,
+        guests: args.guests,
+        status: RESERVATION_STATUS.PENDING,
+        paymentStatus: PAYMENT_STATUS.PENDING,
+        paymentRequired: true,
+        pricing,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+    });
+
+    return { reservationId, pricing };
+}
+
+/**
+ * Patches on the Stripe Checkout Session id once it exists -- the session can only be created
+ * (via the Stripe API, inside an action) after the reservation row above already exists, so
+ * this is always a second, separate write.
+ */
+export async function attachStripeSessionId(
+    ctx: MutationCtx,
+    args: { reservationId: Id<'reservations'>; stripeCheckoutSessionId: string },
+) {
+    await ctx.db.patch(args.reservationId, {
+        stripeCheckoutSessionId: args.stripeCheckoutSessionId,
+        updatedAt: Date.now(),
+    });
+}
+
 // Generous bound, same reasoning as BLOCKING_RESERVATIONS_CAP -- a guest's own booking
 // history is small; `.take()` with a cap is simpler than pagination at this scale.
 const OWN_RESERVATIONS_CAP = 200;

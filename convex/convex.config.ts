@@ -11,6 +11,10 @@ const app = defineApp({
     env: {
         STRIPE_SECRET_KEY: v.string(),
         STRIPE_WEBHOOK_SECRET: v.string(),
+        /** Absolute origin used to build Stripe Checkout's `success_url`/`cancel_url` --
+         *  already set on this deployment for Better Auth (see `convex/betterAuth/auth.ts`),
+         *  declared here too so this app's own code can read it the typed way. */
+        SITE_URL: v.string(),
     },
 });
 

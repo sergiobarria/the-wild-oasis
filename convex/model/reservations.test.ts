@@ -11,9 +11,11 @@ import {
     adminGetReservation,
     adminGetStats,
     adminListReservations,
+    attachStripeSessionId,
     cancelReservation,
     checkAvailability,
     createDemoReservation,
+    createPendingStripeReservation,
     getOwnReservation,
     listOwnReservations,
 } from './reservations';
@@ -410,6 +412,153 @@ describe('createDemoReservation', () => {
             pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
         });
         expect(reservation!.guestId).toBe(identity.subject);
+    });
+});
+
+describe('createPendingStripeReservation', () => {
+    async function seedGuest(t: ReturnType<typeof setupTest>) {
+        return await t.mutation(internal.testHelpers.seedAuthenticatedUser, {
+            email: 'guest@example.com',
+            password: 'password123',
+            name: 'Guest User',
+        });
+    }
+
+    test('throws for an unauthenticated caller', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedFlag(t, true);
+
+        await expect(
+            t.run((ctx) =>
+                createPendingStripeReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-15',
+                    checkOut: '2030-01-18',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow();
+    });
+
+    test('throws when Stripe payments are disabled', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedFlag(t, false);
+        const identity = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) =>
+                createPendingStripeReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-15',
+                    checkOut: '2030-01-18',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow('Stripe payments are not currently enabled.');
+    });
+
+    test('throws when the dates are no longer available', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedFlag(t, true);
+        await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
+        const identity = await seedGuest(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) =>
+                createPendingStripeReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-16',
+                    checkOut: '2030-01-17',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow('These dates are no longer available.');
+    });
+
+    test('creates a pending, payment-required reservation with a server-derived pricing snapshot', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedFlag(t, true);
+        const identity = await seedGuest(t);
+
+        const { reservationId, pricing } = await t.withIdentity(identity).run((ctx) =>
+            createPendingStripeReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+
+        expect(pricing).toEqual({
+            nightlySubtotal: 75000,
+            cleaningFee: 3500,
+            taxes: 0,
+            total: 78500,
+        });
+        expect(reservation).toMatchObject({
+            cabinId,
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            guests: 2,
+            status: 'pending',
+            paymentStatus: 'pending',
+            paymentRequired: true,
+            pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
+        });
+        expect(reservation!.guestId).toBe(identity.subject);
+        expect(reservation!.stripeCheckoutSessionId).toBeUndefined();
+    });
+
+    test('the pending reservation blocks the same dates from a second booking', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedFlag(t, true);
+        const identity = await seedGuest(t);
+
+        await t.withIdentity(identity).run((ctx) =>
+            createPendingStripeReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+
+        await expect(
+            t.withIdentity(identity).run((ctx) =>
+                createPendingStripeReservation(ctx, {
+                    cabinId,
+                    checkIn: '2030-01-16',
+                    checkOut: '2030-01-17',
+                    guests: 2,
+                }),
+            ),
+        ).rejects.toThrow('These dates are no longer available.');
+    });
+});
+
+describe('attachStripeSessionId', () => {
+    test('patches the session id onto the reservation', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
+        const reservation = await t.run((ctx) => ctx.db.query('reservations').first());
+
+        await t.run((ctx) =>
+            attachStripeSessionId(ctx, {
+                reservationId: reservation!._id,
+                stripeCheckoutSessionId: 'cs_test_123',
+            }),
+        );
+
+        const updated = await t.run((ctx) => ctx.db.get(reservation!._id));
+        expect(updated!.stripeCheckoutSessionId).toBe('cs_test_123');
     });
 });
 
