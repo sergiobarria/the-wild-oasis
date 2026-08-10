@@ -152,7 +152,7 @@ This phase is the UI layer per spec §53–56. No new schema.
 - [ ] **WO-016 (3.2) — Footer** — branding, nav, legal links, newsletter form, copyright.
       Spec §21. No schema.
 
-- [ ] **WO-017 (3.3) — Newsletter subscription** — defines the `subscribers` schema table
+- [x] **WO-017 (3.3) — Newsletter subscription** — defines the `subscribers` schema table
       (email, status, subscribedAt — spec §75) here, the first point anything needs it;
       footer/home form → mutation; graceful duplicate handling. Spec §50.
 
@@ -308,65 +308,65 @@ right after booking, because almost every admin screen surfaces data those phase
 already produce (cabins, reservations, messages, subscribers) — there's nothing left to
 model speculatively by the time this phase starts. Spec §57–79.
 
-- [ ] **WO-043 (8.1) — `/admin` layout** — sidebar nav (Home/Bookings/Cabins/Messages/
+- [x] **WO-043 (8.1) — `/admin` layout** — sidebar nav (Home/Bookings/Cabins/Messages/
       Users/Subscribers/Feature Flags/Settings) with Lucide icons, active-section
       indicator, desktop-oriented but usable on tablet, functional on mobile. Spec §58.
 
-- [ ] **WO-044 (8.2) — Admin home / KPIs** — total bookings, upcoming reservations,
+- [x] **WO-044 (8.2) — Admin home / KPIs** — total bookings, upcoming reservations,
       revenue (paid only — demo reservations must not count), occupancy, unread
       messages. Trim the set if a metric adds disproportionate complexity. Reads
       `reservations` (WO-025) and `messages` (WO-040); no new schema. Spec §59–60.
 
-- [ ] **WO-045 (8.3) — Admin recent bookings + basic analytics** — bookings-over-time,
+- [x] **WO-045 (8.3) — Admin recent bookings + basic analytics** — bookings-over-time,
       revenue-over-time (paid only), reservations-by-cabin. Computed directly from
       operational data, no analytics warehouse. Spec §61–62.
 
-- [ ] **WO-046 (8.4) — `/admin/bookings` table** — reference, guest, cabin, dates,
+- [x] **WO-046 (8.4) — `/admin/bookings` table** — reference, guest, cabin, dates,
       guests, statuses, total, created, actions; filters for search/status/payment/
       cabin/date range. Spec §63–64.
 
-- [ ] **WO-047 (8.5) — Booking detail view** — reservation/guest/stay/financial sections,
+- [x] **WO-047 (8.5) — Booking detail view** — reservation/guest/stay/financial sections,
       cancel action, status view, links to guest/cabin. No arbitrary post-payment
       financial edits. Spec §67.
 
-- [ ] **WO-048 (8.6) — `/admin/cabins` CRUD** — list, create, edit, publish/unpublish (no
+- [x] **WO-048 (8.6) — `/admin/cabins` CRUD** — list, create, edit, publish/unpublish (no
       hard delete once a cabin has reservation history), amenities assignment, pricing,
       capacity — against the `cabins`/`amenities` schema from WO-018. Spec §68–69, §72.
 
-- [ ] **WO-049 (8.7) — Cabin image management** — upload/remove/reorder gallery, cover
+- [x] **WO-049 (8.7) — Cabin image management** — upload/remove/reorder gallery, cover
       image selection, via Convex file storage. Spec §71.
 
-- [ ] **WO-050 (8.8) — Cabin slug handling** — uniqueness enforced backend-side; no
+- [x] **WO-050 (8.8) — Cabin slug handling** — uniqueness enforced backend-side; no
       redirect history needed for MVP. Spec §70.
 
-- [ ] **WO-051 (8.9) — Availability blocks** — defines the `availabilityBlocks` schema
+- [x] **WO-051 (8.9) — Availability blocks** — defines the `availabilityBlocks` schema
       table here (cabinId, startDate, endDate, reason, createdBy, createdAt — spec §73),
       the first feature that needs it. Admin creates/removes blocks (maintenance,
       private use, etc.); wire this table into the availability domain module (WO-009)
       alongside the confirmed-reservations check from WO-033.
 
-- [ ] **WO-052 (8.10) — `/admin/messages`** — list, mark read/unread, archive; reads the
+- [x] **WO-052 (8.10) — `/admin/messages`** — list, mark read/unread, archive; reads the
       `messages` table defined in WO-040. No inbox/reply UI. Spec §74.
 
-- [ ] **WO-053 (8.11) — `/admin/subscribers`** — list, search, view status, unsubscribe/
+- [x] **WO-053 (8.11) — `/admin/subscribers`** — list, search, view status, unsubscribe/
       remove; reads the `subscribers` table defined in WO-017. No newsletter-sending UI.
       Spec §75.
 
-- [ ] **WO-054 (8.12) — `/admin/users`** — list (name, email, role, registered, booking
+- [x] **WO-054 (8.12) — `/admin/users`** — list (name, email, role, registered, booking
       count), search/role filter, user detail with reservation history. No role-change
       UI in this pass — keep role assignment out of band per spec §77. No new schema.
 
-- [ ] **WO-055 (8.13) — `/admin/feature-flags`** — list flags with toggle, confirmation
+- [x] **WO-055 (8.13) — `/admin/feature-flags`** — list flags with toggle, confirmation
       dialog for consequential flags (Stripe), last-updated-by line; reads/writes the
       `featureFlags` table from WO-026. Spec §78.
 
-- [ ] **WO-056 (8.14) — Feature flag audit trail** — confirm every toggle sets
+- [x] **WO-056 (8.14) — Feature flag audit trail** — confirm every toggle sets
       `updatedAt`/`updatedBy` on the flag row itself (already part of the WO-026 schema
       per spec §40 — this task proves it's wired, it doesn't add a table). Only
       introduce a dedicated audit-log table if a broader cross-entity action log turns
       out to be genuinely needed later — don't build one speculatively (spec §4).
 
-- [ ] **WO-057 (8.15) — `/admin/settings`** — defines the minimal settings schema needed
+- [x] **WO-057 (8.15) — `/admin/settings`** — defines the minimal settings schema needed
       at this point (e.g. a single-row `appSettings` table holding
       `cancellationWindowHours`, promoting the hardcoded constant from WO-038 to
       admin-configurable) and only for values something already reads — don't add
