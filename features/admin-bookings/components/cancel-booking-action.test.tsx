@@ -68,4 +68,18 @@ describe('CancelBookingAction', () => {
 
         expect(await screen.findByText('Something specific went wrong.')).toBeInTheDocument();
     });
+
+    it('clears a stale error when backing out and re-entering the confirm step', async () => {
+        adminCancelReservation.mockRejectedValue(new ConvexError('Something specific went wrong.'));
+        const user = userEvent.setup();
+        render(<CancelBookingAction reservationId='reservation-1' status='confirmed' />);
+        await user.click(screen.getByRole('button', { name: 'Cancel reservation' }));
+        await user.click(screen.getByRole('button', { name: 'Confirm cancellation' }));
+        expect(await screen.findByText('Something specific went wrong.')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Keep reservation' }));
+        await user.click(screen.getByRole('button', { name: 'Cancel reservation' }));
+
+        expect(screen.queryByText('Something specific went wrong.')).not.toBeInTheDocument();
+    });
 });

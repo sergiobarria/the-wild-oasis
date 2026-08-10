@@ -58,11 +58,19 @@ describe('BookingDetailDialog', () => {
 
     it('renders nothing when no reservation is selected', () => {
         useQuery.mockReturnValue(undefined);
-        const { container } = render(
-            <BookingDetailDialog reservationId={null} onClose={vi.fn()} />,
-        );
+        render(<BookingDetailDialog reservationId={null} onClose={vi.fn()} />);
 
-        expect(container.querySelector('[role=dialog]')).not.toBeInTheDocument();
+        // Dialog content is portaled to `document.body`, outside RTL's `container` -- query
+        // the full document via `screen`, not `container`, or a closed-dialog regression
+        // would go undetected.
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('stays closed for an empty-string reservationId (e.g. a hand-edited URL)', () => {
+        useQuery.mockReturnValue(undefined);
+        render(<BookingDetailDialog reservationId='' onClose={vi.fn()} />);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
     it('shows a not-found message when the reservation is null', () => {

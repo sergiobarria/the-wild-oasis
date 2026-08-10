@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
@@ -28,6 +28,16 @@ export function CancelBookingAction({
     const [cancelling, setCancelling] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // The parent booking-detail dialog can close (Escape, its own X button) while the mutation
+    // is still in flight, unmounting this component before the promise settles -- guard every
+    // post-await state update so a late resolution doesn't warn or silently vanish.
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
+
     if (status === 'cancelled') return null;
 
     async function handleCancel() {
@@ -37,15 +47,17 @@ export function CancelBookingAction({
         try {
             await adminCancelReservation({ reservationId });
             toast.success('Reservation cancelled');
-            setConfirming(false);
+            if (mountedRef.current) setConfirming(false);
         } catch (thrown) {
-            setError(
-                thrown instanceof ConvexError && typeof thrown.data === 'string'
-                    ? thrown.data
-                    : 'Something went wrong cancelling this reservation. Please try again.',
-            );
+            if (mountedRef.current) {
+                setError(
+                    thrown instanceof ConvexError && typeof thrown.data === 'string'
+                        ? thrown.data
+                        : 'Something went wrong cancelling this reservation. Please try again.',
+                );
+            }
         } finally {
-            setCancelling(false);
+            if (mountedRef.current) setCancelling(false);
         }
     }
 
@@ -74,7 +86,10 @@ export function CancelBookingAction({
                         type='button'
                         variant='ghost'
                         className='flex-1'
-                        onClick={() => setConfirming(false)}
+                        onClick={() => {
+                            setError(null);
+                            setConfirming(false);
+                        }}
                         disabled={cancelling}
                     >
                         Keep reservation
@@ -89,7 +104,10 @@ export function CancelBookingAction({
             type='button'
             variant='outline'
             className='w-full text-destructive hover:bg-destructive/10 hover:text-destructive'
-            onClick={() => setConfirming(true)}
+            onClick={() => {
+                setError(null);
+                setConfirming(true);
+            }}
         >
             Cancel reservation
         </Button>

@@ -18,17 +18,21 @@ export function BookingDetailDialog({
     reservationId: string | null;
     onClose: () => void;
 }) {
+    // Treat an empty string the same as absent -- a hand-edited `?reservationId=` URL is a
+    // real possibility (same normalize-then-skip discipline as the guest-side dialog's id).
+    const isOpen = Boolean(reservationId);
+
     // `skip` when there's no id to look up -- an unauthenticated/closed state shouldn't fire a
     // query at all, matching the guest-side dialog's "render nothing" behavior for `null`.
     const reservation = useQuery(
         api.reservations.adminGetReservation,
-        reservationId ? { reservationId } : 'skip',
+        isOpen ? { reservationId: reservationId as string } : 'skip',
     );
 
     return (
-        <Dialog open={reservationId !== null} onOpenChange={(open) => !open && onClose()}>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className='sm:max-w-md'>
-                {reservationId && (
+                {isOpen && (
                     <>
                         <DialogHeader>
                             <DialogTitle>Booking details</DialogTitle>
