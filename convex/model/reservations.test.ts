@@ -796,6 +796,27 @@ describe('getOwnReservation', () => {
             pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
         });
     });
+
+    test('falls back to "Unknown cabin" when the cabin was deleted', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        const { reservationId } = await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        const result = await t
+            .withIdentity(identity)
+            .run((ctx) => getOwnReservation(ctx, { reservationId }));
+
+        expect(result).toMatchObject({ cabinName: 'Unknown cabin' });
+    });
 });
 
 describe('listOwnReservations', () => {
@@ -880,6 +901,29 @@ describe('listOwnReservations', () => {
             paymentRequired: false,
         });
         expect(result[0]!.coverImageUrl).toEqual(expect.any(String));
+    });
+
+    test('falls back to "Unknown cabin" and a null slug when the cabin was deleted', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const identity = await seedGuest(t);
+        await t.withIdentity(identity).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        const result = await t.withIdentity(identity).run((ctx) => listOwnReservations(ctx));
+
+        expect(result[0]).toMatchObject({
+            cabinName: 'Unknown cabin',
+            cabinSlug: null,
+            coverImageUrl: null,
+        });
     });
 });
 
@@ -1118,6 +1162,43 @@ describe('adminListReservations', () => {
         expect(match).toHaveLength(1);
         expect(noMatch).toHaveLength(0);
     });
+
+    test('narrows by the cabinId+status compound index when both are supplied', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2030-01-15',
+            checkOut: '2030-01-18',
+            status: RESERVATION_STATUS.CANCELLED,
+        });
+        await seedReservation(t, cabinId, {
+            checkIn: '2030-02-15',
+            checkOut: '2030-02-18',
+            status: RESERVATION_STATUS.CONFIRMED,
+        });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) =>
+                adminListReservations(ctx, { cabinId, status: RESERVATION_STATUS.CONFIRMED }),
+            );
+
+        expect(result).toHaveLength(1);
+        expect(result[0]!.status).toBe('confirmed');
+    });
+
+    test('falls back to "Unknown cabin" when the cabin was deleted', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        const result = await t.withIdentity(admin).run((ctx) => adminListReservations(ctx, {}));
+
+        expect(result[0]).toMatchObject({ cabinName: 'Unknown cabin' });
+    });
 });
 
 describe('adminGetReservation', () => {
@@ -1163,6 +1244,28 @@ describe('adminGetReservation', () => {
 
         expect(result).toMatchObject({ _id: reservationId, guestEmail: 'guest@example.com' });
     });
+
+    test('falls back to "Unknown cabin" when the cabin was deleted', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuestIdentity(t);
+        const { reservationId } = await t.withIdentity(guest).run((ctx) =>
+            createDemoReservation(ctx, {
+                cabinId,
+                checkIn: '2030-01-15',
+                checkOut: '2030-01-18',
+                guests: 2,
+            }),
+        );
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetReservation(ctx, { reservationId }));
+
+        expect(result).toMatchObject({ cabinName: 'Unknown cabin' });
+    });
 });
 
 describe('adminCancelReservation', () => {
@@ -1175,6 +1278,17 @@ describe('adminCancelReservation', () => {
                 .withIdentity(identity)
                 .run((ctx) => adminCancelReservation(ctx, { reservationId: 'not-real' })),
         ).rejects.toThrow();
+    });
+
+    test('throws for a malformed reservation id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .run((ctx) => adminCancelReservation(ctx, { reservationId: 'not-real' })),
+        ).rejects.toThrow('Unknown reservation.');
     });
 
     test('cancels any reservation regardless of the 48h window, leaving paymentStatus untouched', async () => {
@@ -1244,6 +1358,15 @@ describe('beginRefund', () => {
         await expect(
             t.withIdentity(identity).run((ctx) => beginRefund(ctx, { reservationId: 'not-real' })),
         ).rejects.toThrow();
+    });
+
+    test('throws for a malformed reservation id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+
+        await expect(
+            t.withIdentity(admin).run((ctx) => beginRefund(ctx, { reservationId: 'not-real' })),
+        ).rejects.toThrow('Unknown reservation.');
     });
 
     test('throws for a reservation that is not paid', async () => {
@@ -1324,6 +1447,25 @@ describe('adminGetStats', () => {
         await expect(
             t.withIdentity(identity).run((ctx) => adminGetStats(ctx, { now: '2026-08-30' })),
         ).rejects.toThrow();
+    });
+
+    test('falls back to "Unknown cabin" in recentBookings/reservationsByCabin when the cabin was deleted', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-08-05',
+            checkOut: '2026-08-08',
+            createdAt: new Date('2026-08-05').getTime(),
+        });
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.recentBookings[0]).toMatchObject({ cabinName: 'Unknown cabin' });
+        expect(result.reservationsByCabin[0]).toMatchObject({ cabinName: 'Unknown cabin' });
     });
 
     test('counts unread messages, published cabins, and revenue within the trailing window', async () => {

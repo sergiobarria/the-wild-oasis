@@ -257,6 +257,37 @@ describe('adminUpdateCabin', () => {
         const cabin = await t.run((ctx) => ctx.db.get(cabinId));
         expect(cabin).toMatchObject({ name: 'Renamed Cabin', slug: 'pine-ridge-cabin' });
     });
+
+    test('updates every numeric field and amenityIds in one call', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t, admin);
+        const amenityId = await t.run((ctx) =>
+            ctx.db.insert('amenities', { name: 'WiFi', icon: 'Wifi', category: 'essentials' }),
+        );
+
+        await t.withIdentity(admin).run((ctx) =>
+            adminUpdateCabin(ctx, {
+                cabinId,
+                cleaningFee: 4000,
+                maxGuests: 6,
+                bedrooms: 3,
+                beds: 4,
+                bathrooms: 2,
+                amenityIds: [amenityId],
+            }),
+        );
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin).toMatchObject({
+            cleaningFee: 4000,
+            maxGuests: 6,
+            bedrooms: 3,
+            beds: 4,
+            bathrooms: 2,
+            amenities: [amenityId],
+        });
+    });
 });
 
 describe('adminSetPublished', () => {
@@ -522,6 +553,19 @@ describe('adminSetCoverImage', () => {
 });
 
 describe('adminSetCoverImageFromGallery', () => {
+    test('throws for an unknown cabin id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t, admin);
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .run((ctx) => adminSetCoverImageFromGallery(ctx, { cabinId, index: 0 })),
+        ).rejects.toThrow('Unknown cabin.');
+    });
+
     test('throws for an unknown gallery index', async () => {
         const t = setupTest();
         const admin = await seedAdmin(t);
@@ -567,6 +611,20 @@ describe('adminAddGalleryImages', () => {
         ).rejects.toThrow();
     });
 
+    test('throws for an unknown cabin id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t, admin);
+        await t.run((ctx) => ctx.db.delete(cabinId));
+        const newImage = await storeFakeImage(t);
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .run((ctx) => adminAddGalleryImages(ctx, { cabinId, storageIds: [newImage] })),
+        ).rejects.toThrow('Unknown cabin.');
+    });
+
     test('appends to the existing gallery', async () => {
         const t = setupTest();
         const admin = await seedAdmin(t);
@@ -584,6 +642,17 @@ describe('adminAddGalleryImages', () => {
 });
 
 describe('adminRemoveGalleryImage', () => {
+    test('throws for an unknown cabin id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t, admin);
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        await expect(
+            t.withIdentity(admin).run((ctx) => adminRemoveGalleryImage(ctx, { cabinId, index: 0 })),
+        ).rejects.toThrow('Unknown cabin.');
+    });
+
     test('throws for an unknown gallery index', async () => {
         const t = setupTest();
         const admin = await seedAdmin(t);
@@ -615,6 +684,19 @@ describe('adminRemoveGalleryImage', () => {
 });
 
 describe('adminReorderGalleryImage', () => {
+    test('throws for an unknown cabin id', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t, admin);
+        await t.run((ctx) => ctx.db.delete(cabinId));
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .run((ctx) => adminReorderGalleryImage(ctx, { cabinId, fromIndex: 0, toIndex: 0 })),
+        ).rejects.toThrow('Unknown cabin.');
+    });
+
     test('throws for an out-of-range index', async () => {
         const t = setupTest();
         const admin = await seedAdmin(t);
