@@ -24,6 +24,7 @@ export const APP_ROUTES = {
     ADMIN: '/admin',
     ADMIN_BOOKINGS: '/admin/bookings',
     ADMIN_CABINS: '/admin/cabins',
+    ADMIN_CABIN_NEW: '/admin/cabins/new',
     ADMIN_MESSAGES: '/admin/messages',
     ADMIN_SUBSCRIBERS: '/admin/subscribers',
     ADMIN_USERS: '/admin/users',
@@ -87,4 +88,10 @@ export function guestBookingHref(reservationId: string): string {
 export function adminBookingHref(reservationId: string): string {
     const query = new URLSearchParams({ reservationId });
     return `${APP_ROUTES.ADMIN_BOOKINGS}?${query.toString()}`;
+}
+
+/** `/admin/cabins/[id]` for editing an existing cabin -- distinct from
+ *  `APP_ROUTES.ADMIN_CABIN_NEW`, which has no id yet. */
+export function adminCabinEditHref(cabinId: string): string {
+    return `${APP_ROUTES.ADMIN_CABINS}/${cabinId}`;
 }

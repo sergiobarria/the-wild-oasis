@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { AdminCabinsScreen } from '@/features/admin-cabins/admin-cabins-screen';
 import { pageTitle } from '@/lib/site-config';
 
 export const metadata: Metadata = {
@@ -7,10 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminCabinsPage() {
-    return (
-        <div className='flex flex-col gap-2'>
-            <h1 className='text-2xl font-semibold'>Cabins</h1>
-            <p className='text-muted-foreground'>Coming soon.</p>
-        </div>
-    );
+    return <AdminCabinsScreen />;
 }
