@@ -1,7 +1,7 @@
 import type { PaginationOptions } from 'convex/server';
 import { ConvexError } from 'convex/values';
 
-import type { Id } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { assertIntegerCents } from '../lib/money';
 import * as Amenities from './amenities';
@@ -385,11 +385,12 @@ export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'>
         bedrooms: cabin.bedrooms,
         beds: cabin.beds,
         bathrooms: cabin.bathrooms,
-        // `storageId` alongside the signed `url` -- unlike public queries, this is
-        // `requireAdmin`-gated, and the edit form's gallery reorder/remove UI legitimately
-        // needs a stable id to submit back to `adminSetGalleryImages`/`adminSetCoverImage`.
-        coverImage: { storageId: cabin.coverImage, url: coverImageUrl },
-        gallery,
+        // URL only -- never the raw `_storage` id (docs/02_CODING_GUIDELINES.md: "Storage ids
+        // ... never reach the client"). The gallery reorder/remove/set-as-cover mutations below
+        // take a position within the array instead of an id, so the client never needs one for
+        // an image it didn't just upload itself.
+        coverImageUrl,
+        gallery: gallery.map((image) => image.url),
         amenityIds: cabin.amenities,
         published: cabin.published,
         featured: cabin.featured,
@@ -408,6 +409,30 @@ export async function adminGenerateUploadUrl(ctx: MutationCtx) {
     return await ctx.storage.generateUploadUrl();
 }
 
+async function assertStorageObjectExists(ctx: MutationCtx, storageId: Id<'_storage'>) {
+    if ((await ctx.storage.getUrl(storageId)) === null) {
+        throw new ConvexError('That upload could not be found -- please try uploading again.');
+    }
+}
+
+/** Deletes `storageId` unless it's still referenced by `cabin.coverImage` or
+ *  `cabin.galleryImages` -- called after a swap/removal so a superseded image doesn't leak in
+ *  `_storage` forever, but never deletes an id another field still points at. */
+async function deleteIfUnreferenced(
+    ctx: MutationCtx,
+    cabin: Doc<'cabins'>,
+    storageId: Id<'_storage'>,
+) {
+    const stillReferenced =
+        cabin.coverImage === storageId || cabin.galleryImages.includes(storageId);
+    if (!stillReferenced) await ctx.storage.delete(storageId);
+}
+
+/**
+ * Sets the cover image from a freshly uploaded file -- `storageId` is legitimate for the
+ * client to hold here (it just uploaded that exact file via `adminGenerateUploadUrl`), unlike
+ * an existing gallery image's id, which the client never sees.
+ */
 export async function adminSetCoverImage(
     ctx: MutationCtx,
     args: { cabinId: Id<'cabins'>; storageId: Id<'_storage'> },
@@ -416,16 +441,35 @@ export async function adminSetCoverImage(
 
     const cabin = await ctx.db.get(args.cabinId);
     if (!cabin) throw new ConvexError('Unknown cabin.');
+    await assertStorageObjectExists(ctx, args.storageId);
 
+    const previousCoverImage = cabin.coverImage;
     await ctx.db.patch(args.cabinId, { coverImage: args.storageId, updatedAt: Date.now() });
+    await deleteIfUnreferenced(ctx, { ...cabin, coverImage: args.storageId }, previousCoverImage);
 }
 
-/**
- * Replaces the whole gallery array (WO-049) -- add/remove/reorder are all just "here's the
- * new full ordered list" from the client's point of view, so one mutation covers all three
- * instead of three narrower ones.
- */
-export async function adminSetGalleryImages(
+/** Promotes an existing gallery image (by position) to be the cover -- no client-supplied
+ *  storage id involved, since the id is read server-side from `cabin.galleryImages[index]`. */
+export async function adminSetCoverImageFromGallery(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; index: number },
+) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    const storageId = cabin.galleryImages[args.index];
+    if (storageId === undefined) throw new ConvexError('Unknown gallery image.');
+
+    const previousCoverImage = cabin.coverImage;
+    await ctx.db.patch(args.cabinId, { coverImage: storageId, updatedAt: Date.now() });
+    await deleteIfUnreferenced(ctx, { ...cabin, coverImage: storageId }, previousCoverImage);
+}
+
+/** Appends freshly uploaded files to the gallery -- like `adminSetCoverImage`, the client
+ *  legitimately holds these ids since it just uploaded them. */
+export async function adminAddGalleryImages(
     ctx: MutationCtx,
     args: { cabinId: Id<'cabins'>; storageIds: Id<'_storage'>[] },
 ) {
@@ -433,8 +477,57 @@ export async function adminSetGalleryImages(
 
     const cabin = await ctx.db.get(args.cabinId);
     if (!cabin) throw new ConvexError('Unknown cabin.');
+    await Promise.all(args.storageIds.map((id) => assertStorageObjectExists(ctx, id)));
 
-    await ctx.db.patch(args.cabinId, { galleryImages: args.storageIds, updatedAt: Date.now() });
+    await ctx.db.patch(args.cabinId, {
+        galleryImages: [...cabin.galleryImages, ...args.storageIds],
+        updatedAt: Date.now(),
+    });
+}
+
+/** Removes a gallery image by position -- the client never handles the underlying storage id,
+ *  sidestepping the exact stale-id/duplicate-id ambiguity a client-supplied id would create. */
+export async function adminRemoveGalleryImage(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; index: number },
+) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    const removed = cabin.galleryImages[args.index];
+    if (removed === undefined) throw new ConvexError('Unknown gallery image.');
+
+    const nextGallery = cabin.galleryImages.filter((_, i) => i !== args.index);
+    await ctx.db.patch(args.cabinId, { galleryImages: nextGallery, updatedAt: Date.now() });
+    await deleteIfUnreferenced(ctx, { ...cabin, galleryImages: nextGallery }, removed);
+}
+
+/** Swaps two gallery images' positions -- "move earlier"/"move later" in the UI. */
+export async function adminReorderGalleryImage(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; fromIndex: number; toIndex: number },
+) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    const gallery = [...cabin.galleryImages];
+    if (
+        gallery[args.fromIndex] === undefined ||
+        args.toIndex < 0 ||
+        args.toIndex >= gallery.length
+    ) {
+        throw new ConvexError('Unknown gallery image.');
+    }
+
+    [gallery[args.fromIndex], gallery[args.toIndex]] = [
+        gallery[args.toIndex]!,
+        gallery[args.fromIndex]!,
+    ];
+    await ctx.db.patch(args.cabinId, { galleryImages: gallery, updatedAt: Date.now() });
 }
 
 /**

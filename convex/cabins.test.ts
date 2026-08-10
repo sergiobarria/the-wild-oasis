@@ -894,7 +894,7 @@ describe('adminSetCoverImage', () => {
         ).rejects.toThrow();
     });
 
-    test('replaces the cover image', async () => {
+    test('replaces the cover image and deletes the superseded, now-unreferenced one', async () => {
         const t = setupTestWithAuth();
         const coverImage = await seedImage(t);
         const newImage = await seedImage(t);
@@ -909,10 +909,47 @@ describe('adminSetCoverImage', () => {
 
         const cabin = await t.run((ctx) => ctx.db.get(cabinId));
         expect(cabin?.coverImage).toBe(newImage);
+        expect(await t.run((ctx) => ctx.storage.getUrl(coverImage))).toBeNull();
+    });
+
+    test('keeps the previous cover image in storage if the gallery still references it', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const newImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [coverImage] });
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminSetCoverImage, { cabinId, storageId: newImage });
+
+        expect(await t.run((ctx) => ctx.storage.getUrl(coverImage))).toEqual(expect.any(String));
+    });
+
+    test('throws for an upload that does not exist', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        const bogusStorageId = await seedImage(t);
+        await t.run((ctx) => ctx.storage.delete(bogusStorageId));
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .mutation(api.cabins.adminSetCoverImage, { cabinId, storageId: bogusStorageId }),
+        ).rejects.toThrow();
     });
 });
 
-describe('adminSetGalleryImages', () => {
+describe('adminSetCoverImageFromGallery', () => {
     test('throws for a non-admin caller', async () => {
         const t = setupTestWithAuth();
         const coverImage = await seedImage(t);
@@ -925,11 +962,64 @@ describe('adminSetGalleryImages', () => {
         await expect(
             t
                 .withIdentity(guest)
-                .mutation(api.cabins.adminSetGalleryImages, { cabinId, storageIds: [coverImage] }),
+                .mutation(api.cabins.adminSetCoverImageFromGallery, { cabinId, index: 0 }),
         ).rejects.toThrow();
     });
 
-    test('replaces the whole gallery array', async () => {
+    test('promotes a gallery image to cover, by position', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const galleryImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [galleryImage] });
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminSetCoverImageFromGallery, { cabinId, index: 0 });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin?.coverImage).toBe(galleryImage);
+    });
+
+    test('throws for an out-of-range index', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .mutation(api.cabins.adminSetCoverImageFromGallery, { cabinId, index: 0 }),
+        ).rejects.toThrow('Unknown gallery image.');
+    });
+});
+
+describe('adminAddGalleryImages', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [coverImage] }),
+        ).rejects.toThrow();
+    });
+
+    test('appends to the existing gallery', async () => {
         const t = setupTestWithAuth();
         const coverImage = await seedImage(t);
         const galleryA = await seedImage(t);
@@ -938,10 +1028,125 @@ describe('adminSetGalleryImages', () => {
         const cabinId = await t
             .withIdentity(admin)
             .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [galleryA] });
 
-        await t.withIdentity(admin).mutation(api.cabins.adminSetGalleryImages, {
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [galleryB] });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin?.galleryImages).toEqual([galleryA, galleryB]);
+    });
+});
+
+describe('adminRemoveGalleryImage', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const galleryA = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [galleryA] });
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminRemoveGalleryImage, { cabinId, index: 0 }),
+        ).rejects.toThrow();
+    });
+
+    test('removes only the image at the given position and deletes its storage object', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const galleryA = await seedImage(t);
+        const galleryB = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t.withIdentity(admin).mutation(api.cabins.adminAddGalleryImages, {
             cabinId,
-            storageIds: [galleryB, galleryA],
+            storageIds: [galleryA, galleryB],
+        });
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminRemoveGalleryImage, { cabinId, index: 0 });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin?.galleryImages).toEqual([galleryB]);
+        expect(await t.run((ctx) => ctx.storage.getUrl(galleryA))).toBeNull();
+    });
+
+    test('does not delete the storage object if it is still the cover image', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminAddGalleryImages, { cabinId, storageIds: [coverImage] });
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminRemoveGalleryImage, { cabinId, index: 0 });
+
+        expect(await t.run((ctx) => ctx.storage.getUrl(coverImage))).toEqual(expect.any(String));
+    });
+});
+
+describe('adminReorderGalleryImage', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const galleryA = await seedImage(t);
+        const galleryB = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t.withIdentity(admin).mutation(api.cabins.adminAddGalleryImages, {
+            cabinId,
+            storageIds: [galleryA, galleryB],
+        });
+
+        await expect(
+            t.withIdentity(guest).mutation(api.cabins.adminReorderGalleryImage, {
+                cabinId,
+                fromIndex: 0,
+                toIndex: 1,
+            }),
+        ).rejects.toThrow();
+    });
+
+    test('swaps two positions', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const galleryA = await seedImage(t);
+        const galleryB = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+        await t.withIdentity(admin).mutation(api.cabins.adminAddGalleryImages, {
+            cabinId,
+            storageIds: [galleryA, galleryB],
+        });
+
+        await t.withIdentity(admin).mutation(api.cabins.adminReorderGalleryImage, {
+            cabinId,
+            fromIndex: 0,
+            toIndex: 1,
         });
 
         const cabin = await t.run((ctx) => ctx.db.get(cabinId));

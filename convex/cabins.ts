@@ -185,8 +185,8 @@ const adminCabinDetailValidator = v.object({
     bedrooms: v.number(),
     beds: v.number(),
     bathrooms: v.number(),
-    coverImage: v.object({ storageId: v.id('_storage'), url: v.union(v.string(), v.null()) }),
-    gallery: v.array(v.object({ storageId: v.id('_storage'), url: v.union(v.string(), v.null()) })),
+    coverImageUrl: v.union(v.string(), v.null()),
+    gallery: v.array(v.union(v.string(), v.null())),
     amenityIds: v.array(v.id('amenities')),
     published: v.boolean(),
     featured: v.boolean(),
@@ -215,11 +215,38 @@ export const adminSetCoverImage = mutation({
     },
 });
 
-export const adminSetGalleryImages = mutation({
+export const adminSetCoverImageFromGallery = mutation({
+    args: { cabinId: v.id('cabins'), index: v.number() },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminSetCoverImageFromGallery(ctx, args);
+        return null;
+    },
+});
+
+export const adminAddGalleryImages = mutation({
     args: { cabinId: v.id('cabins'), storageIds: v.array(v.id('_storage')) },
     returns: v.null(),
     handler: async (ctx, args) => {
-        await Cabins.adminSetGalleryImages(ctx, args);
+        await Cabins.adminAddGalleryImages(ctx, args);
+        return null;
+    },
+});
+
+export const adminRemoveGalleryImage = mutation({
+    args: { cabinId: v.id('cabins'), index: v.number() },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminRemoveGalleryImage(ctx, args);
+        return null;
+    },
+});
+
+export const adminReorderGalleryImage = mutation({
+    args: { cabinId: v.id('cabins'), fromIndex: v.number(), toIndex: v.number() },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminReorderGalleryImage(ctx, args);
         return null;
     },
 });

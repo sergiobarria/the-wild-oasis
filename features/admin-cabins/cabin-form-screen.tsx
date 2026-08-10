@@ -19,6 +19,7 @@ import { adminCabinEditHref, APP_ROUTES } from '@/lib/routes';
 
 import { cabinFormDefaultValues, type CabinFormValues } from './cabin-form-domain';
 import { CabinAmenitiesTab } from './components/cabin-amenities-tab';
+import { CabinAvailabilityBlocks } from './components/cabin-availability-blocks';
 import { CabinBasicTab } from './components/cabin-basic-tab';
 import { CabinImagesTab } from './components/cabin-images-tab';
 import { CabinPricingTab } from './components/cabin-pricing-tab';
@@ -58,6 +59,7 @@ function CabinFormFields({
     slugError,
     formError,
     imagesTab,
+    belowTabs,
     submitLabel,
     submittingLabel,
 }: {
@@ -65,6 +67,7 @@ function CabinFormFields({
     slugError: string | null;
     formError: string | null;
     imagesTab: React.ReactNode;
+    belowTabs?: React.ReactNode;
     submitLabel: string;
     submittingLabel: string;
 }) {
@@ -95,6 +98,8 @@ function CabinFormFields({
                 </TabsContent>
                 <TabsContent value='images'>{imagesTab}</TabsContent>
             </Tabs>
+
+            {belowTabs}
 
             {formError && (
                 <p role='alert' className='text-sm text-destructive'>
@@ -243,10 +248,11 @@ function EditCabinFormBody({ cabinId, cabin }: { cabinId: Id<'cabins'>; cabin: A
                 <CabinImagesTab
                     mode='edit'
                     cabinId={cabinId}
-                    coverImage={cabin.coverImage}
+                    coverImageUrl={cabin.coverImageUrl}
                     gallery={cabin.gallery}
                 />
             }
+            belowTabs={<CabinAvailabilityBlocks cabinId={cabinId} />}
         />
     );
 }
