@@ -8,12 +8,13 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 
 import { adminBookingFilterParsers, buildAdminBookingsQueryArgs } from './admin-bookings-domain';
+import { BookingDetailDialog } from './components/booking-detail-dialog';
 import { BookingFilters } from './components/booking-filters';
 import { BookingsTable } from './components/bookings-table';
 
 export function AdminBookingsScreen() {
     const [filters] = useQueryStates(adminBookingFilterParsers);
-    const [, setReservationId] = useQueryState('reservationId');
+    const [reservationId, setReservationId] = useQueryState('reservationId');
     const queryArgs = buildAdminBookingsQueryArgs(filters);
 
     const bookings = useQuery(api.reservations.adminListReservations, {
@@ -36,6 +37,11 @@ export function AdminBookingsScreen() {
             ) : (
                 <BookingsTable bookings={bookings} onOpen={setReservationId} />
             )}
+
+            <BookingDetailDialog
+                reservationId={reservationId}
+                onClose={() => setReservationId(null)}
+            />
         </div>
     );
 }
