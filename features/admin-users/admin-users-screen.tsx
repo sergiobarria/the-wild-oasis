@@ -8,6 +8,7 @@ import { debounce, parseAsString, useQueryStates } from 'nuqs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -52,35 +53,42 @@ export function AdminUsersScreen() {
         <div className='space-y-6'>
             <h1 className='font-heading text-2xl font-medium'>Users</h1>
 
-            <div className='flex flex-wrap gap-4'>
-                <Input
-                    type='search'
-                    placeholder='Search by name or email...'
-                    value={filters.search}
-                    onChange={(event) => {
-                        const raw = event.target.value;
-                        setFilters(
-                            { search: raw },
-                            { limitUrlUpdates: raw === '' ? undefined : debounce(400) },
-                        );
-                    }}
-                    className='max-w-sm'
-                />
-                <Select
-                    value={filters.role || ALL_VALUE}
-                    onValueChange={(value) =>
-                        setFilters({ role: value === ALL_VALUE ? '' : value })
-                    }
-                >
-                    <SelectTrigger className='w-40'>
-                        <SelectValue placeholder='Any role' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={ALL_VALUE}>Any role</SelectItem>
-                        <SelectItem value='guest'>Guest</SelectItem>
-                        <SelectItem value='admin'>Admin</SelectItem>
-                    </SelectContent>
-                </Select>
+            <div className='flex flex-wrap items-end gap-4'>
+                <div className='space-y-1.5'>
+                    <Label htmlFor='users-search'>Search</Label>
+                    <Input
+                        id='users-search'
+                        type='search'
+                        placeholder='Search by name or email...'
+                        value={filters.search}
+                        onChange={(event) => {
+                            const raw = event.target.value;
+                            setFilters(
+                                { search: raw },
+                                { limitUrlUpdates: raw === '' ? undefined : debounce(400) },
+                            );
+                        }}
+                        className='max-w-sm'
+                    />
+                </div>
+                <div className='space-y-1.5'>
+                    <Label htmlFor='users-role'>Role</Label>
+                    <Select
+                        value={filters.role || ALL_VALUE}
+                        onValueChange={(value) =>
+                            setFilters({ role: value === ALL_VALUE ? '' : value })
+                        }
+                    >
+                        <SelectTrigger id='users-role' className='w-40'>
+                            <SelectValue placeholder='Any role' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ALL_VALUE}>Any role</SelectItem>
+                            <SelectItem value='guest'>Guest</SelectItem>
+                            <SelectItem value='admin'>Admin</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {users === undefined ? (

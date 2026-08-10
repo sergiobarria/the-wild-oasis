@@ -30,13 +30,19 @@ export default defineConfig({
             // redirects an already-signed-in visitor away before the flow can run).
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
-            testMatch: /(smoke|guest-flow)\.spec\.ts/,
+            testMatch: /(smoke|guest-flow|accessibility)\.spec\.ts/,
+        },
+        {
+            name: 'chromium-guest',
+            use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/guest.json' },
+            dependencies: ['setup'],
+            testMatch: /accessibility\.spec\.ts/,
         },
         {
             name: 'chromium-admin',
             use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/admin.json' },
             dependencies: ['setup'],
-            testMatch: /admin-flow\.spec\.ts/,
+            testMatch: /(admin-flow|accessibility)\.spec\.ts/,
         },
     ],
     webServer: {

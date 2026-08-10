@@ -51,6 +51,7 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
+        "@axe-core/playwright": "^4.12.1",
         "@better-auth/cli": "^1.4.21",
         "@edge-runtime/vm": "^5.0.0",
         "@playwright/test": "^1.62.1",
