@@ -14,7 +14,11 @@ import { api } from '@/convex/_generated/api';
 import { todayIsoDate } from '@/lib/dates';
 import { formatCents } from '@/lib/money';
 
+import { BookingsOverTimeChart } from './components/bookings-over-time-chart';
 import { KpiCard } from './components/kpi-card';
+import { RecentBookingsList } from './components/recent-bookings-list';
+import { ReservationsByCabinChart } from './components/reservations-by-cabin-chart';
+import { RevenueOverTimeChart } from './components/revenue-over-time-chart';
 
 export function AdminHomeScreen() {
     const stats = useQuery(api.reservations.adminGetStats, { now: todayIsoDate() });
@@ -59,6 +63,20 @@ export function AdminHomeScreen() {
                         icon={MailIcon}
                     />
                 </div>
+            )}
+
+            {stats !== undefined && (
+                <>
+                    <div className='grid gap-4 lg:grid-cols-2'>
+                        <BookingsOverTimeChart data={stats.bookingsOverTime} />
+                        <RevenueOverTimeChart data={stats.revenueOverTime} />
+                    </div>
+
+                    <div className='grid gap-4 lg:grid-cols-2'>
+                        <ReservationsByCabinChart data={stats.reservationsByCabin} />
+                        <RecentBookingsList bookings={stats.recentBookings} />
+                    </div>
+                </>
             )}
         </div>
     );
