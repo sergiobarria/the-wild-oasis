@@ -1,8 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { NewsletterForm } from '@/features/newsletter/newsletter-form';
 import { APP_ROUTES } from '@/lib/routes';
 import { SITE_CONFIG } from '@/lib/site-config';
 
@@ -41,23 +40,7 @@ export function Footer() {
                     ))}
                 </nav>
 
-                <form className='flex flex-col gap-2'>
-                    <label
-                        htmlFor='newsletter-email'
-                        className='text-sm font-medium text-foreground'
-                    >
-                        Newsletter
-                    </label>
-                    <div className='flex gap-2'>
-                        <Input
-                            id='newsletter-email'
-                            type='email'
-                            placeholder='you@example.com'
-                            className='flex-1'
-                        />
-                        <Button type='submit'>Subscribe</Button>
-                    </div>
-                </form>
+                <NewsletterForm />
             </div>
 
             <div className='border-t border-border px-6 py-6 lg:px-8'>

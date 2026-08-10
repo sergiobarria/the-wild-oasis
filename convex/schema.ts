@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 import { amenityCategoryValidator } from './lib/amenities';
 import { messageStatusValidator } from './lib/messages';
 import { paymentStatusValidator, reservationStatusValidator } from './lib/reservations';
+import { subscriberStatusValidator } from './lib/subscribers';
 
 export default defineSchema({
     amenities: defineTable({
@@ -113,4 +114,10 @@ export default defineSchema({
         status: messageStatusValidator,
         createdAt: v.number(),
     }),
+
+    subscribers: defineTable({
+        email: v.string(),
+        status: subscriberStatusValidator,
+        subscribedAt: v.number(),
+    }).index('by_email', ['email']),
 });
