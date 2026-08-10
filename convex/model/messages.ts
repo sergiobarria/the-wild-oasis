@@ -1,9 +1,11 @@
 import { ConvexError } from 'convex/values';
 
 import { contactSchema } from '../../features/contact/contact-domain';
-import type { MutationCtx } from '../_generated/server';
-import { MESSAGE_STATUS } from '../lib/messages';
+import type { Id } from '../_generated/dataModel';
+import type { MutationCtx, QueryCtx } from '../_generated/server';
+import { MESSAGE_STATUS, type MessageStatus } from '../lib/messages';
 import { rateLimiter } from '../lib/rateLimiter';
+import { requireAdmin } from './auth';
 
 export type SubmitContactMessageArgs = {
     name: string;
@@ -53,4 +55,52 @@ export async function submitContactMessage(ctx: MutationCtx, args: SubmitContact
     });
 
     return { success: true as const };
+}
+
+// Generous bound, same reasoning as elsewhere in this codebase -- never `.collect()`
+// unbounded, `.take()` instead.
+const ADMIN_MESSAGES_CAP = 500;
+
+/** All messages, or narrowed to one status (WO-052) -- the admin inbox's status filter tabs. */
+export async function adminListMessages(ctx: QueryCtx, args: { status?: MessageStatus }) {
+    await requireAdmin(ctx);
+
+    return args.status
+        ? await ctx.db
+              .query('messages')
+              .withIndex('by_status', (q) => q.eq('status', args.status as MessageStatus))
+              .order('desc')
+              .take(ADMIN_MESSAGES_CAP)
+        : await ctx.db.query('messages').order('desc').take(ADMIN_MESSAGES_CAP);
+}
+
+async function setMessageStatus(
+    ctx: MutationCtx,
+    messageId: Id<'messages'>,
+    status: MessageStatus,
+) {
+    await requireAdmin(ctx);
+
+    const message = await ctx.db.get(messageId);
+    if (!message) throw new ConvexError('Unknown message.');
+
+    await ctx.db.patch(messageId, { status });
+}
+
+// Archive isn't terminal -- unread/read/archived all move independently, so a message can be
+// unarchived back to read rather than getting stuck once archived.
+export async function adminMarkRead(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
+    await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.READ);
+}
+
+export async function adminMarkUnread(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
+    await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.UNREAD);
+}
+
+export async function adminArchive(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
+    await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.ARCHIVED);
+}
+
+export async function adminUnarchive(ctx: MutationCtx, args: { messageId: Id<'messages'> }) {
+    await setMessageStatus(ctx, args.messageId, MESSAGE_STATUS.READ);
 }
