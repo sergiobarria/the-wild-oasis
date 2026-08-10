@@ -84,11 +84,19 @@ export default defineSchema({
             taxes: v.number(),
             total: v.number(),
         }),
+        /** Set once a Stripe Checkout Session exists for this reservation (WO-058). Absent
+         *  for demo reservations, which never touch Stripe. */
+        stripeCheckoutSessionId: v.optional(v.string()),
+        /** Set from the Checkout Session's `payment_intent` once Stripe reports the session
+         *  complete (WO-059) -- refunds are issued against a PaymentIntent, not a Checkout
+         *  Session, so this is what the admin refund action calls Stripe with. */
+        stripePaymentIntentId: v.optional(v.string()),
         createdAt: v.number(),
         updatedAt: v.number(),
     })
         .index('by_guestId', ['guestId'])
-        .index('by_cabinId_and_status', ['cabinId', 'status']),
+        .index('by_cabinId_and_status', ['cabinId', 'status'])
+        .index('by_stripeCheckoutSessionId', ['stripeCheckoutSessionId']),
 
     featureFlags: defineTable({
         /** e.g. 'stripePaymentsEnabled'. The lookup key `isFeatureEnabled` reads by. */
