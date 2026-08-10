@@ -11,7 +11,9 @@ import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { authComponent } from '../betterAuth/auth';
 import { type CancellationDenialReason, canSelfCancel } from '../lib/cancellation';
+import { MESSAGE_STATUS } from '../lib/messages';
 import { assertIntegerCents } from '../lib/money';
+import { calculateOccupancy, occupancyWindowStart } from '../lib/occupancy';
 import {
     isBlockingStatus,
     PAYMENT_STATUS,
@@ -287,9 +289,165 @@ export async function cancelReservation(ctx: MutationCtx, args: { reservationId:
     return null;
 }
 
+// Generous bound for the stats query's in-memory aggregation -- same "capped, not true
+// unbounded `.collect()`" discipline as everywhere else in this file. `totalBookings` and
+// `reservationsByCabin` are only as accurate as this cap; fine for this app's scale, a real
+// aggregation strategy (e.g. a rollup table) would be the follow-up if it's ever exceeded.
+const STATS_RESERVATIONS_CAP = 2000;
+
+const RECENT_BOOKINGS_LIMIT = 5;
+
+const OCCUPANCY_COUNTING_STATUSES: ReservationStatus[] = [
+    RESERVATION_STATUS.CONFIRMED,
+    RESERVATION_STATUS.COMPLETED,
+];
+
+function isoDateRange(windowStart: string, windowEnd: string): string[] {
+    const dates: string[] = [];
+    const cursor = new Date(`${windowStart}T00:00:00`);
+    const end = new Date(`${windowEnd}T00:00:00`);
+
+    while (cursor < end) {
+        const year = cursor.getFullYear();
+        const month = String(cursor.getMonth() + 1).padStart(2, '0');
+        const day = String(cursor.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+        cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return dates;
+}
+
+/**
+ * Pre-aggregated KPI/analytics numbers for the admin home (WO-044/WO-045) -- a separate query
+ * from `adminListReservations` on purpose: this wants every reservation in the reporting
+ * window collapsed into sums/buckets server-side, while the bookings table wants a page of
+ * full rows with arbitrary filters. Forcing one shape to serve both would waste work either
+ * way. `now` is caller-supplied (never read here), same discipline as `checkAvailability`.
+ */
+export async function adminGetStats(ctx: QueryCtx, args: { now: string }) {
+    await requireAdmin(ctx);
+
+    const windowStart = occupancyWindowStart(args.now);
+    const windowEnd = args.now;
+
+    const [reservations, publishedCabinCount, unreadMessages] = await Promise.all([
+        ctx.db.query('reservations').order('desc').take(STATS_RESERVATIONS_CAP),
+        ctx.db
+            .query('cabins')
+            .withIndex('by_published_and_featured', (q) => q.eq('published', true))
+            .collect()
+            .then((cabins) => cabins.length),
+        ctx.db
+            .query('messages')
+            .withIndex('by_status', (q) => q.eq('status', MESSAGE_STATUS.UNREAD))
+            .collect()
+            .then((messages) => messages.length),
+    ]);
+
+    const uniqueCabinIds = [...new Set(reservations.map((reservation) => reservation.cabinId))];
+    const cabinsById = new Map(
+        await Promise.all(
+            uniqueCabinIds.map(async (cabinId) => [cabinId, await ctx.db.get(cabinId)] as const),
+        ),
+    );
+
+    const totalBookings = reservations.length;
+
+    const upcomingReservations = reservations.filter(
+        (reservation) => reservation.checkIn > args.now && isBlockingStatus(reservation.status),
+    ).length;
+
+    const reservationsInWindow = reservations.filter(
+        (reservation) => reservation.checkOut > windowStart && reservation.checkIn < windowEnd,
+    );
+
+    const revenueCents = reservationsInWindow
+        .filter(
+            (reservation) =>
+                reservation.paymentRequired && reservation.paymentStatus === PAYMENT_STATUS.PAID,
+        )
+        .reduce((sum, reservation) => sum + reservation.pricing.total, 0);
+
+    const occupancy = calculateOccupancy({
+        publishedCabinCount,
+        reservations: reservationsInWindow.filter((reservation) =>
+            OCCUPANCY_COUNTING_STATUSES.includes(reservation.status),
+        ),
+        windowStart,
+        windowEnd,
+    });
+
+    const dateBuckets = isoDateRange(windowStart, windowEnd);
+    const bookingsByDate = new Map(dateBuckets.map((date) => [date, 0]));
+    const revenueByDate = new Map(dateBuckets.map((date) => [date, 0]));
+
+    for (const reservation of reservationsInWindow) {
+        const bookedDate = new Date(reservation.createdAt);
+        const key = `${bookedDate.getFullYear()}-${String(bookedDate.getMonth() + 1).padStart(2, '0')}-${String(bookedDate.getDate()).padStart(2, '0')}`;
+
+        if (bookingsByDate.has(key)) {
+            bookingsByDate.set(key, bookingsByDate.get(key)! + 1);
+        }
+        if (
+            revenueByDate.has(key) &&
+            reservation.paymentRequired &&
+            reservation.paymentStatus === PAYMENT_STATUS.PAID
+        ) {
+            revenueByDate.set(key, revenueByDate.get(key)! + reservation.pricing.total);
+        }
+    }
+
+    // Grouped by `cabinId`, not name -- two cabins can share a display name, and collapsing
+    // by name would silently merge their counts.
+    const reservationsByCabinIdMap = new Map<Id<'cabins'>, number>();
+    for (const reservation of reservationsInWindow) {
+        reservationsByCabinIdMap.set(
+            reservation.cabinId,
+            (reservationsByCabinIdMap.get(reservation.cabinId) ?? 0) + 1,
+        );
+    }
+
+    const recentBookings = await Promise.all(
+        reservations.slice(0, RECENT_BOOKINGS_LIMIT).map(async (reservation) => {
+            const guest = await resolveGuestSummary(ctx, reservation.guestId);
+            return {
+                _id: reservation._id,
+                cabinName: cabinsById.get(reservation.cabinId)?.name ?? 'Unknown cabin',
+                guestName: guest.name,
+                checkIn: reservation.checkIn,
+                checkOut: reservation.checkOut,
+                status: reservation.status,
+                total: reservation.pricing.total,
+                createdAt: reservation.createdAt,
+            };
+        }),
+    );
+
+    return {
+        totalBookings,
+        upcomingReservations,
+        revenueCents,
+        occupancy,
+        unreadMessages,
+        bookingsOverTime: dateBuckets.map((date) => ({ date, count: bookingsByDate.get(date)! })),
+        revenueOverTime: dateBuckets.map((date) => ({ date, cents: revenueByDate.get(date)! })),
+        reservationsByCabin: [...reservationsByCabinIdMap.entries()].map(([cabinId, count]) => ({
+            cabinName: cabinsById.get(cabinId)?.name ?? 'Unknown cabin',
+            count,
+        })),
+        recentBookings,
+    };
+}
+
 // Generous bound, same reasoning as cabins.ts's listFiltered -- not true infinite-scale
 // pagination, a capped `.take()` narrowed in JS. Fine as long as the business's total
 // reservation count stays under this; real cursor pagination is a follow-up if it doesn't.
+// Note this cap is applied BEFORE the free-text `search` filter below (cabinId/status ARE
+// pushed into the index first, so those two filters don't suffer this) -- a guest whose
+// reservation falls outside the most-recent `ADMIN_LISTING_RESULT_CAP` rows won't surface via
+// search. Acceptable for this app's current scale; the real fix if it's ever hit is a
+// dedicated search index, not a bigger cap.
 const ADMIN_LISTING_RESULT_CAP = 500;
 
 async function resolveGuestSummary(ctx: QueryCtx, guestId: string) {
@@ -319,16 +477,19 @@ export async function adminListReservations(
 
     const { cabinId, status } = args;
 
-    const reservations =
-        cabinId && status
-            ? await ctx.db
-                  .query('reservations')
-                  .withIndex('by_cabinId_and_status', (q) =>
-                      q.eq('cabinId', cabinId).eq('status', status),
-                  )
-                  .order('desc')
-                  .take(ADMIN_LISTING_RESULT_CAP)
-            : await ctx.db.query('reservations').order('desc').take(ADMIN_LISTING_RESULT_CAP);
+    // `by_cabinId_and_status` supports either the full compound key or just its `cabinId`
+    // prefix (a query may supply any prefix of a compound index) -- use it whenever `cabinId`
+    // is present instead of only when both filters are, so a cabin-only filter doesn't fall
+    // back to scanning every reservation in the business.
+    const reservations = cabinId
+        ? await ctx.db
+              .query('reservations')
+              .withIndex('by_cabinId_and_status', (q) =>
+                  status ? q.eq('cabinId', cabinId).eq('status', status) : q.eq('cabinId', cabinId),
+              )
+              .order('desc')
+              .take(ADMIN_LISTING_RESULT_CAP)
+        : await ctx.db.query('reservations').order('desc').take(ADMIN_LISTING_RESULT_CAP);
 
     const uniqueCabinIds = [...new Set(reservations.map((reservation) => reservation.cabinId))];
     const cabinsById = new Map(
@@ -359,10 +520,11 @@ export async function adminListReservations(
         .filter((reservation) => !args.checkInTo || reservation.checkIn <= args.checkInTo)
         .map((reservation) => {
             const cabin = cabinsById.get(reservation.cabinId) ?? null;
-            const guest = guestsById.get(reservation.guestId) ?? {
-                name: 'Unknown guest',
-                email: 'unknown',
-            };
+            // Never actually missing -- `guestsById` is built from this same reservations
+            // array's guest ids, and `resolveGuestSummary` already has its own fallback for
+            // an unresolvable Better Auth user. `!` documents that, rather than a `??` that
+            // would silently paper over a real bug if this invariant ever broke.
+            const guest = guestsById.get(reservation.guestId)!;
 
             return {
                 _id: reservation._id,

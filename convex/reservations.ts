@@ -143,3 +143,36 @@ export const adminCancelReservation = mutation({
     returns: v.null(),
     handler: async (ctx, args) => await Reservations.adminCancelReservation(ctx, args),
 });
+
+const occupancyValidator = v.object({
+    bookedCabinNights: v.number(),
+    availableCabinNights: v.number(),
+    occupancyRate: v.number(),
+});
+
+const recentBookingValidator = v.object({
+    _id: v.id('reservations'),
+    cabinName: v.string(),
+    guestName: v.string(),
+    checkIn: v.string(),
+    checkOut: v.string(),
+    status: reservationStatusValidator,
+    total: v.number(),
+    createdAt: v.number(),
+});
+
+export const adminGetStats = query({
+    args: { now: v.string() },
+    returns: v.object({
+        totalBookings: v.number(),
+        upcomingReservations: v.number(),
+        revenueCents: v.number(),
+        occupancy: occupancyValidator,
+        unreadMessages: v.number(),
+        bookingsOverTime: v.array(v.object({ date: v.string(), count: v.number() })),
+        revenueOverTime: v.array(v.object({ date: v.string(), cents: v.number() })),
+        reservationsByCabin: v.array(v.object({ cabinName: v.string(), count: v.number() })),
+        recentBookings: v.array(recentBookingValidator),
+    }),
+    handler: async (ctx, args) => await Reservations.adminGetStats(ctx, args),
+});

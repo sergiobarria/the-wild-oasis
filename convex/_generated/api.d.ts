@@ -17,6 +17,7 @@ import type * as lib_amenities from "../lib/amenities.js";
 import type * as lib_cancellation from "../lib/cancellation.js";
 import type * as lib_messages from "../lib/messages.js";
 import type * as lib_money from "../lib/money.js";
+import type * as lib_occupancy from "../lib/occupancy.js";
 import type * as lib_rateLimiter from "../lib/rateLimiter.js";
 import type * as lib_reservations from "../lib/reservations.js";
 import type * as lib_reviews from "../lib/reviews.js";
@@ -51,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   "lib/cancellation": typeof lib_cancellation;
   "lib/messages": typeof lib_messages;
   "lib/money": typeof lib_money;
+  "lib/occupancy": typeof lib_occupancy;
   "lib/rateLimiter": typeof lib_rateLimiter;
   "lib/reservations": typeof lib_reservations;
   "lib/reviews": typeof lib_reviews;

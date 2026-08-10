@@ -9,6 +9,7 @@ import schema from '../schema';
 import {
     adminCancelReservation,
     adminGetReservation,
+    adminGetStats,
     adminListReservations,
     cancelReservation,
     checkAvailability,
@@ -77,6 +78,10 @@ async function seedReservation(
         checkIn: string;
         checkOut: string;
         status?: (typeof RESERVATION_STATUS)[keyof typeof RESERVATION_STATUS];
+        paymentRequired?: boolean;
+        paymentStatus?: 'not_required' | 'pending' | 'paid' | 'failed' | 'refunded';
+        createdAt?: number;
+        total?: number;
     },
 ) {
     await t.run((ctx) =>
@@ -87,11 +92,16 @@ async function seedReservation(
             checkOut: overrides.checkOut,
             guests: 2,
             status: overrides.status ?? RESERVATION_STATUS.CONFIRMED,
-            paymentStatus: 'not_required',
-            paymentRequired: false,
-            pricing: { nightlySubtotal: 75000, cleaningFee: 3500, taxes: 0, total: 78500 },
-            createdAt: 1700000000000,
-            updatedAt: 1700000000000,
+            paymentStatus: overrides.paymentStatus ?? 'not_required',
+            paymentRequired: overrides.paymentRequired ?? false,
+            pricing: {
+                nightlySubtotal: 75000,
+                cleaningFee: 3500,
+                taxes: 0,
+                total: overrides.total ?? 78500,
+            },
+            createdAt: overrides.createdAt ?? 1700000000000,
+            updatedAt: overrides.createdAt ?? 1700000000000,
         }),
     );
 }
@@ -860,5 +870,106 @@ describe('adminCancelReservation', () => {
                 .withIdentity(admin)
                 .run((ctx) => adminCancelReservation(ctx, { reservationId: reservation!._id })),
         ).rejects.toThrow('This reservation has already been cancelled.');
+    });
+});
+
+describe('adminGetStats', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTest();
+        const identity = await seedGuestIdentity(t);
+
+        await expect(
+            t.withIdentity(identity).run((ctx) => adminGetStats(ctx, { now: '2026-08-30' })),
+        ).rejects.toThrow();
+    });
+
+    test('counts unread messages, published cabins, and revenue within the trailing window', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        await t.run((ctx) =>
+            ctx.db.insert('messages', {
+                name: 'Jamie',
+                email: 'jamie@example.com',
+                subject: 'Question',
+                message: 'Hi',
+                status: 'unread',
+                createdAt: 1700000000000,
+            }),
+        );
+        await t.run((ctx) =>
+            ctx.db.insert('messages', {
+                name: 'Alex',
+                email: 'alex@example.com',
+                subject: 'Question',
+                message: 'Hi',
+                status: 'read',
+                createdAt: 1700000000000,
+            }),
+        );
+        // In-window, paid -- counts toward revenue.
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-08-05',
+            checkOut: '2026-08-08',
+            paymentRequired: true,
+            paymentStatus: 'paid',
+            total: 50000,
+            createdAt: new Date('2026-08-05').getTime(),
+        });
+        // In-window but not paid -- excluded from revenue.
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-08-10',
+            checkOut: '2026-08-12',
+            paymentRequired: false,
+            total: 20000,
+            createdAt: new Date('2026-08-10').getTime(),
+        });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.unreadMessages).toBe(1);
+        expect(result.revenueCents).toBe(50000);
+        expect(result.totalBookings).toBe(2);
+        expect(result.occupancy.availableCabinNights).toBe(30);
+    });
+
+    test('counts an upcoming reservation only when its check-in is after "now"', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, { checkIn: '2026-09-01', checkOut: '2026-09-05' });
+        await seedReservation(t, cabinId, { checkIn: '2026-07-01', checkOut: '2026-07-05' });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.upcomingReservations).toBe(1);
+    });
+
+    test('buckets reservations by cabin within the window', async () => {
+        const t = setupTest();
+        const admin = await seedAdmin(t);
+        const cabinId = await seedCabin(t);
+        const otherCabinId = await seedCabin(t);
+        await seedReservation(t, cabinId, {
+            checkIn: '2026-08-05',
+            checkOut: '2026-08-08',
+            createdAt: new Date('2026-08-05').getTime(),
+        });
+        await seedReservation(t, otherCabinId, {
+            checkIn: '2026-08-06',
+            checkOut: '2026-08-09',
+            createdAt: new Date('2026-08-06').getTime(),
+        });
+
+        const result = await t
+            .withIdentity(admin)
+            .run((ctx) => adminGetStats(ctx, { now: '2026-08-30' }));
+
+        expect(result.reservationsByCabin).toHaveLength(2);
+        expect(result.reservationsByCabin.every((row) => row.count === 1)).toBe(true);
     });
 });
