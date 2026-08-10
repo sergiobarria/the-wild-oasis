@@ -4,8 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminHomeScreen } from './admin-home-screen';
 
 const { useQuery } = vi.hoisted(() => ({ useQuery: vi.fn() }));
+const push = vi.fn();
 
 vi.mock('convex/react', () => ({ useQuery }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
 function stats(overrides: Partial<ReturnType<typeof baseStats>> = {}) {
     return { ...baseStats(), ...overrides };

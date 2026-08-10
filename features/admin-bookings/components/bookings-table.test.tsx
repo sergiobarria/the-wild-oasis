@@ -46,4 +46,15 @@ describe('BookingsTable', () => {
 
         expect(onOpen).toHaveBeenCalledWith('reservation-1');
     });
+
+    it('calls onOpen when a row is activated via the keyboard', async () => {
+        const onOpen = vi.fn();
+        const user = userEvent.setup();
+        render(<BookingsTable bookings={[booking()]} onOpen={onOpen} />);
+
+        screen.getByRole('button', { name: /Jamie Alder/ }).focus();
+        await user.keyboard('{Enter}');
+
+        expect(onOpen).toHaveBeenCalledWith('reservation-1');
+    });
 });

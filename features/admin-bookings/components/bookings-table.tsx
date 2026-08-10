@@ -48,6 +48,14 @@ export function BookingsTable({
                     <TableRow
                         key={booking._id}
                         onClick={() => onOpen(booking._id)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                onOpen(booking._id);
+                            }
+                        }}
+                        role='button'
+                        tabIndex={0}
                         className='cursor-pointer'
                     >
                         <TableCell>

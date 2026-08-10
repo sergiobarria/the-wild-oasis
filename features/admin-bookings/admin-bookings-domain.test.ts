@@ -53,4 +53,10 @@ describe('buildAdminBookingsQueryArgs', () => {
             checkInTo: '2026-08-31',
         });
     });
+
+    test('falls back to undefined for a status/paymentStatus value that is not a real enum member', () => {
+        expect(
+            buildAdminBookingsQueryArgs({ ...EMPTY, status: 'bogus', paymentStatus: 'bogus' }),
+        ).toEqual(expect.objectContaining({ status: undefined, paymentStatus: undefined }));
+    });
 });
