@@ -185,8 +185,8 @@ const adminCabinDetailValidator = v.object({
     bedrooms: v.number(),
     beds: v.number(),
     bathrooms: v.number(),
-    coverImageUrl: v.union(v.string(), v.null()),
-    galleryImageUrls: v.array(v.union(v.string(), v.null())),
+    coverImage: v.object({ storageId: v.id('_storage'), url: v.union(v.string(), v.null()) }),
+    gallery: v.array(v.object({ storageId: v.id('_storage'), url: v.union(v.string(), v.null()) })),
     amenityIds: v.array(v.id('amenities')),
     published: v.boolean(),
     featured: v.boolean(),
@@ -204,6 +204,24 @@ export const adminGenerateUploadUrl = mutation({
     args: {},
     returns: v.string(),
     handler: async (ctx) => await Cabins.adminGenerateUploadUrl(ctx),
+});
+
+export const adminSetCoverImage = mutation({
+    args: { cabinId: v.id('cabins'), storageId: v.id('_storage') },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminSetCoverImage(ctx, args);
+        return null;
+    },
+});
+
+export const adminSetGalleryImages = mutation({
+    args: { cabinId: v.id('cabins'), storageIds: v.array(v.id('_storage')) },
+    returns: v.null(),
+    handler: async (ctx, args) => {
+        await Cabins.adminSetGalleryImages(ctx, args);
+        return null;
+    },
 });
 
 /**

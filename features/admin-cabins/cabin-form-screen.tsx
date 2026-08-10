@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { useMutation, useQuery } from 'convex/react';
@@ -21,6 +22,7 @@ import { CabinAmenitiesTab } from './components/cabin-amenities-tab';
 import { CabinBasicTab } from './components/cabin-basic-tab';
 import { CabinImagesTab } from './components/cabin-images-tab';
 import { CabinPricingTab } from './components/cabin-pricing-tab';
+import type { CabinFormApi } from './use-cabin-form';
 import { useCabinForm } from './use-cabin-form';
 
 function toMutationArgs(values: CabinFormValues) {
@@ -47,6 +49,68 @@ function errorMessage(thrown: unknown, fallback: string): string {
     return thrown instanceof ConvexError && typeof thrown.data === 'string'
         ? thrown.data
         : fallback;
+}
+
+/** Shared by the create and edit forms -- same tabs, same error/submit chrome, differing only
+ *  in the images tab's content and the submit button's label. */
+function CabinFormFields({
+    form,
+    slugError,
+    formError,
+    imagesTab,
+    submitLabel,
+    submittingLabel,
+}: {
+    form: CabinFormApi;
+    slugError: string | null;
+    formError: string | null;
+    imagesTab: React.ReactNode;
+    submitLabel: string;
+    submittingLabel: string;
+}) {
+    return (
+        <form
+            className='space-y-6'
+            onSubmit={async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                await form.handleSubmit();
+            }}
+        >
+            <Tabs defaultValue='basic'>
+                <TabsList>
+                    <TabsTrigger value='basic'>Basic</TabsTrigger>
+                    <TabsTrigger value='pricing'>Pricing</TabsTrigger>
+                    <TabsTrigger value='amenities'>Amenities</TabsTrigger>
+                    <TabsTrigger value='images'>Images</TabsTrigger>
+                </TabsList>
+                <TabsContent value='basic'>
+                    <CabinBasicTab form={form} slugError={slugError} />
+                </TabsContent>
+                <TabsContent value='pricing'>
+                    <CabinPricingTab form={form} />
+                </TabsContent>
+                <TabsContent value='amenities'>
+                    <CabinAmenitiesTab form={form} />
+                </TabsContent>
+                <TabsContent value='images'>{imagesTab}</TabsContent>
+            </Tabs>
+
+            {formError && (
+                <p role='alert' className='text-sm text-destructive'>
+                    {formError}
+                </p>
+            )}
+
+            <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
+                {([canSubmit, isSubmitting]) => (
+                    <Button type='submit' disabled={!canSubmit || isSubmitting}>
+                        {isSubmitting ? submittingLabel : submitLabel}
+                    </Button>
+                )}
+            </form.Subscribe>
+        </form>
+    );
 }
 
 function CreateCabinForm() {
@@ -83,53 +147,20 @@ function CreateCabinForm() {
     });
 
     return (
-        <form
-            className='space-y-6'
-            onSubmit={async (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                await form.handleSubmit();
-            }}
-        >
-            <Tabs defaultValue='basic'>
-                <TabsList>
-                    <TabsTrigger value='basic'>Basic</TabsTrigger>
-                    <TabsTrigger value='pricing'>Pricing</TabsTrigger>
-                    <TabsTrigger value='amenities'>Amenities</TabsTrigger>
-                    <TabsTrigger value='images'>Images</TabsTrigger>
-                </TabsList>
-                <TabsContent value='basic'>
-                    <CabinBasicTab form={form} slugError={slugError} />
-                </TabsContent>
-                <TabsContent value='pricing'>
-                    <CabinPricingTab form={form} />
-                </TabsContent>
-                <TabsContent value='amenities'>
-                    <CabinAmenitiesTab form={form} />
-                </TabsContent>
-                <TabsContent value='images'>
-                    <CabinImagesTab
-                        mode='create'
-                        coverStorageId={coverStorageId}
-                        onCoverUploaded={setCoverStorageId}
-                    />
-                </TabsContent>
-            </Tabs>
-
-            {formError && (
-                <p role='alert' className='text-sm text-destructive'>
-                    {formError}
-                </p>
-            )}
-
-            <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
-                {([canSubmit, isSubmitting]) => (
-                    <Button type='submit' disabled={!canSubmit || isSubmitting}>
-                        {isSubmitting ? 'Creating…' : 'Create cabin'}
-                    </Button>
-                )}
-            </form.Subscribe>
-        </form>
+        <CabinFormFields
+            form={form}
+            slugError={slugError}
+            formError={formError}
+            submitLabel='Create cabin'
+            submittingLabel='Creating…'
+            imagesTab={
+                <CabinImagesTab
+                    mode='create'
+                    coverStorageId={coverStorageId}
+                    onCoverUploaded={setCoverStorageId}
+                />
+            }
+        />
     );
 }
 
@@ -202,53 +233,21 @@ function EditCabinFormBody({ cabinId, cabin }: { cabinId: Id<'cabins'>; cabin: A
     );
 
     return (
-        <form
-            className='space-y-6'
-            onSubmit={async (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                await form.handleSubmit();
-            }}
-        >
-            <Tabs defaultValue='basic'>
-                <TabsList>
-                    <TabsTrigger value='basic'>Basic</TabsTrigger>
-                    <TabsTrigger value='pricing'>Pricing</TabsTrigger>
-                    <TabsTrigger value='amenities'>Amenities</TabsTrigger>
-                    <TabsTrigger value='images'>Images</TabsTrigger>
-                </TabsList>
-                <TabsContent value='basic'>
-                    <CabinBasicTab form={form} slugError={slugError} />
-                </TabsContent>
-                <TabsContent value='pricing'>
-                    <CabinPricingTab form={form} />
-                </TabsContent>
-                <TabsContent value='amenities'>
-                    <CabinAmenitiesTab form={form} />
-                </TabsContent>
-                <TabsContent value='images'>
-                    <CabinImagesTab
-                        mode='edit'
-                        coverImageUrl={cabin.coverImageUrl}
-                        galleryImageUrls={cabin.galleryImageUrls}
-                    />
-                </TabsContent>
-            </Tabs>
-
-            {formError && (
-                <p role='alert' className='text-sm text-destructive'>
-                    {formError}
-                </p>
-            )}
-
-            <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
-                {([canSubmit, isSubmitting]) => (
-                    <Button type='submit' disabled={!canSubmit || isSubmitting}>
-                        {isSubmitting ? 'Saving…' : 'Save changes'}
-                    </Button>
-                )}
-            </form.Subscribe>
-        </form>
+        <CabinFormFields
+            form={form}
+            slugError={slugError}
+            formError={formError}
+            submitLabel='Save changes'
+            submittingLabel='Saving…'
+            imagesTab={
+                <CabinImagesTab
+                    mode='edit'
+                    cabinId={cabinId}
+                    coverImage={cabin.coverImage}
+                    gallery={cabin.gallery}
+                />
+            }
+        />
     );
 }
 
@@ -259,7 +258,7 @@ export function CabinFormScreen(props: { mode: 'create' } | { mode: 'edit'; cabi
                 <h1 className='font-heading text-2xl font-medium'>
                     {props.mode === 'create' ? 'New cabin' : 'Edit cabin'}
                 </h1>
-                <Button variant='ghost' render={<a href={APP_ROUTES.ADMIN_CABINS} />}>
+                <Button variant='ghost' render={<Link href={APP_ROUTES.ADMIN_CABINS} />}>
                     Back to cabins
                 </Button>
             </div>

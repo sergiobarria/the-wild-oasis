@@ -876,3 +876,75 @@ describe('adminGenerateUploadUrl', () => {
         expect(url).toEqual(expect.any(String));
     });
 });
+
+describe('adminSetCoverImage', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminSetCoverImage, { cabinId, storageId: coverImage }),
+        ).rejects.toThrow();
+    });
+
+    test('replaces the cover image', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const newImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminSetCoverImage, { cabinId, storageId: newImage });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin?.coverImage).toBe(newImage);
+    });
+});
+
+describe('adminSetGalleryImages', () => {
+    test('throws for a non-admin caller', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const guest = await seedGuest(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await expect(
+            t
+                .withIdentity(guest)
+                .mutation(api.cabins.adminSetGalleryImages, { cabinId, storageIds: [coverImage] }),
+        ).rejects.toThrow();
+    });
+
+    test('replaces the whole gallery array', async () => {
+        const t = setupTestWithAuth();
+        const coverImage = await seedImage(t);
+        const galleryA = await seedImage(t);
+        const galleryB = await seedImage(t);
+        const admin = await seedAdmin(t);
+        const cabinId = await t
+            .withIdentity(admin)
+            .mutation(api.cabins.adminCreateCabin, adminCabinArgs({ coverImage }));
+
+        await t.withIdentity(admin).mutation(api.cabins.adminSetGalleryImages, {
+            cabinId,
+            storageIds: [galleryB, galleryA],
+        });
+
+        const cabin = await t.run((ctx) => ctx.db.get(cabinId));
+        expect(cabin?.galleryImages).toEqual([galleryB, galleryA]);
+    });
+});

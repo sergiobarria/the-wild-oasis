@@ -361,9 +361,14 @@ export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'>
     const cabin = await ctx.db.get(args.cabinId);
     if (!cabin) return null;
 
-    const [coverImageUrl, galleryImageUrls] = await Promise.all([
+    const [coverImageUrl, gallery] = await Promise.all([
         ctx.storage.getUrl(cabin.coverImage),
-        Promise.all(cabin.galleryImages.map((id) => ctx.storage.getUrl(id))),
+        Promise.all(
+            cabin.galleryImages.map(async (storageId) => ({
+                storageId,
+                url: await ctx.storage.getUrl(storageId),
+            })),
+        ),
     ]);
 
     return {
@@ -380,8 +385,11 @@ export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'>
         bedrooms: cabin.bedrooms,
         beds: cabin.beds,
         bathrooms: cabin.bathrooms,
-        coverImageUrl,
-        galleryImageUrls,
+        // `storageId` alongside the signed `url` -- unlike public queries, this is
+        // `requireAdmin`-gated, and the edit form's gallery reorder/remove UI legitimately
+        // needs a stable id to submit back to `adminSetGalleryImages`/`adminSetCoverImage`.
+        coverImage: { storageId: cabin.coverImage, url: coverImageUrl },
+        gallery,
         amenityIds: cabin.amenities,
         published: cabin.published,
         featured: cabin.featured,
@@ -398,6 +406,35 @@ export async function adminGetCabin(ctx: QueryCtx, args: { cabinId: Id<'cabins'>
 export async function adminGenerateUploadUrl(ctx: MutationCtx) {
     await requireAdmin(ctx);
     return await ctx.storage.generateUploadUrl();
+}
+
+export async function adminSetCoverImage(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; storageId: Id<'_storage'> },
+) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    await ctx.db.patch(args.cabinId, { coverImage: args.storageId, updatedAt: Date.now() });
+}
+
+/**
+ * Replaces the whole gallery array (WO-049) -- add/remove/reorder are all just "here's the
+ * new full ordered list" from the client's point of view, so one mutation covers all three
+ * instead of three narrower ones.
+ */
+export async function adminSetGalleryImages(
+    ctx: MutationCtx,
+    args: { cabinId: Id<'cabins'>; storageIds: Id<'_storage'>[] },
+) {
+    await requireAdmin(ctx);
+
+    const cabin = await ctx.db.get(args.cabinId);
+    if (!cabin) throw new ConvexError('Unknown cabin.');
+
+    await ctx.db.patch(args.cabinId, { galleryImages: args.storageIds, updatedAt: Date.now() });
 }
 
 /**
