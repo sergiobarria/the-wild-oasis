@@ -405,43 +405,51 @@ is solid, since the demo flow is the one that must always work.
 Ongoing per-phase, but this phase is the pass that closes gaps before calling the MVP
 done. Priority areas straight from spec §11.
 
-- [ ] **WO-061 (10.1) — Reservation date validation tests** (WO-009 domain module).
+- [x] **WO-061 (10.1) — Reservation date validation tests** (WO-009 domain module).
 
-- [ ] **WO-062 (10.2) — Availability calculation + booking conflict tests** —
+- [x] **WO-062 (10.2) — Availability calculation + booking conflict tests** —
       overlapping confirmed reservations, availability blocks, boundary dates.
 
-- [ ] **WO-063 (10.3) — Pricing calculation tests** — nightly × nights + fees + taxes,
+- [x] **WO-063 (10.3) — Pricing calculation tests** — nightly × nights + fees + taxes,
       including rounding rule (see `02_CODING_GUIDELINES.md` §7 on money — integer minor
       units, never floats).
 
-- [ ] **WO-064 (10.4) — Auth-dependent behavior tests** — protected routes, protected
+- [x] **WO-064 (10.4) — Auth-dependent behavior tests** — protected routes, protected
       mutations.
 
-- [ ] **WO-065 (10.5) — Admin authorization tests** — non-admin calling an admin
+- [x] **WO-065 (10.5) — Admin authorization tests** — non-admin calling an admin
       mutation is rejected server-side, not just hidden client-side.
 
-- [ ] **WO-066 (10.6) — Feature flag tests** — `stripePaymentsEnabled` true/false paths,
+- [x] **WO-066 (10.6) — Feature flag tests** — `stripePaymentsEnabled` true/false paths,
       and the fail-closed default when the flag can't be read.
 
-- [ ] **WO-067 (10.7) — Payment-disabled booking behavior tests** — demo reservation
+- [x] **WO-067 (10.7) — Payment-disabled booking behavior tests** — demo reservation
       never ends up looking like a paid Stripe reservation.
 
-- [ ] **WO-068 (10.8) — Critical form tests** — sign-up, sign-in, contact form, booking
+- [x] **WO-068 (10.8) — Critical form tests** — sign-up, sign-in, contact form, booking
       panel.
 
-- [ ] **WO-069 (10.9) — Accessibility pass** — keyboard nav, focus states, form labels,
+- [x] **WO-069 (10.9) — Accessibility pass** — keyboard nav, focus states, form labels,
       dialog a11y, contrast, alt text, across public site, dashboard, and admin. Spec §18.
 
-- [ ] **WO-070 (10.10) — Responsive pass** — mobile/tablet/desktop/large-desktop on
+- [x] **WO-070 (10.10) — Responsive pass** — mobile/tablet/desktop/large-desktop on
       public site; admin tables adapt (horizontal scroll / responsive columns / card
       view) on small screens. Spec §17.
 
-- [ ] **WO-071 (10.11) — E2E smoke tests** (Playwright) — sign-up → browse → demo
+- [x] **WO-071 (10.11) — E2E smoke tests** (Playwright) — sign-up → browse → demo
       booking → dashboard; admin login → cabins CRUD → booking visibility.
 
-- [ ] **WO-072 (10.12) — Full quality gate** — `bun run check && bun run typecheck &&
+- [x] **WO-072 (10.12) — Full quality gate** — `bun run check && bun run typecheck &&
 bun run test && bun run build`, plus `bun run test:e2e` since routing/layout/
       rendered output are all touched by this point.
+
+**Known follow-up, not blocking**: `bun run test:coverage`'s global floor (80%) is
+unmet (~73%) — `convex/**` passes all four metrics after this phase's targeted
+branch-coverage work, but the frontend gap (untested admin screens —
+admin-feature-flags/messages/settings/subscribers — and shared components like
+cabin-card/content-page-shell/star-rating) was explicitly scoped out of Phase 10 per
+spec §11's "focus on meaningful business behavior rather than maximizing coverage
+percentages." Revisit as a dedicated fast-follow if the number needs to move.
 
 ---
 
