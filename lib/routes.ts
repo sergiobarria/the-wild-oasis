@@ -81,3 +81,10 @@ export function guestBookingHref(reservationId: string): string {
     const query = new URLSearchParams({ reservationId });
     return `${APP_ROUTES.GUEST_AREA_BOOKINGS}?${query.toString()}`;
 }
+
+/** `/admin/bookings` with a reservation pre-selected -- same `reservationId`-param pattern as
+ *  `guestBookingHref`, read by `AdminBookingsScreen`'s detail dialog. */
+export function adminBookingHref(reservationId: string): string {
+    const query = new URLSearchParams({ reservationId });
+    return `${APP_ROUTES.ADMIN_BOOKINGS}?${query.toString()}`;
+}
