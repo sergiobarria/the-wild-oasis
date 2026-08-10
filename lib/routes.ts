@@ -95,3 +95,8 @@ export function adminBookingHref(reservationId: string): string {
 export function adminCabinEditHref(cabinId: string): string {
     return `${APP_ROUTES.ADMIN_CABINS}/${cabinId}`;
 }
+
+/** `/admin/users/[id]` for a single user's detail view. */
+export function adminUserDetailHref(userId: string): string {
+    return `${APP_ROUTES.ADMIN_USERS}/${userId}`;
+}
