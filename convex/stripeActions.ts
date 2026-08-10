@@ -72,24 +72,31 @@ export const createStripeCheckoutSession = action({
 
 /**
  * Refunds a paid reservation in full (admin-only, no partial refunds -- spec's explicit
- * non-goal). Authorization and validation happen first via an `internalQuery` (actions have no
- * `ctx.db`, so `requireAdmin` can't run directly here); only after that succeeds does this call
- * Stripe. Deliberately separate from `adminCancelReservation` -- cancelling and refunding are
- * distinct operations (spec §47), never merged into one mutation.
+ * non-goal). Authorization and validation happen first via `beginRefund`, an `internalMutation`
+ * (actions have no `ctx.db`, so `requireAdmin` can't run directly here) that also atomically
+ * flips `paymentStatus` to `REFUNDED` *before* Stripe is ever called -- this is what prevents
+ * two concurrent refund attempts from both passing the paid-status check and double-refunding
+ * (see `beginRefund`'s doc comment). If the Stripe call itself fails, `revertFailedRefund`
+ * undoes that optimistic flip so the reservation doesn't claim a refund that never happened.
+ * Deliberately separate from `adminCancelReservation` -- cancelling and refunding are distinct
+ * operations (spec §47), never merged into one mutation.
  */
 export const adminRefundReservation = action({
     args: { reservationId: v.string() },
     returns: v.null(),
     handler: async (ctx, args) => {
-        const { reservationId, stripePaymentIntentId } = await ctx.runQuery(
-            internal.reservations.getReservationForRefund,
+        const { reservationId, stripePaymentIntentId } = await ctx.runMutation(
+            internal.reservations.beginRefund,
             { reservationId: args.reservationId },
         );
 
-        const stripe = getStripeClient();
-        await stripe.refunds.create({ payment_intent: stripePaymentIntentId });
-
-        await ctx.runMutation(internal.reservations.markReservationRefunded, { reservationId });
+        try {
+            const stripe = getStripeClient();
+            await stripe.refunds.create({ payment_intent: stripePaymentIntentId });
+        } catch (thrown) {
+            await ctx.runMutation(internal.reservations.revertFailedRefund, { reservationId });
+            throw thrown;
+        }
 
         return null;
     },

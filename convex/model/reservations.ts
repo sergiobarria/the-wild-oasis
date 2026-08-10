@@ -789,12 +789,18 @@ export async function adminCancelReservation(ctx: MutationCtx, args: { reservati
 }
 
 /**
- * Admin refund action's pre-check (admin refund capability) -- `requireAdmin` needs `ctx.db`,
- * which the Stripe-calling `action` doesn't have, so this runs first as an `internalQuery` to
- * authorize and validate, and returns exactly what the action needs to call Stripe's refund
- * API. Full-amount refund only (spec's explicit non-goal excludes partial refunds).
+ * Admin refund action's atomic pre-check-and-flip (admin refund capability) -- `requireAdmin`
+ * needs `ctx.db`, which the Stripe-calling `action` doesn't have, so this runs first as an
+ * `internalMutation`. Optimistically patches `paymentStatus` to `REFUNDED` *before* the action
+ * ever calls Stripe (not after, the way `applyStripeWebhookTransition` does): Convex mutations
+ * are serializable transactions, so two concurrent refund attempts can't both observe `PAID` --
+ * the second one's transaction conflicts and, on retry, sees the already-flipped status and
+ * throws. This is what actually prevents a double Stripe refund; without it, the paid-status
+ * check and the two side-effecting calls (Stripe, then this write) would race. If the
+ * subsequent Stripe call fails, the action calls `revertFailedRefund` to undo this. Full-amount
+ * refund only (spec's explicit non-goal excludes partial refunds).
  */
-export async function getReservationForRefund(ctx: QueryCtx, args: { reservationId: string }) {
+export async function beginRefund(ctx: MutationCtx, args: { reservationId: string }) {
     await requireAdmin(ctx);
 
     const id = ctx.db.normalizeId('reservations', args.reservationId);
@@ -807,6 +813,11 @@ export async function getReservationForRefund(ctx: QueryCtx, args: { reservation
         throw new ConvexError('Only a paid reservation can be refunded.');
     }
 
+    await ctx.db.patch(reservation._id, {
+        paymentStatus: PAYMENT_STATUS.REFUNDED,
+        updatedAt: Date.now(),
+    });
+
     return {
         reservationId: reservation._id,
         stripePaymentIntentId: reservation.stripePaymentIntentId,
@@ -814,24 +825,22 @@ export async function getReservationForRefund(ctx: QueryCtx, args: { reservation
 }
 
 /**
- * Records a successful Stripe refund -- patches `paymentStatus` only, never `status`, the
- * same cancel-vs-refund separation every other mutation in this file enforces: an admin who
- * wants both cancels separately via `adminCancelReservation`.
+ * Compensates a `beginRefund` that optimistically flipped `paymentStatus` to `REFUNDED` when
+ * the subsequent Stripe API call then failed -- reverts back to `PAID` so the reservation isn't
+ * left claiming a refund that never actually happened at Stripe. No-op if the reservation isn't
+ * currently in the `REFUNDED` state this function expects to undo (e.g. a second concurrent
+ * attempt already moved past it).
  */
-export async function markReservationRefunded(
+export async function revertFailedRefund(
     ctx: MutationCtx,
     args: { reservationId: Id<'reservations'> },
 ) {
     const reservation = await ctx.db.get(args.reservationId);
 
-    if (!reservation || reservation.paymentStatus !== PAYMENT_STATUS.PAID) {
-        throw new ConvexError('Only a paid reservation can be refunded.');
-    }
+    if (!reservation || reservation.paymentStatus !== PAYMENT_STATUS.REFUNDED) return;
 
     await ctx.db.patch(args.reservationId, {
-        paymentStatus: PAYMENT_STATUS.REFUNDED,
+        paymentStatus: PAYMENT_STATUS.PAID,
         updatedAt: Date.now(),
     });
-
-    return null;
 }

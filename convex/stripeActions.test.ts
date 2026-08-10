@@ -196,4 +196,37 @@ describe('adminRefundReservation', () => {
         const reservation = await t.run((ctx) => ctx.db.get(reservationId));
         expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'refunded' });
     });
+
+    test('reverts the optimistic refund flip when the Stripe call fails', async () => {
+        const t = setupTest();
+        const reservationId = await seedPaidReservation(t);
+        const admin = await seedAdmin(t);
+        refundMock.mockRejectedValueOnce(new Error('Stripe network error'));
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .action(api.stripeActions.adminRefundReservation, { reservationId }),
+        ).rejects.toThrow('Stripe network error');
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'paid' });
+    });
+
+    test('rejects a second concurrent refund attempt once the first has flipped the status', async () => {
+        const t = setupTest();
+        const reservationId = await seedPaidReservation(t);
+        const admin = await seedAdmin(t);
+
+        await t
+            .withIdentity(admin)
+            .action(api.stripeActions.adminRefundReservation, { reservationId });
+
+        await expect(
+            t
+                .withIdentity(admin)
+                .action(api.stripeActions.adminRefundReservation, { reservationId }),
+        ).rejects.toThrow('Only a paid reservation can be refunded.');
+        expect(refundMock).toHaveBeenCalledTimes(1);
+    });
 });

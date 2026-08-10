@@ -13,14 +13,14 @@ import {
     adminListReservations,
     applyStripeWebhookTransition,
     attachStripeSessionId,
+    beginRefund,
     cancelReservation,
     checkAvailability,
     createDemoReservation,
     createPendingStripeReservation,
     getOwnReservation,
-    getReservationForRefund,
     listOwnReservations,
-    markReservationRefunded,
+    revertFailedRefund,
 } from './reservations';
 
 const modules = import.meta.glob('../**/*.ts');
@@ -1236,15 +1236,13 @@ async function seedPaidReservation(t: ReturnType<typeof setupTest>, cabinId: Id<
     );
 }
 
-describe('getReservationForRefund', () => {
+describe('beginRefund', () => {
     test('throws for a non-admin caller', async () => {
         const t = setupTest();
         const identity = await seedGuestIdentity(t);
 
         await expect(
-            t
-                .withIdentity(identity)
-                .run((ctx) => getReservationForRefund(ctx, { reservationId: 'not-real' })),
+            t.withIdentity(identity).run((ctx) => beginRefund(ctx, { reservationId: 'not-real' })),
         ).rejects.toThrow();
     });
 
@@ -1258,11 +1256,11 @@ describe('getReservationForRefund', () => {
         await expect(
             t
                 .withIdentity(admin)
-                .run((ctx) => getReservationForRefund(ctx, { reservationId: reservation!._id })),
+                .run((ctx) => beginRefund(ctx, { reservationId: reservation!._id })),
         ).rejects.toThrow('Only a paid reservation can be refunded.');
     });
 
-    test('returns the payment intent id for a paid reservation', async () => {
+    test('atomically flips paymentStatus to refunded and returns the payment intent id', async () => {
         const t = setupTest();
         const cabinId = await seedCabin(t);
         const admin = await seedAdmin(t);
@@ -1270,33 +1268,51 @@ describe('getReservationForRefund', () => {
 
         const result = await t
             .withIdentity(admin)
-            .run((ctx) => getReservationForRefund(ctx, { reservationId }));
+            .run((ctx) => beginRefund(ctx, { reservationId }));
 
         expect(result).toEqual({ reservationId, stripePaymentIntentId: 'pi_test_paid' });
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'refunded' });
+    });
+
+    test('a second call rejects once the first has already flipped the status (double-refund guard)', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const reservationId = await seedPaidReservation(t, cabinId);
+
+        await t.withIdentity(admin).run((ctx) => beginRefund(ctx, { reservationId }));
+
+        await expect(
+            t.withIdentity(admin).run((ctx) => beginRefund(ctx, { reservationId })),
+        ).rejects.toThrow('Only a paid reservation can be refunded.');
     });
 });
 
-describe('markReservationRefunded', () => {
-    test('throws for a reservation that is not paid', async () => {
+describe('revertFailedRefund', () => {
+    test('reverts an optimistically-refunded reservation back to paid', async () => {
+        const t = setupTest();
+        const cabinId = await seedCabin(t);
+        const admin = await seedAdmin(t);
+        const reservationId = await seedPaidReservation(t, cabinId);
+        await t.withIdentity(admin).run((ctx) => beginRefund(ctx, { reservationId }));
+
+        await t.run((ctx) => revertFailedRefund(ctx, { reservationId }));
+
+        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
+        expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'paid' });
+    });
+
+    test('is a no-op for a reservation that was never refunded', async () => {
         const t = setupTest();
         const cabinId = await seedCabin(t);
         await seedReservation(t, cabinId, { checkIn: '2030-01-15', checkOut: '2030-01-18' });
         const [reservation] = await t.run((ctx) => ctx.db.query('reservations').collect());
 
-        await expect(
-            t.run((ctx) => markReservationRefunded(ctx, { reservationId: reservation!._id })),
-        ).rejects.toThrow('Only a paid reservation can be refunded.');
-    });
+        await t.run((ctx) => revertFailedRefund(ctx, { reservationId: reservation!._id }));
 
-    test('patches paymentStatus only, never status -- refunding is not cancelling', async () => {
-        const t = setupTest();
-        const cabinId = await seedCabin(t);
-        const reservationId = await seedPaidReservation(t, cabinId);
-
-        await t.run((ctx) => markReservationRefunded(ctx, { reservationId }));
-
-        const reservation = await t.run((ctx) => ctx.db.get(reservationId));
-        expect(reservation).toMatchObject({ status: 'confirmed', paymentStatus: 'refunded' });
+        const updated = await t.run((ctx) => ctx.db.get(reservation!._id));
+        expect(updated).toMatchObject({ paymentStatus: 'not_required' });
     });
 });
 
