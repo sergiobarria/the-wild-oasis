@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 
-import { useMutation } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { checkoutSuccessHref } from '@/lib/routes';
 
 type CheckoutConfirmActionProps = {
     cabinId: Id<'cabins'>;
+    cabinSlug: string;
     checkIn: string;
     checkOut: string;
     guests: number;
@@ -29,6 +30,7 @@ type CheckoutConfirmActionProps = {
  *  `CabinBookingPanel`. */
 export function CheckoutConfirmAction({
     cabinId,
+    cabinSlug,
     checkIn,
     checkOut,
     guests,
@@ -37,6 +39,7 @@ export function CheckoutConfirmAction({
 }: CheckoutConfirmActionProps) {
     const router = useRouter();
     const createDemoReservation = useMutation(api.reservations.createDemoReservation);
+    const createStripeCheckoutSession = useAction(api.stripeActions.createStripeCheckoutSession);
     const [error, setError] = useState<string | null>(null);
     const [confirming, setConfirming] = useState(false);
 
@@ -62,14 +65,45 @@ export function CheckoutConfirmAction({
         }
     }
 
+    // WO-058: a real cross-origin navigation to Stripe's hosted Checkout page, not a client-side
+    // route -- `window.location.href`, never `router.push`.
+    async function handlePayAndConfirm() {
+        setError(null);
+        setConfirming(true);
+
+        try {
+            const { url } = await createStripeCheckoutSession({
+                cabinId,
+                cabinSlug,
+                checkIn,
+                checkOut,
+                guests,
+            });
+            window.location.href = url;
+        } catch (thrown) {
+            setError(
+                thrown instanceof ConvexError && typeof thrown.data === 'string'
+                    ? thrown.data
+                    : 'Something went wrong starting checkout. Please try again.',
+            );
+            setConfirming(false);
+        }
+    }
+
     if (stripePaymentsEnabled) {
         return (
             <div className='space-y-1.5'>
-                <Button type='button' className='w-full' disabled>
-                    Pay &amp; Confirm
+                {error && <p className='text-sm text-destructive'>{error}</p>}
+                <Button
+                    type='button'
+                    className='w-full'
+                    disabled={!canConfirm || confirming}
+                    onClick={handlePayAndConfirm}
+                >
+                    {confirming ? 'Redirecting…' : 'Pay & Confirm'}
                 </Button>
                 <p className='text-center text-xs text-muted-foreground'>
-                    Card payments are coming soon.
+                    You&apos;ll be redirected to Stripe to complete payment securely.
                 </p>
             </div>
         );

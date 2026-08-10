@@ -111,6 +111,7 @@ export function CheckoutSummaryScreen({
 
             <CheckoutConfirmAction
                 cabinId={cabin._id}
+                cabinSlug={cabin.slug}
                 checkIn={checkIn}
                 checkOut={checkOut}
                 guests={guests}

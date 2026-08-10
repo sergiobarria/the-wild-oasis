@@ -5,11 +5,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CheckoutConfirmAction } from './checkout-confirm-action';
 
-const { useMutation } = vi.hoisted(() => ({ useMutation: vi.fn() }));
+const { useAction, useMutation } = vi.hoisted(() => ({
+    useAction: vi.fn(),
+    useMutation: vi.fn(),
+}));
 const push = vi.fn();
 const createDemoReservation = vi.fn();
+const createStripeCheckoutSession = vi.fn();
 
-vi.mock('convex/react', () => ({ useMutation }));
+vi.mock('convex/react', () => ({ useAction, useMutation }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
 const CABIN_ID = 'cabin-1';
@@ -20,6 +24,7 @@ function renderAction(
     return render(
         <CheckoutConfirmAction
             cabinId={CABIN_ID as never}
+            cabinSlug='pine-ridge-cabin'
             checkIn='2026-08-15'
             checkOut='2026-08-18'
             guests={2}
@@ -33,14 +38,48 @@ describe('CheckoutConfirmAction', () => {
     beforeEach(() => {
         push.mockClear();
         createDemoReservation.mockClear();
+        createStripeCheckoutSession.mockClear();
         useMutation.mockReturnValue(createDemoReservation);
+        useAction.mockReturnValue(createStripeCheckoutSession);
     });
 
-    it('shows a disabled Pay & Confirm placeholder when Stripe is enabled', () => {
+    it('starts a Stripe Checkout redirect when Stripe is enabled', async () => {
+        createStripeCheckoutSession.mockResolvedValue({
+            url: 'https://checkout.stripe.com/test-session',
+        });
+        const user = userEvent.setup();
         renderAction({ stripePaymentsEnabled: true });
 
+        await user.click(screen.getByRole('button', { name: 'Pay & Confirm' }));
+
+        expect(createStripeCheckoutSession).toHaveBeenCalledWith({
+            cabinId: CABIN_ID,
+            cabinSlug: 'pine-ridge-cabin',
+            checkIn: '2026-08-15',
+            checkOut: '2026-08-18',
+            guests: 2,
+        });
+    });
+
+    it('disables Pay & Confirm when the dates are no longer available', () => {
+        renderAction({ stripePaymentsEnabled: true, canConfirm: false });
+
         expect(screen.getByRole('button', { name: 'Pay & Confirm' })).toBeDisabled();
-        expect(screen.getByText('Card payments are coming soon.')).toBeInTheDocument();
+    });
+
+    it('surfaces a ConvexError message inline when starting Stripe checkout fails', async () => {
+        createStripeCheckoutSession.mockRejectedValue(
+            new ConvexError('Stripe payments are not currently enabled.'),
+        );
+        const user = userEvent.setup();
+        renderAction({ stripePaymentsEnabled: true });
+
+        await user.click(screen.getByRole('button', { name: 'Pay & Confirm' }));
+
+        expect(
+            await screen.findByText('Stripe payments are not currently enabled.'),
+        ).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Pay & Confirm' })).toBeEnabled();
     });
 
     it('disables Confirm Reservation when the dates are no longer available', () => {

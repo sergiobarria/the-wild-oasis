@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 
-import type { FunctionReturnType } from 'convex/server';
-import { CheckCircle2 } from 'lucide-react';
+import type { Preloaded } from 'convex/react';
+import { usePreloadedQuery } from 'convex/react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,16 +12,44 @@ import type { api } from '@/convex/_generated/api';
 import { formatCents } from '@/lib/money';
 import { APP_ROUTES } from '@/lib/routes';
 
-type Reservation = NonNullable<FunctionReturnType<typeof api.reservations.getOwnReservation>>;
+type CheckoutSuccessScreenProps = {
+    preloadedReservation: Preloaded<typeof api.reservations.getOwnReservation>;
+};
 
-export function CheckoutSuccessScreen({ reservation }: { reservation: Reservation }) {
+/**
+ * Live-subscribes (via `usePreloadedQuery`) rather than a one-shot fetch: a Stripe-paid
+ * reservation can land here while still `pending` -- only Stripe's webhook (never this page's
+ * own load) ever confirms it (spec §37, WO-060). Seeding from the server-preloaded value means
+ * no loading flash on first paint; once the webhook flips the row, this re-renders on its own.
+ */
+export function CheckoutSuccessScreen({ preloadedReservation }: CheckoutSuccessScreenProps) {
+    const reservation = usePreloadedQuery(preloadedReservation);
+
+    // The server page already redirected to notFound() if this were null on first load --
+    // reachable here only if the reservation were deleted after that check, an edge case not
+    // worth a dedicated UI for.
+    if (!reservation) return null;
+
+    const isProcessing = reservation.paymentStatus === 'pending';
+
     return (
         <div className='space-y-8 text-center'>
             <div className='space-y-2'>
-                <CheckCircle2 className='mx-auto size-12 text-primary' aria-hidden='true' />
-                <h1 className='font-heading text-3xl font-medium'>Reservation confirmed</h1>
+                {isProcessing ? (
+                    <Loader2
+                        className='mx-auto size-12 animate-spin text-muted-foreground'
+                        aria-hidden='true'
+                    />
+                ) : (
+                    <CheckCircle2 className='mx-auto size-12 text-primary' aria-hidden='true' />
+                )}
+                <h1 className='font-heading text-3xl font-medium'>
+                    {isProcessing ? 'Processing your payment…' : 'Reservation confirmed'}
+                </h1>
                 <p className='text-muted-foreground'>
-                    You&apos;re all set -- we can&apos;t wait to host you.
+                    {isProcessing
+                        ? "We're waiting for Stripe to confirm your payment -- this page will update automatically."
+                        : "You're all set -- we can't wait to host you."}
                 </p>
             </div>
 
