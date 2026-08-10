@@ -25,6 +25,28 @@ export const metadata: Metadata = {
     metadataBase: new URL(SITE_CONFIG.URL),
     title: SITE_CONFIG.NAME,
     description: SITE_CONFIG.DESCRIPTION,
+    // This is a fictional demo app (docs/00_SPEC.md) -- never index it. Every route inherits
+    // this from the root layout unless it explicitly overrides `robots`, which none do; see
+    // app/robots.ts for the second, independent layer (a disallow-all robots.txt).
+    robots: {
+        index: false,
+        follow: false,
+        googleBot: { index: false, follow: false },
+    },
+    // Good link-preview behavior (Slack, iMessage, etc.) when this demo is shared directly --
+    // distinct from search-engine indexing, which `robots` above blocks regardless.
+    openGraph: {
+        type: 'website',
+        siteName: SITE_CONFIG.NAME,
+        title: SITE_CONFIG.NAME,
+        description: SITE_CONFIG.DESCRIPTION,
+        url: SITE_CONFIG.URL,
+    },
+    twitter: {
+        card: 'summary',
+        title: SITE_CONFIG.NAME,
+        description: SITE_CONFIG.DESCRIPTION,
+    },
     icons: {
         icon: [
             { url: '/favicon/favicon.ico', sizes: 'any' },
