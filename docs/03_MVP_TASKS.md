@@ -372,6 +372,12 @@ model speculatively by the time this phase starts. Spec §57–79.
       admin-configurable) and only for values something already reads — don't add
       settings fields with no consumer yet.
 
+- [x] **WO-073 (8.16) — `/admin/amenities`** — full catalog CRUD (create, edit,
+      delete-blocked-while-in-use-by-a-cabin) against the `amenities` table from WO-018;
+      WO-048 only ever covered per-cabin amenity _assignment_, not managing the catalog
+      itself. Appended post-MVP-completion per this doc's own "new tasks discovered
+      during implementation" convention (line 32). Spec §68, §72.
+
 ---
 
 ## Phase 9 — Stripe Integration (flagged)
