@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 
-import { sanitizeRedirectPath, signInSchema, signUpSchema } from './auth-domain';
+import {
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    sanitizeRedirectPath,
+    signInSchema,
+    signUpSchema,
+} from './auth-domain';
 
 const VALID_SIGN_UP = {
     firstName: 'Jamie',
@@ -73,6 +79,53 @@ describe('signInSchema', () => {
 
     test('rejects an empty password', () => {
         const result = signInSchema.safeParse({ email: 'jamie@example.com', password: '' });
+
+        expect(result.success).toBe(false);
+    });
+});
+
+describe('forgotPasswordSchema', () => {
+    test('accepts a valid email', () => {
+        const result = forgotPasswordSchema.safeParse({ email: 'jamie@example.com' });
+
+        expect(result.success).toBe(true);
+    });
+
+    test('rejects an invalid email', () => {
+        const result = forgotPasswordSchema.safeParse({ email: 'not-an-email' });
+
+        expect(result.success).toBe(false);
+    });
+});
+
+describe('resetPasswordSchema', () => {
+    test('accepts matching passwords at the minimum length', () => {
+        const result = resetPasswordSchema.safeParse({
+            password: 'password123',
+            confirmPassword: 'password123',
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    test('rejects mismatched passwords', () => {
+        const result = resetPasswordSchema.safeParse({
+            password: 'password123',
+            confirmPassword: 'different123',
+        });
+
+        expect(result.success).toBe(false);
+        expect(
+            !result.success &&
+                result.error.issues.some((issue) => issue.path.includes('confirmPassword')),
+        ).toBe(true);
+    });
+
+    test('rejects a password shorter than the minimum', () => {
+        const result = resetPasswordSchema.safeParse({
+            password: 'short1',
+            confirmPassword: 'short1',
+        });
 
         expect(result.success).toBe(false);
     });
