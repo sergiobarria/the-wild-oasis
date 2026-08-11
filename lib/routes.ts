@@ -26,6 +26,7 @@ export const APP_ROUTES = {
     ADMIN_BOOKINGS: '/admin/bookings',
     ADMIN_CABINS: '/admin/cabins',
     ADMIN_CABIN_NEW: '/admin/cabins/new',
+    ADMIN_AMENITIES: '/admin/amenities',
     ADMIN_MESSAGES: '/admin/messages',
     ADMIN_SUBSCRIBERS: '/admin/subscribers',
     ADMIN_USERS: '/admin/users',

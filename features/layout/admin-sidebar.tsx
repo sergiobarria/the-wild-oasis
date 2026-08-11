@@ -11,6 +11,7 @@ import {
     MailIcon,
     MessageSquareIcon,
     SettingsIcon,
+    SparklesIcon,
     TreePineIcon,
     UsersIcon,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
     { label: 'Home', href: APP_ROUTES.ADMIN, icon: HouseIcon },
     { label: 'Bookings', href: APP_ROUTES.ADMIN_BOOKINGS, icon: CalendarDaysIcon },
     { label: 'Cabins', href: APP_ROUTES.ADMIN_CABINS, icon: TreePineIcon },
+    { label: 'Amenities', href: APP_ROUTES.ADMIN_AMENITIES, icon: SparklesIcon },
     { label: 'Messages', href: APP_ROUTES.ADMIN_MESSAGES, icon: MessageSquareIcon },
     { label: 'Users', href: APP_ROUTES.ADMIN_USERS, icon: UsersIcon },
     { label: 'Subscribers', href: APP_ROUTES.ADMIN_SUBSCRIBERS, icon: MailIcon },
@@ -69,7 +71,7 @@ export function AdminSidebar() {
                         {NAV_ITEMS.map((item) => (
                             <SidebarMenuItem key={item.href}>
                                 <SidebarMenuButton
-                                    render={<Link href={item.href} />}
+                                    render={<Link href={item.href as never} />}
                                     isActive={pathname === item.href}
                                     tooltip={item.label}
                                 >
