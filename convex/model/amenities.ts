@@ -1,6 +1,9 @@
+import { ConvexError } from 'convex/values';
+
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
-import { AMENITY_CATEGORY } from '../lib/amenities';
+import { AMENITY_CATEGORY, type AmenityCategory, type AmenityIconName } from '../lib/amenities';
+import { requireAdmin } from './auth';
 
 /**
  * All amenities. Unpaginated `.collect()` is deliberate -- this is a small,
@@ -8,6 +11,87 @@ import { AMENITY_CATEGORY } from '../lib/amenities';
  */
 export async function listAmenities(ctx: QueryCtx) {
     return await ctx.db.query('amenities').collect();
+}
+
+/** Admin-gated mirror of `listAmenities` (WO-073) -- kept separate rather than reused so
+ *  the public `list` stays unauthenticated, matching `listPublished` vs `adminListCabins`. */
+export async function adminListAmenities(ctx: QueryCtx) {
+    await requireAdmin(ctx);
+
+    return await ctx.db.query('amenities').collect();
+}
+
+async function assertUniqueName(
+    ctx: QueryCtx,
+    name: string,
+    excludingAmenityId?: Id<'amenities'>,
+): Promise<void> {
+    const existing = await ctx.db
+        .query('amenities')
+        .withIndex('by_name', (q) => q.eq('name', name))
+        .unique();
+
+    if (existing && existing._id !== excludingAmenityId) {
+        throw new ConvexError(`An amenity named "${name}" already exists.`);
+    }
+}
+
+type AdminAmenityInput = {
+    name: string;
+    icon: AmenityIconName;
+    category: AmenityCategory;
+};
+
+/** Admin amenity catalog management (WO-073) -- name uniqueness enforced the same way
+ *  cabin slugs are (`assertUniqueSlug` in `./cabins.ts`). */
+export async function adminCreateAmenity(ctx: MutationCtx, args: AdminAmenityInput) {
+    await requireAdmin(ctx);
+
+    await assertUniqueName(ctx, args.name);
+
+    return await ctx.db.insert('amenities', args);
+}
+
+export async function adminUpdateAmenity(
+    ctx: MutationCtx,
+    args: { amenityId: Id<'amenities'> } & AdminAmenityInput,
+) {
+    await requireAdmin(ctx);
+
+    const { amenityId, ...fields } = args;
+    const amenity = await ctx.db.get(amenityId);
+    if (!amenity) throw new ConvexError('Unknown amenity.');
+
+    if (fields.name !== amenity.name) {
+        await assertUniqueName(ctx, fields.name, amenityId);
+    }
+
+    await ctx.db.patch(amenityId, fields);
+}
+
+/** Blocks deletion while any cabin still references this amenity, rather than cascading
+ *  the removal -- mirrors this codebase's generally cautious stance toward
+ *  cross-entity references (cabins themselves are never hard-deleted, only unpublished).
+ *  Cabins are a small, `.collect()`-tolerant table (~8 rows) elsewhere in this codebase
+ *  (see `listAmenities`'s own reasoning), so scanning them here is cheap. */
+export async function adminDeleteAmenity(ctx: MutationCtx, args: { amenityId: Id<'amenities'> }) {
+    await requireAdmin(ctx);
+
+    const amenity = await ctx.db.get(args.amenityId);
+    if (!amenity) throw new ConvexError('Unknown amenity.');
+
+    const cabins = await ctx.db.query('cabins').collect();
+    const referencingCount = cabins.filter((cabin) =>
+        cabin.amenities.includes(args.amenityId),
+    ).length;
+
+    if (referencingCount > 0) {
+        throw new ConvexError(
+            `This amenity is used by ${referencingCount} cabin${referencingCount === 1 ? '' : 's'}. Remove it from ${referencingCount === 1 ? 'that cabin' : 'those cabins'} first.`,
+        );
+    }
+
+    await ctx.db.delete(args.amenityId);
 }
 
 /** Shared by `cabins.ts`'s `getBySlug` and `listFiltered` -- resolves amenity ids to their display shape. */
