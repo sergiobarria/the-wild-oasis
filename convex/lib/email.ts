@@ -12,12 +12,18 @@ export const sendResetPasswordEmail = internalAction({
         const resend = new Resend(env.RESEND_API_KEY);
         const html = await render(ResetPasswordEmail({ name: args.name, resetUrl: args.resetUrl }));
 
-        await resend.emails.send({
+        const { error } = await resend.emails.send({
             from: env.RESEND_FROM_EMAIL,
             to: args.to,
             subject: 'Reset your Wild Oasis password',
             html,
         });
+
+        // Resend's SDK reports failures in `error` rather than throwing -- surface it as a
+        // real error so a bad key/address doesn't silently report success to Better Auth.
+        if (error) {
+            throw new Error(`Failed to send reset-password email: ${error.message}`);
+        }
 
         return null;
     },
