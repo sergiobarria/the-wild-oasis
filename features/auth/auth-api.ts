@@ -1,5 +1,6 @@
 import { authClient } from '@/lib/auth-client';
 import { joinName } from '@/lib/names';
+import { APP_ROUTES } from '@/lib/routes';
 
 import type { SignInValues, SignUpValues } from './auth-domain';
 
@@ -21,4 +22,15 @@ export async function signUpWithEmail(
 
 export async function signInWithEmail(values: SignInValues) {
     return authClient.signIn.email(values);
+}
+
+export async function requestPasswordReset(email: string) {
+    return authClient.requestPasswordReset({
+        email,
+        redirectTo: APP_ROUTES.RESET_PASSWORD,
+    });
+}
+
+export async function resetPassword(newPassword: string, token: string) {
+    return authClient.resetPassword({ newPassword, token });
 }

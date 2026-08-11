@@ -48,6 +48,35 @@ export const signInDefaultValues: SignInValues = {
     password: '',
 };
 
+export const forgotPasswordSchema = z.object({
+    email: z.email('Enter a valid email address.'),
+});
+
+export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+
+export const forgotPasswordDefaultValues: ForgotPasswordValues = {
+    email: '',
+};
+
+export const resetPasswordSchema = z
+    .object({
+        password: z
+            .string()
+            .min(AUTH_PASSWORD_MIN_LENGTH, `Use at least ${AUTH_PASSWORD_MIN_LENGTH} characters.`),
+        confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: 'Passwords do not match.',
+        path: ['confirmPassword'],
+    });
+
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+
+export const resetPasswordDefaultValues: ResetPasswordValues = {
+    password: '',
+    confirmPassword: '',
+};
+
 /**
  * Only ever redirect within this app after sign-in -- an unvalidated
  * `redirectTo` query param is a classic open-redirect vector, so anything

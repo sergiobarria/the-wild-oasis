@@ -13,6 +13,7 @@ export const APP_ROUTES = {
     SIGN_IN: '/sign-in',
     SIGN_UP: '/sign-up',
     FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
     CHECKOUT_SUMMARY: '/checkout/summary',
     CHECKOUT_SUCCESS: '/checkout/success',
     CHECKOUT_CANCEL: '/checkout/cancel',
