@@ -134,7 +134,7 @@ This phase is the UI layer per spec §53–56. No new schema.
 - [x] **WO-012 (2.3) — `/sign-in`** — email/password, forgot-password link, create-account
       link. Preserve booking-flow return context after successful auth per spec §34, §55.
 
-- [ ] **WO-013 (2.4) — `/forgot-password`** + reset flow via Better Auth's supported
+- [x] **WO-013 (2.4) — `/forgot-password`** + reset flow via Better Auth's supported
       recovery flow. Response must not leak whether an email exists (spec §56).
 
 - [x] **WO-014 (2.5) — Protected route middleware/guards** for `/guest-area` and `/admin`,
@@ -145,11 +145,11 @@ This phase is the UI layer per spec §53–56. No new schema.
 
 ## Phase 3 — Public Site Shell
 
-- [ ] **WO-015 (3.1) — Header** — logo, Home/Cabins/About/Contact nav, auth-aware right
+- [x] **WO-015 (3.1) — Header** — logo, Home/Cabins/About/Contact nav, auth-aware right
       side (Sign In + Explore Cabins vs. Dashboard menu), minimal, transparent-over-hero
       variant. Spec §20. No schema.
 
-- [ ] **WO-016 (3.2) — Footer** — branding, nav, legal links, newsletter form, copyright.
+- [x] **WO-016 (3.2) — Footer** — branding, nav, legal links, newsletter form, copyright.
       Spec §21. No schema.
 
 - [x] **WO-017 (3.3) — Newsletter subscription** — defines the `subscribers` schema table
