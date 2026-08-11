@@ -17,6 +17,7 @@ import type * as featureFlags from "../featureFlags.js";
 import type * as http from "../http.js";
 import type * as lib_amenities from "../lib/amenities.js";
 import type * as lib_cancellation from "../lib/cancellation.js";
+import type * as lib_email from "../lib/email.js";
 import type * as lib_messages from "../lib/messages.js";
 import type * as lib_money from "../lib/money.js";
 import type * as lib_occupancy from "../lib/occupancy.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/amenities": typeof lib_amenities;
   "lib/cancellation": typeof lib_cancellation;
+  "lib/email": typeof lib_email;
   "lib/messages": typeof lib_messages;
   "lib/money": typeof lib_money;
   "lib/occupancy": typeof lib_occupancy;
