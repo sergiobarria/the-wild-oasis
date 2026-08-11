@@ -8,6 +8,7 @@ import { betterAuth } from 'better-auth';
 import { components, internal } from '../_generated/api';
 import type { DataModel } from '../_generated/dataModel';
 import authConfig from '../auth.config';
+import { rateLimiter } from '../lib/rateLimiter';
 import schema from './schema';
 
 export const authComponent = createClient<DataModel, typeof schema>(components.betterAuth, {
@@ -27,7 +28,16 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
             enabled: true,
             minPasswordLength: 8,
             sendResetPassword: async ({ user, url }) => {
-                await requireActionCtx(ctx).runAction(internal.lib.email.sendResetPasswordEmail, {
+                const actionCtx = requireActionCtx(ctx);
+
+                // Email-keyed, same reasoning as `contactMessage`'s limit -- caps how often this
+                // account can be re-emailed even if a caller repeatedly requests a reset for it.
+                const { ok } = await rateLimiter.limit(actionCtx, 'passwordResetRequest', {
+                    key: user.email.toLowerCase(),
+                });
+                if (!ok) return;
+
+                await actionCtx.runAction(internal.lib.email.sendResetPasswordEmail, {
                     to: user.email,
                     name: user.name,
                     resetUrl: url,

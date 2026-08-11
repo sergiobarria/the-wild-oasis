@@ -15,4 +15,5 @@ import { components } from '../_generated/api';
 export const rateLimiter = new RateLimiter(components.rateLimiter, {
     contactMessage: { kind: 'token bucket', rate: 1, period: MINUTE, capacity: 1 },
     newsletterSubscribe: { kind: 'token bucket', rate: 1, period: MINUTE, capacity: 1 },
+    passwordResetRequest: { kind: 'token bucket', rate: 1, period: MINUTE, capacity: 1 },
 });
