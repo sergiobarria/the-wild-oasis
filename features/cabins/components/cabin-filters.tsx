@@ -15,7 +15,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { api } from '@/convex/_generated/api';
-import { AMENITY_ICON_MAP, CURATED_AMENITY_NAMES } from '@/lib/amenity-icons';
+import { AMENITY_ICON_BY_KEY, CURATED_AMENITY_NAMES } from '@/lib/amenity-icons';
 import { GUEST_OPTIONS } from '@/lib/guest-options';
 import { cn } from '@/lib/utils';
 
@@ -125,7 +125,7 @@ export function CabinFilters() {
 
                 <div className='flex flex-wrap items-center gap-2'>
                     {curatedAmenities.map((amenity) => {
-                        const Icon = AMENITY_ICON_MAP[amenity.name];
+                        const Icon = AMENITY_ICON_BY_KEY[amenity.icon];
                         const active = filters.amenities.includes(amenity._id);
 
                         return (

@@ -1,6 +1,6 @@
-import { AMENITY_ICON_MAP } from '@/lib/amenity-icons';
+import { AMENITY_ICON_BY_KEY } from '@/lib/amenity-icons';
 
-type Amenity = { _id: string; name: string };
+type Amenity = { _id: string; name: string; icon: string };
 
 export function CabinAmenitiesGrid({ amenities }: { amenities: Amenity[] }) {
     if (amenities.length === 0) return null;
@@ -8,7 +8,7 @@ export function CabinAmenitiesGrid({ amenities }: { amenities: Amenity[] }) {
     return (
         <div className='grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3'>
             {amenities.map((amenity) => {
-                const Icon = AMENITY_ICON_MAP[amenity.name];
+                const Icon = AMENITY_ICON_BY_KEY[amenity.icon];
 
                 return (
                     <div key={amenity._id} className='flex items-center gap-2 text-sm'>

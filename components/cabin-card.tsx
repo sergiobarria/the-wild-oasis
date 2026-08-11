@@ -6,7 +6,7 @@ import { Bed, BedDouble, MapPin, Users } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { AMENITY_ICON_MAP } from '@/lib/amenity-icons';
+import { AMENITY_ICON_BY_KEY } from '@/lib/amenity-icons';
 import { formatNightlyRate } from '@/lib/money';
 import { APP_ROUTES } from '@/lib/routes';
 
@@ -25,7 +25,7 @@ type CabinCardCabin = {
     shortDescription: string;
 };
 
-type AmenityBadge = { _id: string; name: string };
+type AmenityBadge = { _id: string; name: string; icon: string };
 
 type CabinCardProps = {
     cabin: CabinCardCabin;
@@ -92,7 +92,7 @@ export function CabinCard({ cabin, amenities, featured }: CabinCardProps) {
                 {visibleAmenities && visibleAmenities.length > 0 && (
                     <div className='flex flex-wrap gap-1.5'>
                         {visibleAmenities.map((amenity) => {
-                            const Icon = AMENITY_ICON_MAP[amenity.name];
+                            const Icon = AMENITY_ICON_BY_KEY[amenity.icon];
 
                             return (
                                 <span

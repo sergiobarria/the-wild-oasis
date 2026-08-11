@@ -1,6 +1,13 @@
-import { Coffee, DoorOpen, Flame, Leaf } from 'lucide-react';
-
-import { AMENITY_ICON_MAP, CURATED_AMENITY_NAMES } from '@/lib/amenity-icons';
+import {
+    ChefHat,
+    Coffee,
+    DoorOpen,
+    Flame,
+    FlameKindling,
+    Leaf,
+    Sparkles,
+    Wifi,
+} from 'lucide-react';
 
 const CONCEPTS = [
     {
@@ -25,6 +32,18 @@ const CONCEPTS = [
     },
 ] as const;
 
+/** Same 6 amenities as `lib/amenity-icons.ts`'s `CURATED_AMENITY_NAMES` -- paired with
+ *  their icon directly here (like `CONCEPTS` above) since this is a fixed, decorative
+ *  chip row, not a live-DB amenity list. */
+const CURATED_AMENITIES = [
+    { name: 'WiFi', icon: Wifi },
+    { name: 'Kitchen', icon: ChefHat },
+    { name: 'Fireplace', icon: Flame },
+    { name: 'Hot Tub', icon: Sparkles },
+    { name: 'Garden', icon: Leaf },
+    { name: 'Grill / BBQ', icon: FlameKindling },
+] as const;
+
 export function SlowingDownSection() {
     return (
         <section className='mx-auto w-full max-w-6xl px-6 py-16 lg:px-8'>
@@ -45,19 +64,15 @@ export function SlowingDownSection() {
             </div>
 
             <div className='mt-16 flex flex-wrap justify-center gap-3'>
-                {CURATED_AMENITY_NAMES.map((name) => {
-                    const Icon = AMENITY_ICON_MAP[name];
-
-                    return (
-                        <span
-                            key={name}
-                            className='flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm text-muted-foreground'
-                        >
-                            {Icon && <Icon className='size-4 text-primary' />}
-                            {name}
-                        </span>
-                    );
-                })}
+                {CURATED_AMENITIES.map(({ name, icon: Icon }) => (
+                    <span
+                        key={name}
+                        className='flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm text-muted-foreground'
+                    >
+                        <Icon className='size-4 text-primary' />
+                        {name}
+                    </span>
+                ))}
             </div>
         </section>
     );

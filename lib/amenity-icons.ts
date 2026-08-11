@@ -29,38 +29,39 @@ import {
 } from 'lucide-react';
 
 /**
- * Amenity name -> Lucide icon, per spec §30/§72. Curated, not exhaustive: an
- * amenity only appears here once it has an icon that actually reads at a
- * glance -- forcing a weak match for the rest (Dryer, Hammock, Balcony, High
- * Chair, Carbon Monoxide Detector) would do more harm than leaving them out.
+ * Lucide export name (the DB's `amenities.icon` field, e.g. `"Wifi"`) -> icon component,
+ * per spec §30/§72. Curated, not exhaustive: an icon only appears here once it reads at a
+ * glance -- forcing a weak match for the rest would do more harm than leaving them out.
+ * Kept in sync by eye with `convex/lib/amenities.ts`'s `AMENITY_ICON_NAMES` allow-list,
+ * which validates every amenity's `icon` against exactly this set server-side.
  */
-export const AMENITY_ICON_MAP: Record<string, LucideIcon> = {
-    WiFi: Wifi,
-    Kitchen: ChefHat,
-    'Air Conditioner': Snowflake,
-    Fireplace: Flame,
-    'Coffee Maker': Coffee,
-    'TV / Streaming': Tv,
-    'Board Games': Dices,
-    Washer: WashingMachine,
-    Workspace: BriefcaseBusiness,
-    'Books & Magazines': Book,
-    'Swimming Pool': WavesLadder,
-    'Grill / BBQ': FlameKindling,
-    'Outdoor Shower': ShowerHead,
-    'Ocean View': Waves,
-    'Private Entrance': DoorOpen,
-    Garden: Leaf,
-    Crib: Baby,
-    'Pet Friendly': PawPrint,
-    'Hot Tub': Sparkles,
-    Gym: Dumbbell,
-    'Smoke Detector': AlarmSmoke,
-    'Security Cameras': Cctv,
-    'First Aid Kit': BriefcaseMedical,
-    Parking: CircleParking,
-    'Bicycle Rental': Bike,
-    'Electric Vehicle Charger': PlugZap,
+export const AMENITY_ICON_BY_KEY: Record<string, LucideIcon> = {
+    Wifi,
+    Snowflake,
+    WashingMachine,
+    BriefcaseBusiness,
+    AlarmSmoke,
+    BriefcaseMedical,
+    Cctv,
+    Baby,
+    ChefHat,
+    Coffee,
+    WavesLadder,
+    FlameKindling,
+    ShowerHead,
+    Waves,
+    Leaf,
+    Flame,
+    Sparkles,
+    Dumbbell,
+    PawPrint,
+    Tv,
+    Dices,
+    Book,
+    CircleParking,
+    Bike,
+    PlugZap,
+    DoorOpen,
 };
 
 /**
